@@ -14,14 +14,14 @@ function formatStatusBar(summary) {
   const activeBots = summary.workingBots || 0;
   const totalBots = summary.totalBots || 0;
   const workers = summary.workingWorkers || 0;
-  const attn = summary.attentionCount || 0;
+  const decisions = summary.decisionCount || 0;
 
   const parts = [`${activeBots}/${totalBots}`];
   if (workers > 0) parts.push(`${workers}w`);
-  if (attn > 0) parts.push(`🔴 ${attn}`);
+  if (decisions > 0) parts.push(`🔴 ${decisions}`);
 
   let tone = "neutral";
-  if (attn > 0) tone = "danger";
+  if (decisions > 0) tone = "danger";
   else if (activeBots > 0 || workers > 0) tone = "accent";
 
   return {
@@ -29,7 +29,7 @@ function formatStatusBar(summary) {
     icon: "bot",
     text: parts.join(" · "),
     tone,
-    tooltip: `Bot Office: ${activeBots}/${totalBots} active, ${workers}/${summary.totalWorkers || 0} workers running, ${attn} need attention`,
+    tooltip: `Bot Office: ${activeBots}/${totalBots} active, ${workers}/${summary.totalWorkers || 0} workers running, ${decisions} decisions waiting`,
     visible: true,
   };
 }
@@ -58,14 +58,14 @@ export default function activate(orca) {
     try {
       const res = await runOrcaJson(orcaBin, ["plugin", "list"]);
       const plugins = Array.isArray(res?.plugins) ? res.plugins : [];
-      const match = plugins.find(
-        (p) =>
-          p?.status === "running" &&
-          typeof p?.pluginKey === "string" &&
-          p.pluginKey.endsWith(".bot-office")
-      ) || plugins.find(
-        (p) => typeof p?.pluginKey === "string" && p.pluginKey.endsWith(".bot-office")
-      );
+      const match =
+        plugins.find(
+          (p) =>
+            p?.status === "running" &&
+            typeof p?.pluginKey === "string" &&
+            p.pluginKey.endsWith(".bot-office")
+        ) ||
+        plugins.find((p) => typeof p?.pluginKey === "string" && p.pluginKey.endsWith(".bot-office"));
       if (match?.pluginKey) {
         resolvedPluginKey = match.pluginKey;
         return resolvedPluginKey;
@@ -133,13 +133,12 @@ export default function activate(orca) {
   orca.panels.handle("office.openWorkspace", async (input = {}) => {
     if (!input.workspaceId) throw new Error("workspaceId is required");
     const result = await orca.host.call("workspace.open", { workspaceId: input.workspaceId });
-    // If the user is jumping in to handle an agent needing attention, also focus its terminal pane when available.
     if (input.focusAttention && orca.host.has?.("agents.list") && orca.host.has?.("terminal.focus")) {
       try {
         const list = await orca.host.call("agents.list", { workspaceId: input.workspaceId });
-        const target = (list?.agents || []).find(
-          (a) => a.terminalId && (a.state === "blocked" || a.state === "waiting")
-        ) || (list?.agents || []).find((a) => a.terminalId);
+        const target =
+          (list?.agents || []).find((a) => a.terminalId && (a.state === "blocked" || a.state === "waiting")) ||
+          (list?.agents || []).find((a) => a.terminalId);
         if (target?.terminalId) {
           await orca.host.call("terminal.focus", { terminalId: target.terminalId }).catch(() => {});
         }
@@ -148,6 +147,13 @@ export default function activate(orca) {
       }
     }
     return result;
+  });
+
+  orca.panels.handle("office.openTasksView", async () => {
+    if (orca.host.has?.("commands.run")) {
+      return await orca.host.call("commands.run", { action: "view.tasks" });
+    }
+    return { ran: false };
   });
 
   orca.commands.register("bot-office.show", async () => {

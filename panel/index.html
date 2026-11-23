@@ -8,23 +8,24 @@
     * { box-sizing: border-box; }
     :root {
       --bg: #0b0e14;
-      --card: #131924;
-      --card-elev: #172030;
-      --border: rgba(255, 255, 255, 0.11);
+      --surface: #121824;
+      --card: #151d2d;
+      --border: rgba(255, 255, 255, 0.1);
       --fg: #eef2f7;
       --muted: #94a3b8;
       --cyan: #38bdf8;
+      --blue: #60a5fa;
       --green: #4ade80;
       --amber: #fbbf24;
       --red: #ef4444;
       --purple: #c084fc;
     }
     html.light {
-      --bg: #dfe6f0;
+      --bg: #e2e8f0;
+      --surface: #f8fafc;
       --card: #ffffff;
-      --card-elev: #f8fafc;
-      --border: rgba(30, 41, 59, 0.14);
-      --fg: #1e293b;
+      --border: rgba(15, 23, 42, 0.12);
+      --fg: #0f172a;
       --muted: #64748b;
     }
     body {
@@ -37,127 +38,143 @@
       user-select: none;
     }
 
-    /* Sticky Roof Header */
-    .roofbar {
+    /* Magpie-inspired Clean Two-Row Sticky Header */
+    .topbar {
       position: sticky;
       top: 0;
       z-index: 70;
+      margin-bottom: 7px;
+      padding: 7px 10px;
+      background: rgba(17, 23, 35, 0.94);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 11px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .topbar-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
-      padding: 6px 10px;
-      margin-bottom: 6px;
-      background: linear-gradient(180deg, #1b2334, #121826);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      border-radius: 10px 10px 5px 5px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.42);
+      gap: 8px;
     }
-    .brand { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .brand-title { font-weight: 800; font-size: 13px; color: #f8fafc; white-space: nowrap; }
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 1px 7px; border-radius: 999px;
+      font-size: 10px; font-weight: 700;
+      background: rgba(74, 222, 128, 0.14);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      color: #86efac;
+    }
     .live-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4ade80; box-shadow: 0 0 6px #4ade80;
       animation: pulse 2s infinite;
-      flex-shrink: 0;
     }
-    .brand-title { font-weight: 800; font-size: 12.5px; color: #f8fafc; white-space: nowrap; }
-    .brand-stat { font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .brand-stat b { color: #38bdf8; }
-    .brand-stat b.g { color: #4ade80; }
 
-    .top-btns { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    /* Right 3-Bucket Status Counters (Magpie style) */
+    .counters { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .cnt {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: #cbd5e1; padding: 2px 6px; border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid transparent;
+    }
+    .cnt b { color: #f8fafc; font-weight: 800; }
+    .cnt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .cnt-dot.red { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+    .cnt-dot.blue { background: #38bdf8; }
+    .cnt-dot.gray { background: #64748b; }
+    .cnt.clickable { cursor: pointer; }
+    .cnt.has-need {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.65);
+      color: #fecaca;
+      animation: attnGlow 1.9s ease-in-out infinite;
+    }
+    .cnt.has-need:hover { background: rgba(239, 68, 68, 0.3); color: #fff; }
+
+    /* Segmented View Switcher (Office | List) */
+    .seg {
+      display: inline-flex;
+      padding: 2px;
+      border-radius: 8px;
+      background: rgba(9, 13, 23, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .seg-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: #f8fafc;
+      color: #0f172a;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    }
+    .seg-btn:not(.active):hover { color: #e2e8f0; }
+
+    .ctrl-right { display: flex; align-items: center; gap: 5px; }
     .btn {
-      border: 1px solid rgba(148, 163, 184, 0.26);
+      border: 1px solid rgba(148, 163, 184, 0.24);
       background: rgba(15, 23, 42, 0.65);
-      color: #e2e8f0;
+      color: #cbd5e1;
       border-radius: 6px;
       padding: 3px 8px;
       font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
     }
     .btn:hover, .btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(56, 189, 248, 0.14); }
-    .btn-attn {
-      border: 1px solid rgba(239, 68, 68, 0.72);
-      background: rgba(239, 68, 68, 0.2);
-      color: #fecaca;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      animation: attnGlow 1.8s ease-in-out infinite;
-    }
-    .btn-attn:hover { background: rgba(239, 68, 68, 0.34); color: #fff; border-color: #f87171; }
-    .btn-attn-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #ef4444;
-      box-shadow: 0 0 6px #ef4444;
-    }
 
     /* Cutaway HQ Building Shell */
     .building {
       display: flex;
       flex-direction: column;
-      border: 3px solid #283246;
+      border: 2.5px solid #263044;
       border-radius: 11px;
       overflow: hidden;
       background: #141923;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
     }
-
-    /* Each Story = Architectural Cutaway Room */
     .floor-story {
       position: relative;
       width: 100%;
-      border-bottom: 7px solid #1e2536;
+      border-bottom: 7px solid #1c2434;
       overflow: hidden;
       background: #181c24;
     }
     .floor-story:last-child { border-bottom: none; }
     .floor-story::before {
-      content: "";
-      position: absolute;
-      left: 0; right: 0; top: 0;
-      height: 2px;
-      background: rgba(255, 255, 255, 0.08);
-      z-index: 35;
-      pointer-events: none;
+      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+      background: rgba(255, 255, 255, 0.08); z-index: 35; pointer-events: none;
     }
     .floor-story::after {
-      content: "";
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #0d111a, #37435c, #0d111a);
-      z-index: 35;
-      pointer-events: none;
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+      background: linear-gradient(90deg, #0d111a, #37435c, #0d111a); z-index: 35; pointer-events: none;
     }
 
-    .floor-bg-svg {
-      position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 10;
-    }
-    .floor-actors {
-      position: absolute; inset: 0; z-index: 20; pointer-events: none;
-    }
-    .floor-fg-svg {
-      position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 24; pointer-events: none;
-    }
-    .floor-labels {
-      position: absolute; inset: 0; z-index: 30; pointer-events: none;
-    }
+    .floor-bg-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 10; }
+    .floor-actors { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+    .floor-fg-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 24; pointer-events: none; }
+    .floor-labels { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
 
     /* Architectural Floor Sign */
     .floor-sign {
-      position: absolute;
-      top: 5px; left: 8px; z-index: 36;
+      position: absolute; top: 6px; left: 8px; z-index: 36;
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 2px 7px 2px 5px;
-      border-radius: 5px;
-      background: rgba(10, 14, 24, 0.82);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      backdrop-filter: blur(4px);
-      pointer-events: none;
+      padding: 2px 8px 2px 5px; border-radius: 6px;
+      background: rgba(10, 14, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(4px); pointer-events: none;
     }
     .f-num {
       font-size: 9.5px; font-weight: 800; font-family: ui-monospace, monospace;
@@ -165,43 +182,33 @@
     }
     .f-name { font-size: 10.5px; font-weight: 700; color: #f1f5f9; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .f-badge {
-      position: absolute;
-      top: 5px; right: 8px; z-index: 36;
-      font-size: 9.5px; font-weight: 700;
-      padding: 2px 7px; border-radius: 999px;
-      background: rgba(10, 14, 24, 0.82);
-      border: 1px solid rgba(148, 163, 184, 0.26);
-      color: #94a3b8;
-      pointer-events: none;
+      position: absolute; top: 6px; right: 8px; z-index: 36;
+      font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+      background: rgba(10, 14, 24, 0.82); border: 1px solid rgba(148, 163, 184, 0.26);
+      color: #94a3b8; pointer-events: none;
     }
-    .f-badge.hot { color: #4ade80; border-color: rgba(74, 222, 128, 0.5); background: rgba(6, 78, 59, 0.75); }
-    .f-badge.attn { color: #fecaca; border-color: rgba(239, 68, 68, 0.72); background: rgba(127, 29, 29, 0.82); }
+    .f-badge.hot { color: #86efac; border-color: rgba(74, 222, 128, 0.48); background: rgba(6, 78, 59, 0.72); }
+    .f-badge.attn { color: #fecaca; border-color: rgba(239, 68, 68, 0.75); background: rgba(127, 29, 29, 0.84); }
 
     /* Seated Characters (Behind wooden desks) */
     .actor {
-      position: absolute;
-      transform: translate(-50%, -100%);
+      position: absolute; transform: translate(-50%, -100%);
       display: flex; flex-direction: column; align-items: center;
-      pointer-events: auto;
-      cursor: pointer;
+      pointer-events: auto; cursor: pointer;
     }
     .actor:hover .actor-head { transform: scale(1.1); }
-
     .actor-body { position: relative; display: flex; flex-direction: column; align-items: center; }
-    .actor.is-working .actor-body { animation: typingBob 1.1s ease-in-out infinite; }
+    .actor.is-working .actor-body { animation: typingBob 1.15s ease-in-out infinite; }
     .actor.is-attn .actor-body { animation: alertHop 1.5s ease-in-out infinite; }
     .actor.is-idle .actor-body { animation: chillBreathe 3.2s ease-in-out infinite; }
 
     .actor-head {
-      width: 34px; height: 34px; border-radius: 11px;
-      overflow: hidden;
-      border: 2px solid rgba(255, 255, 255, 0.28);
-      background: #1e293b;
+      width: 34px; height: 34px; border-radius: 11px; overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.28); background: #1e293b;
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
       transition: transform 0.15s, box-shadow 0.2s;
       display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 800; font-size: 14px;
-      z-index: 2;
+      color: #fff; font-weight: 800; font-size: 14px; z-index: 2;
     }
     .actor-head img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .actor.is-working .actor-head {
@@ -212,20 +219,14 @@
       border-color: #ef4444;
       box-shadow: 0 0 14px rgba(239, 68, 68, 0.85), 0 3px 8px rgba(0, 0, 0, 0.5);
     }
-    .actor.is-idle .actor-head {
-      width: 31px; height: 31px; border-radius: 10px;
-      filter: brightness(0.9) saturate(0.88);
-    }
+    .actor.is-idle .actor-head { width: 31px; height: 31px; border-radius: 10px; filter: brightness(0.9) saturate(0.88); }
 
     .actor.is-worker .actor-head {
       width: 36px; height: 44px; border-radius: 0;
       background: transparent; border: none; box-shadow: none; overflow: visible;
     }
-    .actor.is-worker.is-attn .actor-head {
-      filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.9));
-    }
+    .actor.is-worker.is-attn .actor-head { filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.9)); }
 
-    /* Seated Shoulders tucked behind wooden desktop */
     .actor-torso {
       width: 32px; height: 18px; margin-top: -4px;
       border-radius: 12px 12px 2px 2px;
@@ -241,100 +242,141 @@
     .actor.is-attn .actor-torso { background: linear-gradient(180deg, #dc2626, #7f1d1d); }
     .actor.is-worker .actor-torso { display: none; }
 
-    /* Red Notification Dot right on top of character's head when user is needed! */
+    /* Pulsing Red Decision Dot on Head (STRICTLY for Needs-You decision items & approval blockers!) */
     .head-red-dot {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      min-width: 15px;
-      height: 15px;
-      padding: 0 4px;
-      border-radius: 999px;
-      background: #ef4444;
-      border: 2px solid #ffffff;
-      color: #ffffff;
-      font-size: 9px;
-      font-weight: 900;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: absolute; transform: translate(-50%, -50%);
+      min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+      background: #ef4444; border: 2px solid #ffffff; color: #ffffff;
+      font-size: 9px; font-weight: 900; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
       box-shadow: 0 0 10px rgba(239, 68, 68, 0.95), 0 2px 5px rgba(0, 0, 0, 0.55);
-      pointer-events: auto;
-      cursor: pointer;
-      z-index: 38;
+      pointer-events: auto; cursor: pointer; z-index: 38;
     }
     .head-red-dot::before {
-      content: "";
-      position: absolute;
-      inset: -4px;
-      border-radius: 999px;
+      content: ""; position: absolute; inset: -4px; border-radius: 999px;
       border: 2px solid rgba(239, 68, 68, 0.8);
       animation: redPing 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
       pointer-events: none;
     }
 
-    /* Floating Speech Bubbles */
-    .bubble {
-      position: absolute;
-      transform: translate(-50%, -100%);
-      max-width: 136px;
-      padding: 2px 7px;
-      border-radius: 7px;
-      font-size: 9px; font-weight: 600; line-height: 1.25;
+    /* Magpie-style Crisp Floating Pill Labels (zero ugly flying wires!) */
+    .pill-bubble {
+      position: absolute; transform: translate(-50%, -100%);
+      max-width: 148px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 9.5px; font-weight: 700; line-height: 1.3;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      background: rgba(10, 16, 28, 0.92);
-      border: 1px solid rgba(56, 189, 248, 0.65);
-      color: #e0f2fe;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
-      pointer-events: auto;
-      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(248, 250, 252, 0.95);
+      color: #0f172a;
+      border: 1.5px solid rgba(56, 189, 248, 0.7);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      pointer-events: auto; cursor: pointer;
     }
-    .bubble.worker {
-      border-color: rgba(74, 222, 128, 0.72);
-      background: rgba(6, 46, 36, 0.92);
-      color: #dcfce7;
-      max-width: 120px;
+    .pill-bubble:hover { transform: translate(-50%, -104%); }
+    .pill-bubble.worker { border-color: rgba(74, 222, 128, 0.85); max-width: 132px; }
+    .pill-bubble.attn {
+      background: #fef2f2;
+      color: #991b1b;
+      border-color: #ef4444;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.42);
     }
-    .bubble.attn {
-      border-color: rgba(239, 68, 68, 0.85);
-      background: rgba(127, 29, 29, 0.94);
-      color: #fee2e2;
-    }
+    .pb-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: #38bdf8; }
+    .pill-bubble.worker .pb-dot { background: #22c55e; }
+    .pill-bubble.attn .pb-dot { background: #ef4444; }
+    .pb-txt { overflow: hidden; text-overflow: ellipsis; }
 
     /* Desk Front Nameplate */
     .nameplate {
-      position: absolute;
-      transform: translate(-50%, 0);
-      padding: 1px 6px;
-      border-radius: 4px;
-      background: rgba(12, 16, 26, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: #f8fafc;
-      font-size: 9px; font-weight: 700;
-      white-space: nowrap; max-width: 106px; overflow: hidden; text-overflow: ellipsis;
+      position: absolute; transform: translate(-50%, 0);
+      padding: 1px 6px; border-radius: 4px;
+      background: rgba(12, 16, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #f8fafc; font-size: 9px; font-weight: 700;
+      white-space: nowrap; max-width: 108px; overflow: hidden; text-overflow: ellipsis;
       pointer-events: auto; cursor: pointer;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
     }
     .nameplate.worker-hot { border-color: rgba(74, 222, 128, 0.65); color: #86efac; background: rgba(6, 38, 30, 0.92); }
     .nameplate.boss-hot { border-color: rgba(56, 189, 248, 0.6); color: #e0f2fe; }
-    .nameplate.attn { border-color: rgba(239, 68, 68, 0.85); color: #fecaca; background: rgba(127, 29, 29, 0.9); }
+    .nameplate.attn { border-color: rgba(239, 68, 68, 0.85); color: #fecaca; background: rgba(127, 29, 29, 0.92); }
     .nameplate.idle { color: #cbd5e1; opacity: 0.92; }
 
     .fx-z {
       position: absolute; top: -6px; right: -8px;
       font-size: 9px; font-weight: 800; color: #e9d5ff;
       text-shadow: 0 0 6px rgba(192, 132, 252, 0.95);
-      animation: floatZ 2.4s ease-in-out infinite;
-      pointer-events: none;
+      animation: floatZ 2.4s ease-in-out infinite; pointer-events: none;
     }
 
-    /* Guest Bar (B1 Standalone Workspaces) */
-    .guest-bar {
-      margin-top: 7px;
+    /* Magpie-style Grouped Workbench List View */
+    .workbench { display: flex; flex-direction: column; gap: 8px; }
+    .wb-group {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 6px 10px;
+      border-radius: 11px;
+      overflow: hidden;
+    }
+    .wb-group.attn { border-color: rgba(239, 68, 68, 0.48); }
+    .wb-g-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 11px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px; font-weight: 800; color: var(--fg);
+    }
+    .wb-g-head .left { display: flex; align-items: center; gap: 6px; }
+    .wb-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 11px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .wb-row:last-child { border-bottom: none; }
+    .wb-row:hover { background: rgba(56, 189, 248, 0.08); }
+    .wb-row.attn { background: rgba(239, 68, 68, 0.08); }
+    .wb-row.attn:hover { background: rgba(239, 68, 68, 0.14); }
+    .wb-av {
+      position: relative; width: 32px; height: 32px; border-radius: 9px;
+      background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.14);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .wb-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+    .wb-av-dot {
+      position: absolute; top: -4px; right: -4px; min-width: 13px; height: 13px;
+      border-radius: 999px; background: #ef4444; border: 1.5px solid #151d2d;
+      color: #fff; font-size: 8px; font-weight: 900; display: flex; align-items: center; justify-content: center;
+    }
+    .wb-body { min-width: 0; flex: 1; }
+    .wb-top { display: flex; align-items: center; gap: 6px; }
+    .wb-name { font-weight: 700; font-size: 12px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wb-tag { font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: rgba(148, 163, 184, 0.14); color: var(--muted); white-space: nowrap; }
+    .wb-tag.eng { background: rgba(56, 189, 248, 0.14); color: #7dd3fc; }
+    .wb-tag.need { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .wb-sub { margin-top: 2px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wb-act { font-size: 11px; font-weight: 700; color: var(--cyan); white-space: nowrap; flex-shrink: 0; }
+    .wb-row.attn .wb-act { color: #fca5a5; }
+
+    /* Bottom Legend Strip (Magpie style) */
+    .legend {
+      margin-top: 7px;
+      padding: 5px 9px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+      font-size: 10px; color: var(--muted);
+    }
+    .legend-grp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .lg-item { display: inline-flex; align-items: center; gap: 4px; }
+    .lg-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    /* Guest Bar */
+    .guest-bar {
+      margin-top: 7px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 9px; padding: 6px 10px;
     }
     .guest-head {
       display: flex; align-items: center; justify-content: space-between;
@@ -344,35 +386,25 @@
     .guest-chip {
       padding: 3px 8px; border-radius: 6px; font-size: 10.5px;
       background: rgba(148, 163, 184, 0.1); border: 1px solid var(--border);
-      color: var(--fg); cursor: pointer;
-      display: inline-flex; align-items: center; gap: 5px;
+      color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
     }
     .guest-chip:hover { border-color: var(--cyan); color: var(--cyan); }
     .guest-chip.attn { border-color: rgba(239, 68, 68, 0.65); color: #fecaca; background: rgba(239, 68, 68, 0.14); }
 
-    /* Popover Inspector Card Overlay (Triggered when clicking any Bot or Worker!) */
+    /* Popover Inspector & Decision Card */
     .card-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 120;
-      background: rgba(5, 8, 15, 0.62);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      animation: fadeIn 0.14s ease-out;
+      position: fixed; inset: 0; z-index: 120;
+      background: rgba(5, 8, 15, 0.64); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 12px; animation: fadeIn 0.14s ease-out;
     }
     .inspector-card {
-      width: 100%;
-      max-width: 390px;
-      max-height: calc(100vh - 36px);
+      width: 100%; max-width: 420px; max-height: calc(100vh - 28px);
       overflow-y: auto;
-      background: #141c2c;
-      color: #f1f5f9;
+      background: #141c2c; color: #f1f5f9;
       border: 1px solid rgba(148, 163, 184, 0.28);
       border-radius: 14px;
-      box-shadow: 0 22px 56px rgba(0, 0, 0, 0.68), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+      box-shadow: 0 22px 56px rgba(0, 0, 0, 0.68);
       padding: 14px;
       animation: popIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -380,68 +412,98 @@
       border-color: rgba(239, 68, 68, 0.72);
       box-shadow: 0 22px 56px rgba(0, 0, 0, 0.72), 0 0 28px rgba(239, 68, 68, 0.22);
     }
-    .ic-head {
-      display: flex; align-items: center; gap: 10px;
-    }
+    .ic-head { display: flex; align-items: center; gap: 10px; }
     .ic-av {
-      position: relative;
-      width: 44px; height: 44px; border-radius: 12px;
+      position: relative; width: 42px; height: 42px; border-radius: 12px;
       background: #1e293b; border: 1.5px solid rgba(255, 255, 255, 0.18);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; overflow: visible;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .ic-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
     .ic-av-dot {
-      position: absolute; top: -5px; right: -5px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: #ef4444; border: 2px solid #141c2c;
-      box-shadow: 0 0 8px #ef4444;
+      position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; border-radius: 50%;
+      background: #ef4444; border: 2px solid #141c2c; box-shadow: 0 0 8px #ef4444;
     }
     .ic-title-wrap { min-width: 0; flex: 1; }
-    .ic-name {
-      font-size: 14px; font-weight: 800; color: #f8fafc;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .ic-meta {
-      margin-top: 2px;
-      display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
-      font-size: 10.5px; color: #94a3b8;
-    }
-    .ic-pill {
-      padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 700;
-      background: rgba(148, 163, 184, 0.14); color: #cbd5e1;
-    }
+    .ic-name { font-size: 14px; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ic-meta { margin-top: 2px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 10.5px; color: #94a3b8; }
+    .ic-pill { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(148, 163, 184, 0.14); color: #cbd5e1; }
     .ic-pill.eng { background: rgba(56, 189, 248, 0.16); color: #7dd3fc; }
     .ic-close {
       width: 26px; height: 26px; border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      background: rgba(15, 23, 42, 0.6); color: #cbd5e1;
-      font-size: 15px; line-height: 1; cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.24); background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1; font-size: 15px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .ic-close:hover { background: rgba(148, 163, 184, 0.2); color: #fff; }
 
     .ic-status-bar {
-      margin-top: 11px;
-      padding: 7px 10px;
-      border-radius: 9px;
+      margin-top: 10px; padding: 7px 10px; border-radius: 9px;
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11.5px; font-weight: 700;
-      background: rgba(30, 41, 59, 0.72);
-      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(30, 41, 59, 0.72); border: 1px solid rgba(148, 163, 184, 0.18);
     }
-    .ic-status-bar.attn {
-      background: rgba(127, 29, 29, 0.48);
-      border-color: rgba(239, 68, 68, 0.55);
-      color: #fecaca;
-    }
-    .ic-status-bar.working {
-      background: rgba(6, 78, 59, 0.42);
-      border-color: rgba(74, 222, 128, 0.42);
-      color: #bbf7d0;
-    }
-    .ic-status-bar.idle { color: #cbd5e1; }
+    .ic-status-bar.attn { background: rgba(127, 29, 29, 0.48); border-color: rgba(239, 68, 68, 0.55); color: #fecaca; }
+    .ic-status-bar.working { background: rgba(6, 78, 59, 0.42); border-color: rgba(74, 222, 128, 0.42); color: #bbf7d0; }
     .ic-time { font-size: 10.5px; font-weight: 500; opacity: 0.85; white-space: nowrap; }
+
+    /* Interactive Native Needs-You Decision Panel inside Card */
+    .ic-decision-box {
+      margin-top: 10px;
+      background: rgba(127, 29, 29, 0.16);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .ic-dec-title {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 800; color: #fee2e2;
+    }
+    .ic-dec-num {
+      font-family: ui-monospace, monospace; font-size: 10px;
+      padding: 1px 5px; border-radius: 4px;
+      background: rgba(239, 68, 68, 0.3); color: #fecaca;
+    }
+    .ic-dec-ctx {
+      margin-top: 6px;
+      padding: 7px 8px; border-radius: 7px;
+      background: rgba(9, 13, 23, 0.6);
+      font-size: 11px; line-height: 1.5; color: #e2e8f0;
+      white-space: pre-wrap; max-height: 110px; overflow-y: auto;
+      user-select: text;
+    }
+    .ic-q { margin-top: 9px; }
+    .ic-q-prompt { font-size: 11.5px; font-weight: 700; color: #f8fafc; margin-bottom: 5px; }
+    .ic-opts { display: flex; flex-direction: column; gap: 4px; }
+    .ic-opt {
+      text-align: left;
+      padding: 6px 9px; border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.72);
+      color: #e2e8f0; font-size: 11px; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .ic-opt:hover { border-color: rgba(56, 189, 248, 0.65); background: rgba(30, 41, 59, 0.85); }
+    .ic-opt.chosen {
+      border-color: #4ade80;
+      background: rgba(6, 78, 59, 0.55);
+      color: #dcfce7;
+      font-weight: 700;
+    }
+    .ic-opt-rec {
+      font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 999px;
+      background: rgba(251, 191, 36, 0.2); color: #fde68a; white-space: nowrap; flex-shrink: 0;
+    }
+    .ic-note-input {
+      width: 100%; margin-top: 7px;
+      padding: 6px 9px; border-radius: 7px;
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      background: rgba(9, 13, 23, 0.75); color: #f8fafc;
+      font-size: 11px; font-family: inherit; outline: none;
+    }
+    .ic-note-input:focus { border-color: var(--cyan); }
+    .ic-dec-hint { margin-top: 6px; font-size: 10px; color: #94a3b8; line-height: 1.4; }
+    .ic-dec-actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 
     .ic-section-title {
       margin: 11px 0 5px;
@@ -449,33 +511,21 @@
       color: #94a3b8;
     }
     .ic-task-box {
-      background: rgba(9, 13, 23, 0.72);
-      border: 1px solid rgba(148, 163, 184, 0.16);
-      border-radius: 9px;
-      padding: 9px 10px;
-      font-size: 11.5px;
-      line-height: 1.5;
-      color: #e2e8f0;
-      word-break: break-word;
-      user-select: text;
+      background: rgba(9, 13, 23, 0.72); border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 9px; padding: 8px 10px;
+      font-size: 11.5px; line-height: 1.5; color: #e2e8f0;
+      word-break: break-word; user-select: text;
     }
     .ic-task-line + .ic-task-line {
-      margin-top: 6px;
-      padding-top: 6px;
-      border-top: 1px dashed rgba(148, 163, 184, 0.16);
-      color: #94a3b8;
-      font-size: 11px;
+      margin-top: 6px; padding-top: 6px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.16); color: #94a3b8; font-size: 11px;
     }
 
-    .ic-workers {
-      display: flex; flex-direction: column; gap: 5px;
-      max-height: 165px; overflow-y: auto;
-    }
+    .ic-workers { display: flex; flex-direction: column; gap: 5px; max-height: 150px; overflow-y: auto; }
     .ic-worker-row {
       display: flex; align-items: center; gap: 8px;
       padding: 6px 8px; border-radius: 8px;
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(148, 163, 184, 0.16);
       cursor: pointer;
     }
     .ic-worker-row:hover { border-color: rgba(56, 189, 248, 0.55); background: rgba(30, 41, 59, 0.85); }
@@ -488,46 +538,44 @@
     .ic-w-act { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ic-w-go { font-size: 10.5px; color: #7dd3fc; font-weight: 700; flex-shrink: 0; }
 
-    .ic-actions {
-      margin-top: 12px;
-      display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;
-    }
+    .ic-actions { margin-top: 12px; display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
     .ic-btn {
-      border-radius: 8px;
-      padding: 7px 13px;
-      font-size: 11.5px; font-weight: 700;
-      cursor: pointer;
-      border: 1px solid rgba(56, 189, 248, 0.55);
-      background: rgba(56, 189, 248, 0.2);
-      color: #e0f2fe;
+      border-radius: 8px; padding: 6px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+      border: 1px solid rgba(56, 189, 248, 0.55); background: rgba(56, 189, 248, 0.2); color: #e0f2fe;
     }
     .ic-btn:hover { background: rgba(56, 189, 248, 0.34); }
     .ic-btn.primary-attn {
-      border-color: #f87171;
-      background: linear-gradient(180deg, #ef4444, #dc2626);
-      color: #ffffff;
-      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
+      border-color: #f87171; background: linear-gradient(180deg, #ef4444, #dc2626); color: #ffffff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.42);
     }
     .ic-btn.primary-attn:hover { filter: brightness(1.08); }
-    .ic-btn.secondary {
-      border-color: rgba(148, 163, 184, 0.28);
-      background: rgba(30, 41, 59, 0.7);
-      color: #cbd5e1;
-    }
+    .ic-btn.secondary { border-color: rgba(148, 163, 184, 0.28); background: rgba(30, 41, 59, 0.7); color: #cbd5e1; }
     .ic-btn.secondary:hover { border-color: rgba(148, 163, 184, 0.55); color: #fff; }
 
-    /* Empty State Overlay inside Empty Office */
-    .empty-note {
-      position: absolute;
-      left: 50%; top: 52%; transform: translate(-50%, -50%);
-      z-index: 35;
-      background: rgba(12, 17, 29, 0.88);
-      border: 1px solid rgba(148, 163, 184, 0.28);
+    /* In-Panel Toast Notification (Magpie-style bottom-right alert) */
+    .toast-wrap {
+      position: fixed; right: 12px; bottom: 12px; z-index: 150;
+      display: flex; flex-direction: column; gap: 6px; max-width: 300px;
+    }
+    .toast {
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(56, 189, 248, 0.55);
       border-radius: 10px;
-      padding: 10px 16px;
-      text-align: center;
-      backdrop-filter: blur(6px);
-      max-width: 82%;
+      padding: 8px 11px;
+      color: #f8fafc;
+      font-size: 11px;
+      line-height: 1.4;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+      cursor: pointer;
+      animation: popIn 0.16s ease-out;
+    }
+    .toast.attn { border-color: rgba(239, 68, 68, 0.75); background: rgba(69, 10, 10, 0.96); color: #fee2e2; }
+
+    .empty-note {
+      position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); z-index: 35;
+      background: rgba(12, 17, 29, 0.88); border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 10px; padding: 10px 16px; text-align: center;
+      backdrop-filter: blur(6px); max-width: 82%;
     }
     .empty-note-title { font-size: 12.5px; font-weight: 800; color: #f8fafc; margin-bottom: 3px; }
     .empty-note-sub { font-size: 11px; color: #94a3b8; }
@@ -539,41 +587,57 @@
     @keyframes alertHop { 0%, 75%, 100% { transform: translateY(0); } 82% { transform: translateY(-4px); } 90% { transform: translateY(0); } }
     @keyframes chillBreathe { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
     @keyframes floatZ { 0% { opacity: 0; transform: translate(0, 2px); } 45% { opacity: 0.95; } 100% { opacity: 0; transform: translate(5px, -7px); } }
-    @keyframes beamMove { to { stroke-dashoffset: -20; } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes popIn { from { opacity: 0; transform: scale(0.94) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .wire-flow { stroke-dasharray: 5 5; animation: beamMove 0.8s linear infinite; }
   </style>
 </head>
 <body>
-  <div class="roofbar">
-    <div class="brand">
-      <span class="live-dot"></span>
-      <span class="brand-title" id="brandTitle">🏢 Bot Office</span>
-      <span class="brand-stat" id="topStat">…</span>
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <span class="brand-title" id="brandTitle">🏢 Bot Office</span>
+        <span class="live-pill"><span class="live-dot"></span><span id="liveLabel">Live</span></span>
+      </div>
+      <div class="counters">
+        <span class="cnt clickable" id="cntNeed"><span class="cnt-dot red"></span><span id="cntNeedLbl"></span> <b id="cntNeedVal">0</b></span>
+        <span class="cnt"><span class="cnt-dot blue"></span><span id="cntWorkLbl"></span> <b id="cntWorkVal">0</b></span>
+        <span class="cnt"><span class="cnt-dot gray"></span><span id="cntIdleLbl"></span> <b id="cntIdleVal">0</b></span>
+      </div>
     </div>
-    <div class="top-btns">
-      <button class="btn btn-attn" id="attnQuickBtn" style="display:none"><span class="btn-attn-dot"></span><span id="attnQuickText"></span></button>
-      <button class="btn" id="activeOnlyBtn"></button>
-      <button class="btn" id="refreshBtn"></button>
+    <div class="topbar-row">
+      <div class="seg">
+        <button class="seg-btn active" id="viewOfficeBtn"></button>
+        <button class="seg-btn" id="viewListBtn"></button>
+      </div>
+      <div class="ctrl-right">
+        <button class="btn" id="activeOnlyBtn"></button>
+        <button class="btn" id="refreshBtn"></button>
+      </div>
     </div>
   </div>
 
-  <div class="building" id="building">
-    <div style="text-align:center;color:var(--muted);padding:36px" id="loadingText">…</div>
+  <div id="mainContent">
+    <div class="building"><div style="text-align:center;color:var(--muted);padding:36px" id="loadingText">…</div></div>
   </div>
 
+  <div class="legend" id="legendBar"></div>
   <div class="guest-bar" id="guestBar" style="display:none"></div>
   <div id="modalRoot"></div>
+  <div class="toast-wrap" id="toastWrap"></div>
 
   <script>
     const orcaApi = window.orca;
     let snapshot = null;
     let avatars = {};
+    let viewMode = "office"; // "office" | "list"
     let activeOnly = false;
     let guestExpanded = false;
-    let openCard = null; // { kind: "bot", id } | { kind: "worker", worktreeId } | { kind: "standalone", worktreeId }
-    let attnCursor = 0;
+    let openCard = null;
+    let decisionCursor = 0;
+    let seenDecisionKeys = new Set();
+    let hasLoadedOnce = false;
+    // Per-item draft answers inside the popup card: { "<itemNumber>": { picks: { qIdx: Set<label> }, note: "" } }
+    const draftDecisions = new Map();
 
     const W = 680;
     const BASE_H = 196;
@@ -581,82 +645,116 @@
 
     const I18N = {
       zh: {
-        title: "🏢 AI 总部大楼",
+        title: "🏢 Bot 办公室",
+        live: "实时",
         loading: "正在布置办公室楼层…",
+        needLbl: "需要你",
+        workLbl: "工作中",
+        idleLbl: "待命",
+        tabOffice: "办公室",
+        tabList: "列表",
         activeOnly: "只看在忙",
         refresh: "刷新",
-        needYouShort: (n) => `${n} 待处理`,
-        stat: (wb, tb, ww, tw) => `<b>${wb}/${tb}</b> 主管 · <b class="g">${ww}/${tw}</b> Worker`,
         loungeName: "开放工区 & 咖啡茶水间",
-        loungeBadge: (w, i, a) => a > 0 ? `🔴 ${a} 待处理 · ${w} 在工位` : `${w} 在工位 · ${i} 沙发休息`,
-        teamBadge: (ww, tw, aw) => aw > 0 ? `🔴 ${aw} 待处理 / ${tw} Worker` : `${ww} 干活 / ${tw} Worker`,
-        stateNeed: "需要你处理",
-        stateNeedPerm: "等待你的权限/确认",
-        stateNeedUnread: "有未读回复等你查看",
-        stateNeedWorker: "团队中有 Worker 需要你处理",
-        stateWorking: "正在干活中",
-        stateIdle: "闲置待命中",
+        loungeBadge: (w, i, d) => d > 0 ? `🔴 ${d} 待决策 · ${w} 在工位` : `${w} 在工位 · ${i} 沙发休息`,
+        teamBadge: (ww, tw, d) => d > 0 ? `🔴 ${d} 待决策 / ${tw} Worker` : `${ww} 干活 / ${tw} Worker`,
+        stateNeed: "需要你决策",
+        stateNeedItem: (n) => `有 ${n} 条待决策事件`,
+        stateNeedPerm: "等待你的权限审批/输入",
+        stateNeedWorker: "团队中有 Worker 待审批",
+        stateWorking: "工作中",
+        stateIdle: "待命休息",
         emptyBuilding: "当前没有在忙的楼层",
         emptyRoomTitle: "办公室已就绪，等待第一位 Bot 入驻",
         emptyRoomSub: "在 Orca 中创建 Bot 或启动 Worker 后，它们会自动坐进工位。",
+        grpNeed: "需要你决策",
+        grpWork: "工作中",
+        grpIdle: "待命中",
         guestBar: (active, total) => `🛋️ B1 自由工位（独立工作区 ${active ? `${active} 活跃 / ` : ""}共 ${total}）`,
         expand: "展开 ▾",
         collapse: "收起 ▴",
         roleBot: "主管 Bot",
-        roleWorker: (boss) => `${boss} 团队 Worker`,
+        roleWorker: (boss) => `${boss} Worker`,
         roleStandalone: "独立工作区",
+        secDecisions: "待你决策的事件（与 Bot 原生 Needs you 同步）",
         secActivity: "当前正在做什么",
         secWorkers: (ww, tw) => `带领的 Worker（${ww} 干活 / 共 ${tw}）`,
         noActivity: "当前没有正在执行的任务，随时可唤醒。",
-        btnHandleNow: "🔴 立即进去处理 ↗",
-        btnHandleWorker: "🔴 去处理待命 Worker ↗",
+        recBadge: "推荐",
+        notePlaceholder: "补充说明或自定义决定（可选）…",
+        btnCopyAndGo: "📋 复制决策并前往提交 ↗",
+        btnOpenTasks: "打开事件列表",
+        btnHandleWorker: "🔴 去审批 Worker ↗",
         btnOpenWs: "进入工作区 ↗",
         btnClose: "关闭",
+        decHint: "提示：Orca 暂未对插件开放直接代签 Bot 事件的接口。点上方按钮会自动复制你选好的决策并打开该 Bot 页面，粘贴或点一下即可完成原生事件流转。",
+        toastCopied: "已复制你的决策并为你打开 Bot 页面，直接提交即可。",
+        toastNewDecision: (name, title) => `🔴 ${name} 需要你决策：${title}`,
         justNow: "刚刚",
         minsAgo: (m) => `${m} 分钟前`,
         hrsAgo: (h) => `${h} 小时前`,
         daysAgo: (d) => `${d} 天前`,
         loadErr: "加载失败：",
-        tipClick: "单击查看详情 · 双击直接进入",
+        tipClick: "单击查看详情/决策 · 双击直达",
+        legendNeed: "需要你决策",
+        legendWork: "工作中",
+        legendIdle: "待命",
       },
       en: {
         title: "🏢 Bot Office",
+        live: "Live",
         loading: "Setting up office floors…",
+        needLbl: "Need You",
+        workLbl: "Working",
+        idleLbl: "Idle",
+        tabOffice: "Office",
+        tabList: "List",
         activeOnly: "Active",
         refresh: "Refresh",
-        needYouShort: (n) => `${n} Need You`,
-        stat: (wb, tb, ww, tw) => `<b>${wb}/${tb}</b> Bots · <b class="g">${ww}/${tw}</b> Workers`,
         loungeName: "Open Workspace & Coffee Lounge",
-        loungeBadge: (w, i, a) => a > 0 ? `🔴 ${a} need you · ${w} working` : `${w} at desk · ${i} on sofa`,
-        teamBadge: (ww, tw, aw) => aw > 0 ? `🔴 ${aw} need you / ${tw} workers` : `${ww} working / ${tw} workers`,
-        stateNeed: "Needs your attention",
+        loungeBadge: (w, i, d) => d > 0 ? `🔴 ${d} to decide · ${w} working` : `${w} at desk · ${i} on sofa`,
+        teamBadge: (ww, tw, d) => d > 0 ? `🔴 ${d} to decide / ${tw} workers` : `${ww} working / ${tw} workers`,
+        stateNeed: "Needs your decision",
+        stateNeedItem: (n) => `${n} Needs-You item${n > 1 ? "s" : ""}`,
         stateNeedPerm: "Waiting for your approval / input",
-        stateNeedUnread: "Unread update waiting for you",
-        stateNeedWorker: "A worker in this team needs you",
-        stateWorking: "Working now",
-        stateIdle: "Idle / Resting",
+        stateNeedWorker: "A worker in this team needs approval",
+        stateWorking: "Working",
+        stateIdle: "Idle",
         emptyBuilding: "No active floors right now",
         emptyRoomTitle: "Your Bot Office is ready",
         emptyRoomSub: "Create a Bot or dispatch a Worker in Orca and they will take their seats here.",
+        grpNeed: "Needs Your Decision",
+        grpWork: "Working",
+        grpIdle: "Idle / Resting",
         guestBar: (active, total) => `🛋️ B1 Hot Desks (Standalone Workspaces: ${active ? `${active} active / ` : ""}${total})`,
         expand: "Expand ▾",
         collapse: "Collapse ▴",
         roleBot: "Lead Bot",
         roleWorker: (boss) => `${boss} Worker`,
-        roleStandalone: "Standalone Workspace",
+        roleStandalone: "Standalone",
+        secDecisions: "Needs-You Decisions (Synced with Orca Bot Items)",
         secActivity: "What they are doing",
         secWorkers: (ww, tw) => `Team Workers (${ww} active / ${tw} total)`,
         noActivity: "No active task right now — ready whenever you need.",
-        btnHandleNow: "🔴 Handle Now ↗",
-        btnHandleWorker: "🔴 Jump to Worker ↗",
+        recBadge: "Recommended",
+        notePlaceholder: "Add a custom decision or note (optional)…",
+        btnCopyAndGo: "📋 Copy Decision & Open Bot ↗",
+        btnOpenTasks: "Open Items",
+        btnHandleWorker: "🔴 Approve Worker ↗",
         btnOpenWs: "Open Workspace ↗",
         btnClose: "Close",
+        decHint: "Note: Orca plugins cannot directly submit owner item answers yet. Clicking above copies your formatted decision and jumps straight to the Bot so you can confirm natively.",
+        toastCopied: "Decision copied & Bot opened — paste or click to confirm.",
+        toastNewDecision: (name, title) => `🔴 ${name} needs your decision: ${title}`,
         justNow: "just now",
         minsAgo: (m) => `${m}m ago`,
         hrsAgo: (h) => `${h}h ago`,
         daysAgo: (d) => `${d}d ago`,
         loadErr: "Failed to load: ",
-        tipClick: "Click to inspect · Double-click to open",
+        tipClick: "Click to inspect / decide · Double-click to open",
+        legendNeed: "Needs Decision",
+        legendWork: "Working",
+        legendIdle: "Idle",
       },
     };
 
@@ -668,7 +766,6 @@
     }
     function t() { return I18N[getLang()] || I18N.en; }
 
-    // 6 Generic Studio Themes — automatically assigned by deterministic hash (zero hardcoded bot names!)
     const STUDIO_THEMES = [
       { wallTop: "#202c40", wallBot: "#182132", accent: "#38bdf8", decor: "wave" },
       { wallTop: "#2d223d", wallBot: "#20182e", accent: "#e879f9", decor: "shelf" },
@@ -687,8 +784,7 @@
       return Math.abs(h);
     }
     function pickTheme(bot) {
-      const key = String(bot.id || bot.name || "bot");
-      return STUDIO_THEMES[hashString(key) % STUDIO_THEMES.length];
+      return STUDIO_THEMES[hashString(String(bot.id || bot.name || "bot")) % STUDIO_THEMES.length];
     }
 
     function esc(s) {
@@ -709,14 +805,26 @@
       return tr.daysAgo(Math.floor(hr / 24));
     }
 
+    function showToast(msg, isAttn = false, onClick = null) {
+      const wrap = document.getElementById("toastWrap");
+      const el = document.createElement("div");
+      el.className = `toast ${isAttn ? "attn" : ""}`;
+      el.textContent = msg;
+      if (onClick) el.addEventListener("click", () => { onClick(); el.remove(); });
+      else el.addEventListener("click", () => el.remove());
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 5500);
+    }
+
     function classifyBot(b) {
       const tr = t();
-      if (b.needsAttention) {
-        const reason = b.attentionReason === "unread"
-          ? tr.stateNeedUnread
-          : b.attentionReason === "worker"
-            ? tr.stateNeedWorker
-            : tr.stateNeedPerm;
+      if (b.needsDecision) {
+        const itemsN = (b.needsYouItems || []).length;
+        const reason = itemsN > 0
+          ? tr.stateNeedItem(itemsN)
+          : b.selfNeedsDecision
+            ? tr.stateNeedPerm
+            : tr.stateNeedWorker;
         return { mode: "attn", hot: true, label: tr.stateNeed, reason, bubble: b.activity || reason };
       }
       if (b.state === "working" || b.workingWorkerCount > 0) {
@@ -727,9 +835,8 @@
 
     function classifyWorker(w) {
       const tr = t();
-      if (w.needsAttention) {
-        const reason = w.attentionReason === "unread" ? tr.stateNeedUnread : tr.stateNeedPerm;
-        return { mode: "attn", hot: true, label: tr.stateNeed, reason, bubble: w.activity || reason };
+      if (w.needsDecision) {
+        return { mode: "attn", hot: true, label: tr.stateNeed, reason: tr.stateNeedPerm, bubble: w.activity || tr.stateNeedPerm };
       }
       if (w.state === "working") {
         return { mode: "working", hot: true, label: tr.stateWorking, reason: tr.stateWorking, bubble: w.activity || tr.stateWorking };
@@ -737,7 +844,6 @@
       return { mode: "idle", hot: false, label: tr.stateIdle, reason: tr.stateIdle, bubble: "" };
     }
 
-    // Layer 1 (Background): Room architecture that cleanly stretches vertically to ANY floor height H!
     function commonRoomBgSvg(idSuffix, H, wallTop, wallBot, isHot, showWhiteboard = true) {
       let planks = "";
       for (let py = 144; py < H; py += 12) {
@@ -788,16 +894,13 @@
         <rect x="0" y="131" width="${W}" height="${H - 131}" fill="url(#wood_${idSuffix})"/>
         ${planks}
         <rect x="0" y="131" width="${W}" height="7" fill="rgba(0,0,0,0.3)"/>
-
         ${[112, 326, 520].map(lx => `
           <line x1="${lx}" y1="0" x2="${lx}" y2="14" stroke="#64748b" stroke-width="1.6"/>
           <path d="M${lx-12} 22 Q${lx} 11 ${lx+12} 22 Z" fill="#2d3748" stroke="#64748b" stroke-width="0.9"/>
           <ellipse cx="${lx}" cy="22" rx="8" ry="2.2" fill="${isHot ? '#fef08a' : '#475569'}"/>
           <polygon points="${lx-10},23 ${lx+10},23 ${lx+68},140 ${lx-68},140" fill="url(#lampCone_${idSuffix})"/>
         `).join("")}
-
         ${whiteboard}
-
         <g>
           <rect x="424" y="28" width="178" height="72" rx="4" fill="url(#sky_${idSuffix})" stroke="#334155" stroke-width="2.8"/>
           <rect x="436" y="66" width="22" height="32" fill="#131c36"/>
@@ -817,7 +920,6 @@
           <line x1="424" y1="64" x2="602" y2="64" stroke="#334155" stroke-width="1.8"/>
           <rect x="418" y="99" width="190" height="5" rx="2" fill="#634834"/>
         </g>
-
         <g>
           <ellipse cx="648" cy="152" rx="17" ry="5.5" fill="rgba(0,0,0,0.38)"/>
           <polygon points="637,126 659,126 655,151 641,151" fill="#a25f3e" stroke="#5c3320" stroke-width="1"/>
@@ -830,40 +932,29 @@
 
     function roomDecorSvg(decor, accent) {
       if (decor === "wave") {
-        return `
-          <rect x="92" y="34" width="96" height="44" rx="4" fill="#0d1424" stroke="${accent}" stroke-width="1.4" opacity="0.92"/>
+        return `<rect x="92" y="34" width="96" height="44" rx="4" fill="#0d1424" stroke="${accent}" stroke-width="1.4" opacity="0.92"/>
           <polyline points="100,56 112,56 119,44 128,68 137,40 147,65 156,50 165,58 180,56" fill="none" stroke="${accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
       }
       if (decor === "shelf") {
-        return `
-          <rect x="92" y="54" width="96" height="5" rx="2" fill="#825d42"/>
+        return `<rect x="92" y="54" width="96" height="5" rx="2" fill="#825d42"/>
           <circle cx="112" cy="45" r="8" fill="#fb923c"/><circle cx="106" cy="38" r="3" fill="#fb923c"/><circle cx="118" cy="38" r="3" fill="#fb923c"/>
-          <rect x="132" y="38" width="14" height="16" rx="4" fill="#c084fc"/>
-          <circle cx="164" cy="45" r="7.5" fill="#38bdf8"/>
+          <rect x="132" y="38" width="14" height="16" rx="4" fill="#c084fc"/><circle cx="164" cy="45" r="7.5" fill="#38bdf8"/>
           <rect x="92" y="80" width="96" height="5" rx="2" fill="#825d42"/>
-          <rect x="104" y="67" width="9" height="13" rx="2" fill="#f472b6"/>
-          <rect x="116" y="69" width="9" height="11" rx="2" fill="#fbbf24"/>
-          <rect x="128" y="65" width="9" height="15" rx="2" fill="#38bdf8"/>`;
+          <rect x="104" y="67" width="9" height="13" rx="2" fill="#f472b6"/><rect x="116" y="69" width="9" height="11" rx="2" fill="#fbbf24"/><rect x="128" y="65" width="9" height="15" rx="2" fill="#38bdf8"/>`;
       }
       if (decor === "server" || decor === "vault") {
-        return `
-          <rect x="14" y="38" width="42" height="90" rx="4" fill="#101827" stroke="${accent}" stroke-width="1.4"/>
-          ${[46,60,74,88,102,116].map((y, i) => `
-            <rect x="19" y="${y}" width="32" height="9" rx="2" fill="#1e293b"/>
-            <circle cx="45" cy="${y + 4.5}" r="1.8" fill="${i % 2 === 0 ? accent : '#4ade80'}"/>
-          `).join("")}`;
+        return `<rect x="14" y="38" width="42" height="90" rx="4" fill="#101827" stroke="${accent}" stroke-width="1.4"/>
+          ${[46,60,74,88,102,116].map((y, i) => `<rect x="19" y="${y}" width="32" height="9" rx="2" fill="#1e293b"/><circle cx="45" cy="${y + 4.5}" r="1.8" fill="${i % 2 === 0 ? accent : '#4ade80'}"/>`).join("")}`;
       }
       if (decor === "code") {
-        return `
-          <rect x="90" y="34" width="98" height="48" rx="4" fill="#0d1424" stroke="${accent}" stroke-width="1.4"/>
+        return `<rect x="90" y="34" width="98" height="48" rx="4" fill="#0d1424" stroke="${accent}" stroke-width="1.4"/>
           <rect x="98" y="42" width="34" height="3.5" rx="1.5" fill="${accent}"/>
           <rect x="98" y="50" width="64" height="3.5" rx="1.5" fill="#4ade80" opacity="0.85"/>
           <rect x="106" y="58" width="50" height="3.5" rx="1.5" fill="#94a3b8"/>
           <rect x="98" y="66" width="44" height="3.5" rx="1.5" fill="#f472b6" opacity="0.85"/>`;
       }
       if (decor === "blueprint") {
-        return `
-          <rect x="90" y="34" width="98" height="48" rx="4" fill="#172554" stroke="${accent}" stroke-width="1.4"/>
+        return `<rect x="90" y="34" width="98" height="48" rx="4" fill="#172554" stroke="${accent}" stroke-width="1.4"/>
           <rect x="100" y="42" width="24" height="14" rx="2" fill="none" stroke="#93c5fd" stroke-width="1.2"/>
           <rect x="150" y="42" width="26" height="14" rx="2" fill="none" stroke="${accent}" stroke-width="1.2"/>
           <rect x="124" y="64" width="30" height="11" rx="2" fill="none" stroke="#93c5fd" stroke-width="1.2"/>
@@ -876,13 +967,12 @@
     function officeChairBgSvg(cx, rowOffsetY = 0, isExecutive = false) {
       const cw = isExecutive ? 44 : 36;
       const topY = (isExecutive ? 104 : 108) + rowOffsetY;
-      return `
-        <g>
-          <rect x="${cx - cw/2}" y="${topY}" width="${cw}" height="42" rx="11" fill="#1c2434" stroke="#475569" stroke-width="1.4"/>
-          <rect x="${cx - cw/2 + 5}" y="${topY + 6}" width="${cw - 10}" height="24" rx="6" fill="#273247" opacity="0.7"/>
-          <rect x="${cx - cw/2 - 5}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
-          <rect x="${cx + cw/2 - 1}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
-        </g>`;
+      return `<g>
+        <rect x="${cx - cw/2}" y="${topY}" width="${cw}" height="42" rx="11" fill="#1c2434" stroke="#475569" stroke-width="1.4"/>
+        <rect x="${cx - cw/2 + 5}" y="${topY + 6}" width="${cw - 10}" height="24" rx="6" fill="#273247" opacity="0.7"/>
+        <rect x="${cx - cw/2 - 5}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
+        <rect x="${cx + cw/2 - 1}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
+      </g>`;
     }
 
     function foregroundDeskSvg(cx, width, rowOffsetY, isLit, glowCol, isExecutive = false, hasPerson = true) {
@@ -891,57 +981,54 @@
       const lapX = cx + (isExecutive ? 26 : 20);
       const lapW = isExecutive ? 32 : 25;
       const lapH = isExecutive ? 20 : 16;
-      return `
+      return `<g>
+        <ellipse cx="${cx}" cy="${topY + 43}" rx="${w2 + 8}" ry="7.5" fill="rgba(0,0,0,0.46)"/>
+        <rect x="${cx - w2 + 5}" y="${topY + 12}" width="6" height="31" rx="2" fill="#1a2232"/>
+        <rect x="${cx + w2 - 11}" y="${topY + 12}" width="6" height="31" rx="2" fill="#1a2232"/>
+        <rect x="${cx - w2 + 11}" y="${topY + 16}" width="${width - 22}" height="14" fill="#151c2a" opacity="0.88"/>
+        <polygon points="${cx - w2},${topY} ${cx + w2},${topY} ${cx + w2 + 6},${topY + 11} ${cx - w2 - 6},${topY + 11}" fill="#9a6e48" stroke="#b5875e" stroke-width="0.9"/>
+        <rect x="${cx - w2 - 6}" y="${topY + 11}" width="${width + 12}" height="7" rx="2" fill="#634329"/>
+        ${isLit ? `<ellipse cx="${cx + 4}" cy="${topY + 5}" rx="${width * 0.34}" ry="5" fill="${glowCol}" opacity="0.34"/>` : ""}
+        <polygon points="${cx - 18},${topY + 3} ${cx + 12},${topY + 3} ${cx + 14},${topY + 8} ${cx - 20},${topY + 8}" fill="#1e293b" stroke="${isLit ? glowCol : '#475569'}" stroke-width="0.8"/>
         <g>
-          <ellipse cx="${cx}" cy="${topY + 43}" rx="${w2 + 8}" ry="7.5" fill="rgba(0,0,0,0.46)"/>
-          <rect x="${cx - w2 + 5}" y="${topY + 12}" width="6" height="31" rx="2" fill="#1a2232"/>
-          <rect x="${cx + w2 - 11}" y="${topY + 12}" width="6" height="31" rx="2" fill="#1a2232"/>
-          <rect x="${cx - w2 + 11}" y="${topY + 16}" width="${width - 22}" height="14" fill="#151c2a" opacity="0.88"/>
-          <polygon points="${cx - w2},${topY} ${cx + w2},${topY} ${cx + w2 + 6},${topY + 11} ${cx - w2 - 6},${topY + 11}" fill="#9a6e48" stroke="#b5875e" stroke-width="0.9"/>
-          <rect x="${cx - w2 - 6}" y="${topY + 11}" width="${width + 12}" height="7" rx="2" fill="#634329"/>
-          ${isLit ? `<ellipse cx="${cx + 4}" cy="${topY + 5}" rx="${width * 0.34}" ry="5" fill="${glowCol}" opacity="0.34"/>` : ""}
-          <polygon points="${cx - 18},${topY + 3} ${cx + 12},${topY + 3} ${cx + 14},${topY + 8} ${cx - 20},${topY + 8}" fill="#1e293b" stroke="${isLit ? glowCol : '#475569'}" stroke-width="0.8"/>
-          <g>
-            <polygon points="${lapX - lapW/2},${topY - lapH + 4} ${lapX + lapW/2},${topY - lapH + 1} ${lapX + lapW/2 - 3},${topY + 5} ${lapX - lapW/2 - 2},${topY + 6}"
-                     fill="#cbd5e1" stroke="${isLit ? glowCol : '#64748b'}" stroke-width="1.2"/>
-            <circle cx="${lapX - 1}" cy="${topY - lapH/2 + 3}" r="2.6" fill="${isLit ? glowCol : '#64748b'}"/>
-            <rect x="${lapX - lapW/2 - 4}" y="${topY + 5}" width="${lapW + 4}" height="3" rx="1" fill="#94a3b8"/>
-          </g>
-          <g>
-            <ellipse cx="${cx - w2 + 12}" cy="${topY + 7}" rx="6" ry="2.2" fill="#334155"/>
-            <polyline points="${cx - w2 + 12},${topY + 6} ${cx - w2 + 6},${topY - 7} ${cx - w2 + 16},${topY - 12}" fill="none" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M${cx - w2 + 12},${topY - 14} L${cx - w2 + 23},${topY - 9} L${cx - w2 + 18},${topY - 5} Z" fill="${isLit ? '#fef08a' : '#475569'}"/>
-          </g>
-          <g>
-            <rect x="${cx - w2 + 25}" y="${topY - 1}" width="7" height="7" rx="1.5" fill="#f8fafc"/>
-            <path d="M${cx - w2 + 32},${topY + 1} Q${cx - w2 + 35},${topY + 2.5} ${cx - w2 + 32},${topY + 4.5}" fill="none" stroke="#f8fafc" stroke-width="1.2"/>
-            ${isLit && hasPerson ? `<path d="M${cx - w2 + 28},${topY - 3} Q${cx - w2 + 26},${topY - 7} ${cx - w2 + 29},${topY - 10}" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1" stroke-linecap="round"/>` : ""}
-          </g>
-        </g>`;
+          <polygon points="${lapX - lapW/2},${topY - lapH + 4} ${lapX + lapW/2},${topY - lapH + 1} ${lapX + lapW/2 - 3},${topY + 5} ${lapX - lapW/2 - 2},${topY + 6}"
+                   fill="#cbd5e1" stroke="${isLit ? glowCol : '#64748b'}" stroke-width="1.2"/>
+          <circle cx="${lapX - 1}" cy="${topY - lapH/2 + 3}" r="2.6" fill="${isLit ? glowCol : '#64748b'}"/>
+          <rect x="${lapX - lapW/2 - 4}" y="${topY + 5}" width="${lapW + 4}" height="3" rx="1" fill="#94a3b8"/>
+        </g>
+        <g>
+          <ellipse cx="${cx - w2 + 12}" cy="${topY + 7}" rx="6" ry="2.2" fill="#334155"/>
+          <polyline points="${cx - w2 + 12},${topY + 6} ${cx - w2 + 6},${topY - 7} ${cx - w2 + 16},${topY - 12}" fill="none" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M${cx - w2 + 12},${topY - 14} L${cx - w2 + 23},${topY - 9} L${cx - w2 + 18},${topY - 5} Z" fill="${isLit ? '#fef08a' : '#475569'}"/>
+        </g>
+        <g>
+          <rect x="${cx - w2 + 25}" y="${topY - 1}" width="7" height="7" rx="1.5" fill="#f8fafc"/>
+          <path d="M${cx - w2 + 32},${topY + 1} Q${cx - w2 + 35},${topY + 2.5} ${cx - w2 + 32},${topY + 4.5}" fill="none" stroke="#f8fafc" stroke-width="1.2"/>
+          ${isLit && hasPerson ? `<path d="M${cx - w2 + 28},${topY - 3} Q${cx - w2 + 26},${topY - 7} ${cx - w2 + 29},${topY - 10}" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1" stroke-linecap="round"/>` : ""}
+        </g>
+      </g>`;
     }
 
     function miniWorkerRobotSvg(w, size = 36) {
       const run = w.state === "working";
-      const attn = Boolean(w.needsAttention);
+      const attn = Boolean(w.needsDecision);
       const eng = w.agentType || "";
       const trim = attn ? "#ef4444" : (eng === "claude" ? "#f59e0b" : (eng === "antigravity" ? "#38bdf8" : (eng === "codex" ? "#a78bfa" : "#94a3b8")));
       const eye = attn ? "#f87171" : (run ? "#4ade80" : "#64748b");
       const h = Math.round(size * 44 / 36);
-      return `
-        <svg viewBox="0 0 40 48" width="${size}" height="${h}">
-          <line x1="20" y1="2" x2="20" y2="8" stroke="${trim}" stroke-width="2.2" stroke-linecap="round"/>
-          <circle cx="20" cy="2.5" r="2.8" fill="${attn ? '#ef4444' : (run ? '#4ade80' : trim)}"/>
-          <rect x="6" y="8" width="28" height="21" rx="7.5" fill="#f8fafc" stroke="${trim}" stroke-width="2.2"/>
-          <rect x="10" y="12" width="20" height="12" rx="4" fill="#0f172a"/>
-          ${run || attn
-            ? `<rect x="14" y="15" width="3.8" height="5.5" rx="1.9" fill="${eye}"/><rect x="22.2" y="15" width="3.8" height="5.5" rx="1.9" fill="${eye}"/>`
-            : `<line x1="13" y1="18" x2="17.5" y2="18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/><line x1="22.5" y1="18" x2="27" y2="18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>`
-          }
-          <rect x="9" y="30" width="22" height="16" rx="6" fill="#e2e8f0" stroke="${trim}" stroke-width="1.8"/>
-          <circle cx="20" cy="37" r="3" fill="${attn ? '#ef4444' : (run ? '#4ade80' : '#94a3b8')}"/>
-          <path d="M9 34 Q4 38 7 45" fill="none" stroke="#cbd5e1" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M31 34 Q36 38 33 45" fill="none" stroke="#cbd5e1" stroke-width="3.5" stroke-linecap="round"/>
-        </svg>`;
+      return `<svg viewBox="0 0 40 48" width="${size}" height="${h}">
+        <line x1="20" y1="2" x2="20" y2="8" stroke="${trim}" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="20" cy="2.5" r="2.8" fill="${attn ? '#ef4444' : (run ? '#4ade80' : trim)}"/>
+        <rect x="6" y="8" width="28" height="21" rx="7.5" fill="#f8fafc" stroke="${trim}" stroke-width="2.2"/>
+        <rect x="10" y="12" width="20" height="12" rx="4" fill="#0f172a"/>
+        ${run || attn
+          ? `<rect x="14" y="15" width="3.8" height="5.5" rx="1.9" fill="${eye}"/><rect x="22.2" y="15" width="3.8" height="5.5" rx="1.9" fill="${eye}"/>`
+          : `<line x1="13" y1="18" x2="17.5" y2="18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/><line x1="22.5" y1="18" x2="27" y2="18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>`}
+        <rect x="9" y="30" width="22" height="16" rx="6" fill="#e2e8f0" stroke="${trim}" stroke-width="1.8"/>
+        <circle cx="20" cy="37" r="3" fill="${attn ? '#ef4444' : (run ? '#4ade80' : '#94a3b8')}"/>
+        <path d="M9 34 Q4 38 7 45" fill="none" stroke="#cbd5e1" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M31 34 Q36 38 33 45" fill="none" stroke="#cbd5e1" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>`;
     }
 
     function rowSlotXs(count) {
@@ -958,8 +1045,16 @@
         console.error("openWorkspace failed:", err);
       }
     }
+    async function openTasksView() {
+      if (!orcaApi?.plugin?.request) return;
+      try {
+        await orcaApi.plugin.request("office.openTasksView", {});
+      } catch (err) {
+        console.error("openTasksView failed:", err);
+      }
+    }
 
-    // Render ONE Generic Team Studio Floor — Auto-expands into multi-row open bay when workers > 3 (ZERO truncation!)
+    // Team Studio Floor — CLEAN architecture with ZERO messy flying dashed wires!
     function renderTeamFloor(bot, floorNum) {
       const tr = t();
       const st = classifyBot(bot);
@@ -976,7 +1071,7 @@
       let bgDesks = officeChairBgSvg(leadX, 0, true);
       let fgDesks = foregroundDeskSvg(leadX, 126, 0, st.hot, st.mode === "attn" ? "#ef4444" : theme.accent, true, true);
 
-      // Architectural Glass Partition separating Boss Private Office (left) & Team Open Bay (right)
+      // Subtle Architectural Frosted Glass Partition separating Boss Private Office & Team Bay
       bgDesks += `
         <g>
           <rect x="206" y="26" width="12" height="106" fill="rgba(186,230,253,0.1)"/>
@@ -986,10 +1081,8 @@
           <line x1="208" y1="44" x2="216" y2="34" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
           <line x1="208" y1="68" x2="216" y2="58" stroke="rgba(255,255,255,0.16)" stroke-width="1.2"/>
           <rect x="214" y="84" width="2" height="12" rx="1" fill="#94a3b8"/>
-          ${rowCount > 1 ? `<line x1="212" y1="132" x2="212" y2="${H - 12}" stroke="rgba(148,163,184,0.22)" stroke-width="1.5" stroke-dasharray="4 4"/>` : ""}
         </g>`;
 
-      // If this team floor has 2+ rows, put a cozy mini team meeting lounge rug + coffee table on the lower-left!
       if (rowCount >= 2) {
         const ly = 248;
         bgDesks += `
@@ -1003,11 +1096,9 @@
           </g>`;
       }
 
-      let wiresSvg = "";
       let actorsHtml = "";
       let labelsHtml = "";
 
-      // Boss Bot seated behind the executive wooden desk
       const av = avatars[bot.id] || avatars[bot.name];
       const avHtml = av ? `<img src="${av}" alt="${esc(bot.name)}"/>` : esc((bot.name || "?").slice(0, 1).toUpperCase());
 
@@ -1024,15 +1115,13 @@
         </div>`;
 
       labelsHtml += `
-        ${st.bubble ? `<div class="bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(leadX)};top:${pxY(96)}" data-card-bot="${esc(bot.id)}">${esc(st.bubble)}</div>` : ""}
-        ${bot.needsAttention ? `<div class="head-red-dot" style="left:${pxX(leadX + 16)};top:${pxY(107)}" data-card-bot="${esc(bot.id)}" title="${esc(st.reason)}">${bot.attentionCount > 1 ? bot.attentionCount : "!"}</div>` : ""}
+        ${st.bubble ? `<div class="pill-bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(leadX)};top:${pxY(96)}" data-card-bot="${esc(bot.id)}"><span class="pb-dot"></span><span class="pb-txt">${esc(st.bubble)}</span></div>` : ""}
+        ${bot.needsDecision ? `<div class="head-red-dot" style="left:${pxX(leadX + 16)};top:${pxY(107)}" data-card-bot="${esc(bot.id)}" title="${esc(st.reason)}">${bot.decisionCount > 1 ? bot.decisionCount : "!"}</div>` : ""}
         <div class="nameplate ${st.mode === "attn" ? "attn" : (st.hot ? "boss-hot" : "idle")}"
              style="left:${pxX(leadX)};top:${pxY(161)}"
              data-card-bot="${esc(bot.id)}" data-dblopen="${esc(bot.worktreeId || "")}">${esc(bot.name)}</div>`;
 
-      // Render Workers row by row (3 per row, unlimited rows!)
       if (workers.length === 0) {
-        // Show 2 ready wooden desks when a team floor currently has 0 workers
         [368, 520].forEach((wx) => {
           bgDesks += officeChairBgSvg(wx, 0, false);
           fgDesks += foregroundDeskSvg(wx, 98, 0, false, "#4ade80", false, false);
@@ -1050,13 +1139,6 @@
             bgDesks += officeChairBgSvg(wx, offY, false);
             fgDesks += foregroundDeskSvg(wx, 98, offY, ws.hot, deskGlow, false, true);
 
-            if (ws.hot) {
-              const targetY = 112 + offY;
-              const ctrlX = (leadX + wx) / 2;
-              const ctrlY = r === 0 ? 72 : 112 + offY - 38;
-              wiresSvg += `<path class="wire-flow" d="M${leadX + 36},116 Q${ctrlX},${ctrlY} ${wx},${targetY}" fill="none" stroke="${deskGlow}" stroke-width="1.7" opacity="0.78"/>`;
-            }
-
             actorsHtml += `
               <div class="actor is-worker is-${ws.mode}"
                    style="left:${pxX(wx)};top:${pxY(154 + offY)}"
@@ -1069,8 +1151,8 @@
               </div>`;
 
             labelsHtml += `
-              ${ws.bubble ? `<div class="bubble ${ws.mode === "attn" ? "attn" : "worker"}" style="left:${pxX(wx)};top:${pxY(98 + offY)}" data-card-worker="${esc(w.worktreeId)}">${esc(ws.bubble)}</div>` : ""}
-              ${w.needsAttention ? `<div class="head-red-dot" style="left:${pxX(wx + 14)};top:${pxY(112 + offY)}" data-card-worker="${esc(w.worktreeId)}" title="${esc(ws.reason)}">!</div>` : ""}
+              ${ws.bubble ? `<div class="pill-bubble ${ws.mode === "attn" ? "attn" : "worker"}" style="left:${pxX(wx)};top:${pxY(98 + offY)}" data-card-worker="${esc(w.worktreeId)}"><span class="pb-dot"></span><span class="pb-txt">${esc(ws.bubble)}</span></div>` : ""}
+              ${w.needsDecision ? `<div class="head-red-dot" style="left:${pxX(wx + 14)};top:${pxY(112 + offY)}" data-card-worker="${esc(w.worktreeId)}" title="${esc(ws.reason)}">!</div>` : ""}
               <div class="nameplate ${ws.mode === "attn" ? "attn" : (ws.hot ? "worker-hot" : "idle")}"
                    style="left:${pxX(wx)};top:${pxY(161 + offY)}"
                    data-card-worker="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}">${esc(w.displayName)}</div>`;
@@ -1081,13 +1163,12 @@
       const bgSvg = `
         ${commonRoomBgSvg(`team_${floorNum}`, H, theme.wallTop, theme.wallBot, isHot, true)}
         ${roomDecorSvg(theme.decor, theme.accent)}
-        ${wiresSvg}
         ${bgDesks}`;
 
       const badgeText = workers.length
-        ? tr.teamBadge(bot.workingWorkerCount, workers.length, bot.attentionWorkerCount)
+        ? tr.teamBadge(bot.workingWorkerCount, workers.length, bot.decisionCount)
         : st.label;
-      const badgeCls = bot.needsAttention ? "attn" : (isHot ? "hot" : "");
+      const badgeCls = bot.needsDecision ? "attn" : (isHot ? "hot" : "");
 
       return `
         <div class="floor-story" style="aspect-ratio:${W}/${H}">
@@ -1100,12 +1181,11 @@
         </div>`;
     }
 
-    // Render 1F: Generic Open Workspace & Coffee Lounge — Auto-expands rows for unlimited solo Bots!
     function renderLoungeFloor(soloBots) {
       const tr = t();
       const working = soloBots.filter((b) => classifyBot(b).hot);
       const idle = soloBots.filter((b) => !classifyBot(b).hot);
-      const attnCount = soloBots.filter((b) => b.needsAttention).length;
+      const decCount = soloBots.reduce((acc, b) => acc + (b.decisionCount || 0), 0);
       const isHot = working.length > 0;
 
       const workRows = Math.max(1, Math.ceil(working.length / 2));
@@ -1119,7 +1199,6 @@
       let bgFurn = "";
       let fgFurn = "";
 
-      // Left hot-desk rows (2 wooden desks per row)
       for (let r = 0; r < workRows; r++) {
         const offY = r * ROW_STEP;
         hotSlots.forEach((hx, idx) => {
@@ -1130,16 +1209,11 @@
         });
       }
 
-      // Right lounge sofa rows (3 seats per plush velvet sofa + coffee table)
       for (let r = 0; r < sofaRows; r++) {
         const offY = r * ROW_STEP;
         bgFurn += `
           <ellipse cx="424" cy="${176 + offY}" rx="122" ry="18" fill="#3b2654" opacity="0.68" stroke="rgba(192,132,252,0.34)" stroke-width="1.2"/>
-          ${r === 0 ? `
-            <path d="M300,164 L300,82 Q300,66 320,70" fill="none" stroke="#94a3b8" stroke-width="2.4"/>
-            <path d="M312,70 L330,70 L326,81 L316,81 Z" fill="#fbbf24"/>
-            <ellipse cx="321" cy="122" rx="44" ry="44" fill="#fbbf24" opacity="0.09"/>
-          ` : ""}
+          ${r === 0 ? `<path d="M300,164 L300,82 Q300,66 320,70" fill="none" stroke="#94a3b8" stroke-width="2.4"/><path d="M312,70 L330,70 L326,81 L316,81 Z" fill="#fbbf24"/><ellipse cx="321" cy="122" rx="44" ry="44" fill="#fbbf24" opacity="0.09"/>` : ""}
           <g>
             <ellipse cx="424" cy="${172 + offY}" rx="98" ry="9" fill="rgba(0,0,0,0.4)"/>
             <rect x="332" y="${108 + offY}" width="184" height="40" rx="12" fill="#4c1d95" stroke="#7c3aed" stroke-width="1.2"/>
@@ -1151,7 +1225,6 @@
             <rect x="336" y="${158 + offY}" width="6" height="10" rx="2" fill="#5e4028"/>
             <rect x="506" y="${158 + offY}" width="6" height="10" rx="2" fill="#5e4028"/>
           </g>`;
-
         fgFurn += `
           <g>
             <ellipse cx="424" cy="${187 + offY}" rx="44" ry="7" fill="rgba(0,0,0,0.44)"/>
@@ -1162,7 +1235,6 @@
           </g>`;
       }
 
-      // Espresso Coffee Counter on Far Right (Row 0)
       bgFurn += `
         <g>
           <rect x="548" y="124" width="66" height="44" rx="4" fill="#5c4028" stroke="#7c5a3c" stroke-width="1"/>
@@ -1185,15 +1257,13 @@
         const avHtml = av ? `<img src="${av}" alt="${esc(b.name)}"/>` : esc((b.name || "?").slice(0, 1).toUpperCase());
 
         actorsHtml += `
-          <div class="actor is-${st.mode}"
-               style="left:${pxX(x)};top:${pxY(152 + offY)}"
-               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}"
-               title="${esc(b.name)} · ${esc(tr.tipClick)}">
+          <div class="actor is-${st.mode}" style="left:${pxX(x)};top:${pxY(152 + offY)}"
+               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}" title="${esc(b.name)} · ${esc(tr.tipClick)}">
             <div class="actor-body"><div class="actor-head">${avHtml}</div><div class="actor-torso"></div></div>
           </div>`;
         labelsHtml += `
-          ${st.bubble ? `<div class="bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(x)};top:${pxY(96 + offY)}" data-card-bot="${esc(b.id)}">${esc(st.bubble)}</div>` : ""}
-          ${b.needsAttention ? `<div class="head-red-dot" style="left:${pxX(x + 15)};top:${pxY(107 + offY)}" data-card-bot="${esc(b.id)}" title="${esc(st.reason)}">${b.attentionCount > 1 ? b.attentionCount : "!"}</div>` : ""}
+          ${st.bubble ? `<div class="pill-bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(x)};top:${pxY(96 + offY)}" data-card-bot="${esc(b.id)}"><span class="pb-dot"></span><span class="pb-txt">${esc(st.bubble)}</span></div>` : ""}
+          ${b.needsDecision ? `<div class="head-red-dot" style="left:${pxX(x + 15)};top:${pxY(107 + offY)}" data-card-bot="${esc(b.id)}" title="${esc(st.reason)}">${b.decisionCount > 1 ? b.decisionCount : "!"}</div>` : ""}
           <div class="nameplate ${st.mode === "attn" ? "attn" : "boss-hot"}" style="left:${pxX(x)};top:${pxY(161 + offY)}"
                data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}">${esc(b.name)}</div>`;
       });
@@ -1207,26 +1277,19 @@
         const avHtml = av ? `<img src="${av}" alt="${esc(b.name)}"/>` : esc((b.name || "?").slice(0, 1).toUpperCase());
 
         actorsHtml += `
-          <div class="actor is-idle"
-               style="left:${pxX(x)};top:${pxY(154 + offY)}"
-               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}"
-               title="${esc(b.name)} · ${esc(tr.tipClick)}">
-            <div class="actor-body">
-              <div class="actor-head">${avHtml}</div>
-              <div class="actor-torso"></div>
-              <span class="fx-z">zZ</span>
-            </div>
+          <div class="actor is-idle" style="left:${pxX(x)};top:${pxY(154 + offY)}"
+               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}" title="${esc(b.name)} · ${esc(tr.tipClick)}">
+            <div class="actor-body"><div class="actor-head">${avHtml}</div><div class="actor-torso"></div><span class="fx-z">zZ</span></div>
           </div>`;
         labelsHtml += `
           <div class="nameplate idle" style="left:${pxX(x)};top:${pxY(156 + offY)}"
                data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}">${esc(b.name)}</div>`;
       });
 
-      const badgeCls = attnCount > 0 ? "attn" : (isHot ? "hot" : "");
       return `
         <div class="floor-story" style="aspect-ratio:${W}/${H}">
           <div class="floor-sign"><span class="f-num">1F</span><span class="f-name">${esc(tr.loungeName)}</span></div>
-          <div class="f-badge ${badgeCls}">${esc(tr.loungeBadge(working.length, idle.length, attnCount))}</div>
+          <div class="f-badge ${decCount > 0 ? "attn" : (isHot ? "hot" : "")}">${esc(tr.loungeBadge(working.length, idle.length, decCount))}</div>
           <svg class="floor-bg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${bgSvg}</svg>
           <div class="floor-actors">${actorsHtml}</div>
           <svg class="floor-fg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${fgFurn}</svg>
@@ -1238,8 +1301,7 @@
       const tr = t();
       const H = BASE_H;
       const bg = commonRoomBgSvg("empty_1f", H, "#202c40", "#182132", true, true)
-        + officeChairBgSvg(180, 0, false)
-        + officeChairBgSvg(460, 0, false);
+        + officeChairBgSvg(180, 0, false) + officeChairBgSvg(460, 0, false);
       const fg = foregroundDeskSvg(180, 110, 0, true, "#38bdf8", false, false)
         + foregroundDeskSvg(460, 110, 0, false, "#4ade80", false, false);
       return `
@@ -1252,6 +1314,120 @@
             <div class="empty-note-sub">${esc(tr.emptyRoomSub)}</div>
           </div>
         </div>`;
+    }
+
+    // Magpie-inspired Grouped Workbench List View (Needs You -> Working -> Idle)
+    function renderWorkbenchList(bots) {
+      const tr = t();
+      const needRows = [];
+      const workRows = [];
+      const idleRows = [];
+
+      for (const b of bots) {
+        const av = avatars[b.id] || avatars[b.name];
+        const avHtml = av ? `<img src="${av}" alt=""/>` : `<span style="font-weight:800;font-size:13px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
+        const bRow = {
+          kind: "bot",
+          attr: `data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}"`,
+          avHtml,
+          name: b.name,
+          role: tr.roleBot,
+          eng: shortEng(b.agent),
+          sub: b.needsYouItems?.length ? `#${b.needsYouItems[0].number} ${b.needsYouItems[0].title}` : (b.activity || tr.stateIdle),
+          attnCount: b.decisionCount || 0,
+          needs: b.needsDecision,
+          working: b.state === "working" || b.workingWorkerCount > 0,
+          time: relTime(b.lastActivityAt),
+        };
+        if (bRow.needs) needRows.push(bRow);
+        else if (bRow.working) workRows.push(bRow);
+        else if (!activeOnly) idleRows.push(bRow);
+
+        for (const w of (b.workers || [])) {
+          const wRow = {
+            kind: "worker",
+            attr: `data-card-worker="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}"`,
+            avHtml: miniWorkerRobotSvg(w, 24),
+            name: w.displayName,
+            role: tr.roleWorker(b.name),
+            eng: shortEng(w.agentType),
+            sub: w.activity || tr.stateIdle,
+            attnCount: w.needsDecision ? 1 : 0,
+            needs: w.needsDecision,
+            working: w.state === "working",
+            time: relTime(w.lastActivityAt),
+          };
+          if (wRow.needs) needRows.push(wRow);
+          else if (wRow.working) workRows.push(wRow);
+          else if (!activeOnly) idleRows.push(wRow);
+        }
+      }
+
+      const renderGroup = (title, dotCls, rows, isAttn = false) => {
+        if (!rows.length) return "";
+        return `
+          <div class="wb-group ${isAttn ? "attn" : ""}">
+            <div class="wb-g-head">
+              <span class="left"><span class="cnt-dot ${dotCls}"></span>${esc(title)}</span>
+              <span>${rows.length}</span>
+            </div>
+            ${rows.map((r) => `
+              <div class="wb-row ${r.needs ? "attn" : ""}" ${r.attr}>
+                <div class="wb-av">${r.avHtml}${r.needs ? `<span class="wb-av-dot">${r.attnCount > 1 ? r.attnCount : "!"}</span>` : ""}</div>
+                <div class="wb-body">
+                  <div class="wb-top">
+                    <span class="wb-name">${esc(r.name)}</span>
+                    <span class="wb-tag">${esc(r.role)}</span>
+                    <span class="wb-tag eng">${esc(r.eng)}</span>
+                  </div>
+                  <div class="wb-sub">${esc(r.sub)}</div>
+                </div>
+                <span class="wb-act">${r.needs ? "🔴 ↗" : (r.time || "↗")}</span>
+              </div>`).join("")}
+          </div>`;
+      };
+
+      const content =
+        renderGroup(tr.grpNeed, "red", needRows, true) +
+        renderGroup(tr.grpWork, "blue", workRows, false) +
+        renderGroup(tr.grpIdle, "gray", idleRows, false);
+
+      return `<div class="workbench">${content || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyBuilding)}</div>`}</div>`;
+    }
+
+    function getDraft(item) {
+      const key = String(item.number);
+      let d = draftDecisions.get(key);
+      if (!d) {
+        d = { picks: {}, note: "" };
+        (item.ask?.questions || []).forEach((q, qi) => {
+          const recIdx = typeof q.recommended === "number" ? q.recommended : 0;
+          if (q.options && q.options[recIdx]) {
+            d.picks[qi] = [q.options[recIdx].label];
+          } else {
+            d.picks[qi] = [];
+          }
+        });
+        draftDecisions.set(key, d);
+      }
+      return d;
+    }
+
+    function buildDecisionText(item) {
+      const d = getDraft(item);
+      const qs = item.ask?.questions || [];
+      const lines = [];
+      qs.forEach((q, qi) => {
+        const picked = (d.picks[qi] || []).join(" / ");
+        if (picked) lines.push(`${q.prompt} → ${picked}`);
+      });
+      if (d.note && d.note.trim()) {
+        lines.push(d.note.trim());
+      }
+      if (!lines.length) {
+        lines.push(`#${item.number} ${item.title}`);
+      }
+      return lines.join("\n");
     }
 
     function findCardTarget() {
@@ -1278,26 +1454,13 @@
     function renderModal() {
       const root = document.getElementById("modalRoot");
       const target = findCardTarget();
-      if (!target) {
-        root.innerHTML = "";
-        return;
-      }
+      if (!target) { root.innerHTML = ""; return; }
       const tr = t();
 
-      let title = "";
-      let roleText = "";
-      let engine = "";
-      let branch = "";
-      let repo = "";
-      let statusCls = "idle";
-      let statusText = "";
-      let needsAttn = false;
-      let lastAt = null;
-      let details = [];
-      let avatarHtml = "";
-      let primaryWsId = null;
-      let attnWorkerWsId = null;
-      let workersHtml = "";
+      let title = "", roleText = "", engine = "", branch = "", repo = "";
+      let statusCls = "idle", statusText = "", needsDec = false, lastAt = null;
+      let details = [], avatarHtml = "", primaryWsId = null, attnWorkerWsId = null;
+      let workersHtml = "", decisionsHtml = "";
 
       if (target.kind === "bot") {
         const b = target.bot;
@@ -1306,16 +1469,54 @@
         roleText = tr.roleBot;
         engine = shortEng(b.agent);
         statusCls = st.mode;
-        statusText = st.mode === "attn" ? `🔴 ${st.reason}` : (st.mode === "working" ? `🟢 ${st.label}` : `💤 ${st.label}`);
-        needsAttn = b.needsAttention;
+        statusText = st.mode === "attn" ? `🔴 ${st.reason}` : (st.mode === "working" ? `🔵 ${st.label}` : `💤 ${st.label}`);
+        needsDec = b.needsDecision;
         lastAt = b.lastActivityAt;
         details = (b.details && b.details.length) ? b.details : (b.activity ? [b.activity] : []);
         primaryWsId = b.worktreeId;
-        const firstAttnW = (b.workers || []).find((w) => w.needsAttention);
-        if (!b.selfNeedsAttention && firstAttnW) attnWorkerWsId = firstAttnW.worktreeId;
+        const firstDecW = (b.workers || []).find((w) => w.needsDecision);
+        if (!b.selfNeedsDecision && firstDecW) attnWorkerWsId = firstDecW.worktreeId;
 
         const av = avatars[b.id] || avatars[b.name];
         avatarHtml = av ? `<img src="${av}" alt="${esc(b.name)}"/>` : `<span style="font-weight:800;font-size:16px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
+
+        // Render Native Needs-You Decision Panel (with interactive option selection!)
+        const items = b.needsYouItems || [];
+        if (items.length > 0) {
+          decisionsHtml = `
+            <div class="ic-section-title">${esc(tr.secDecisions)}</div>
+            ${items.map((it) => {
+              const draft = getDraft(it);
+              const qs = it.ask?.questions || [];
+              return `
+                <div class="ic-decision-box" data-dec-item="${it.number}">
+                  <div class="ic-dec-title"><span class="ic-dec-num">#${it.number}</span><span>${esc(it.title)}</span></div>
+                  ${it.ask?.context ? `<div class="ic-dec-ctx">${esc(it.ask.context)}</div>` : ""}
+                  ${qs.map((q, qi) => `
+                    <div class="ic-q">
+                      <div class="ic-q-prompt">${qi + 1}. ${esc(q.prompt)}</div>
+                      <div class="ic-opts">
+                        ${(q.options || []).map((opt, oi) => {
+                          const chosen = (draft.picks[qi] || []).includes(opt.label);
+                          const isRec = q.recommended === oi;
+                          return `
+                            <button class="ic-opt ${chosen ? "chosen" : ""}"
+                                    data-pick-item="${it.number}" data-pick-q="${qi}" data-pick-multi="${q.multi ? "1" : "0"}" data-pick-val="${esc(opt.label)}">
+                              <span>${chosen ? "✓ " : ""}${esc(opt.label)}${opt.detail ? ` — ${esc(opt.detail)}` : ""}</span>
+                              ${isRec ? `<span class="ic-opt-rec">${esc(tr.recBadge)}</span>` : ""}
+                            </button>`;
+                        }).join("")}
+                      </div>
+                    </div>`).join("")}
+                  <input class="ic-note-input" data-dec-note="${it.number}" value="${esc(draft.note || "")}" placeholder="${esc(tr.notePlaceholder)}" />
+                  <div class="ic-dec-actions">
+                    <button class="ic-btn primary-attn" data-copy-go="${it.number}">${esc(tr.btnCopyAndGo)}</button>
+                    <button class="ic-btn secondary" id="icTasksBtn">${esc(tr.btnOpenTasks)}</button>
+                  </div>
+                  <div class="ic-dec-hint">${esc(tr.decHint)}</div>
+                </div>`;
+            }).join("")}`;
+        }
 
         if ((b.workers || []).length > 0) {
           workersHtml = `
@@ -1330,7 +1531,7 @@
                       <div class="ic-w-name">${esc(w.displayName)}</div>
                       <div class="ic-w-act">${esc(w.activity || tr.stateIdle)}</div>
                     </div>
-                    <span class="ic-w-go" data-modal-jump="${esc(w.worktreeId)}" data-modal-attn="${w.needsAttention ? "1" : "0"}">${w.needsAttention ? "🔴 ↗" : "↗"}</span>
+                    <span class="ic-w-go" data-modal-jump="${esc(w.worktreeId)}" data-modal-attn="${w.needsDecision ? "1" : "0"}">${w.needsDecision ? "🔴 ↗" : "↗"}</span>
                   </div>`;
               }).join("")}
             </div>`;
@@ -1344,8 +1545,8 @@
         repo = w.repo;
         branch = w.branch;
         statusCls = ws.mode;
-        statusText = ws.mode === "attn" ? `🔴 ${ws.reason}` : (ws.mode === "working" ? `🟢 ${ws.label}` : `💤 ${ws.label}`);
-        needsAttn = w.needsAttention;
+        statusText = ws.mode === "attn" ? `🔴 ${ws.reason}` : (ws.mode === "working" ? `🔵 ${ws.label}` : `💤 ${ws.label}`);
+        needsDec = w.needsDecision;
         lastAt = w.lastActivityAt;
         details = (w.details && w.details.length) ? w.details : (w.activity ? [w.activity] : []);
         primaryWsId = w.worktreeId;
@@ -1357,7 +1558,7 @@
         : `<div class="ic-task-line" style="color:#94a3b8">${esc(tr.noActivity)}</div>`;
 
       const primaryBtn = primaryWsId
-        ? `<button class="ic-btn ${needsAttn && !attnWorkerWsId ? "primary-attn" : ""}" id="icOpenBtn">${esc(needsAttn && !attnWorkerWsId ? tr.btnHandleNow : tr.btnOpenWs)}</button>`
+        ? `<button class="ic-btn ${needsDec && !decisionsHtml && !attnWorkerWsId ? "primary-attn" : ""}" id="icOpenBtn">${esc(tr.btnOpenWs)}</button>`
         : "";
       const jumpAttnWorkerBtn = attnWorkerWsId
         ? `<button class="ic-btn primary-attn" id="icJumpAttnWorkerBtn">${esc(tr.btnHandleWorker)}</button>`
@@ -1365,12 +1566,9 @@
 
       root.innerHTML = `
         <div class="card-backdrop" id="cardBackdrop">
-          <div class="inspector-card ${needsAttn ? "is-attn" : ""}" id="inspectorCard">
+          <div class="inspector-card ${needsDec ? "is-attn" : ""}">
             <div class="ic-head">
-              <div class="ic-av">
-                ${avatarHtml}
-                ${needsAttn ? `<span class="ic-av-dot"></span>` : ""}
-              </div>
+              <div class="ic-av">${avatarHtml}${needsDec ? `<span class="ic-av-dot"></span>` : ""}</div>
               <div class="ic-title-wrap">
                 <div class="ic-name">${esc(title)}</div>
                 <div class="ic-meta">
@@ -1380,19 +1578,16 @@
                   ${branch ? `<span class="ic-pill">${esc(branch)}</span>` : ""}
                 </div>
               </div>
-              <button class="ic-close" id="icCloseBtn" title="${esc(tr.btnClose)}">×</button>
+              <button class="ic-close" id="icCloseBtn">×</button>
             </div>
-
             <div class="ic-status-bar ${statusCls}">
               <span>${esc(statusText)}</span>
               ${lastAt ? `<span class="ic-time">${esc(relTime(lastAt))}</span>` : ""}
             </div>
-
+            ${decisionsHtml}
             <div class="ic-section-title">${esc(tr.secActivity)}</div>
             <div class="ic-task-box">${taskHtml}</div>
-
             ${workersHtml}
-
             <div class="ic-actions">
               <button class="ic-btn secondary" id="icDismissBtn">${esc(tr.btnClose)}</button>
               ${jumpAttnWorkerBtn}
@@ -1408,13 +1603,64 @@
       document.getElementById("icCloseBtn")?.addEventListener("click", close);
       document.getElementById("icDismissBtn")?.addEventListener("click", close);
       document.getElementById("icOpenBtn")?.addEventListener("click", () => {
-        if (primaryWsId) void openWorkspace(primaryWsId, needsAttn);
+        if (primaryWsId) void openWorkspace(primaryWsId, needsDec);
         close();
       });
       document.getElementById("icJumpAttnWorkerBtn")?.addEventListener("click", () => {
         if (attnWorkerWsId) void openWorkspace(attnWorkerWsId, true);
         close();
       });
+      document.getElementById("icTasksBtn")?.addEventListener("click", () => {
+        void openTasksView();
+        close();
+      });
+
+      // Option selection inside the Decision Card
+      document.querySelectorAll("[data-pick-item]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const itemNum = btn.getAttribute("data-pick-item");
+          const qi = Number(btn.getAttribute("data-pick-q"));
+          const multi = btn.getAttribute("data-pick-multi") === "1";
+          const val = btn.getAttribute("data-pick-val");
+          const d = draftDecisions.get(itemNum) || { picks: {}, note: "" };
+          const cur = Array.isArray(d.picks[qi]) ? [...d.picks[qi]] : [];
+          if (multi) {
+            const idx = cur.indexOf(val);
+            if (idx >= 0) cur.splice(idx, 1);
+            else cur.push(val);
+            d.picks[qi] = cur;
+          } else {
+            d.picks[qi] = [val];
+          }
+          draftDecisions.set(itemNum, d);
+          renderModal();
+        });
+      });
+
+      document.querySelectorAll("[data-dec-note]").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          const itemNum = inp.getAttribute("data-dec-note");
+          const d = draftDecisions.get(itemNum) || { picks: {}, note: "" };
+          d.note = inp.value;
+          draftDecisions.set(itemNum, d);
+        });
+      });
+
+      document.querySelectorAll("[data-copy-go]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const itemNum = Number(btn.getAttribute("data-copy-go"));
+          const item = (target.bot?.needsYouItems || []).find((x) => x.number === itemNum);
+          if (item) {
+            const text = buildDecisionText(item);
+            try { await navigator.clipboard.writeText(text); } catch {}
+          }
+          if (primaryWsId) void openWorkspace(primaryWsId, true);
+          else void openTasksView();
+          showToast(tr.toastCopied, false);
+          close();
+        });
+      });
+
       document.querySelectorAll("[data-modal-switch-worker]").forEach((el) => {
         el.addEventListener("click", () => {
           openCard = { kind: "worker", worktreeId: el.getAttribute("data-modal-switch-worker") };
@@ -1432,62 +1678,98 @@
       });
     }
 
+    function detectNewDecisions(snap) {
+      const tr = t();
+      const currentKeys = new Set();
+      for (const item of (snap.decisionList || [])) {
+        const key = `${item.kind}:${item.id || item.worktreeId}:${item.itemNumber || ""}`;
+        currentKeys.add(key);
+        if (hasLoadedOnce && !seenDecisionKeys.has(key)) {
+          showToast(tr.toastNewDecision(item.name, item.title || tr.stateNeed), true, () => {
+            openCard = item.kind === "bot"
+              ? { kind: "bot", id: item.id }
+              : { kind: "worker", worktreeId: item.worktreeId };
+            renderModal();
+          });
+        }
+      }
+      seenDecisionKeys = currentKeys;
+      hasLoadedOnce = true;
+    }
+
     function render() {
       const tr = t();
       document.getElementById("brandTitle").textContent = tr.title;
+      document.getElementById("liveLabel").textContent = tr.live;
+      document.getElementById("cntNeedLbl").textContent = tr.needLbl;
+      document.getElementById("cntWorkLbl").textContent = tr.workLbl;
+      document.getElementById("cntIdleLbl").textContent = tr.idleLbl;
+      document.getElementById("viewOfficeBtn").textContent = tr.tabOffice;
+      document.getElementById("viewListBtn").textContent = tr.tabList;
       document.getElementById("activeOnlyBtn").textContent = tr.activeOnly;
       document.getElementById("refreshBtn").textContent = tr.refresh;
+      document.getElementById("viewOfficeBtn").classList.toggle("active", viewMode === "office");
+      document.getElementById("viewListBtn").classList.toggle("active", viewMode === "list");
+
       if (!snapshot) return;
-
       const s = snapshot.summary || {};
-      document.getElementById("topStat").innerHTML =
-        tr.stat(s.workingBots || 0, s.totalBots || 0, s.workingWorkers || 0, s.totalWorkers || 0);
+      const needCount = s.decisionCount || 0;
+      const workCount = (s.workingBots || 0) + (s.workingWorkers || 0);
+      const idleCount = s.idleTotal || 0;
 
-      const attnList = snapshot.attentionList || [];
-      const attnBtn = document.getElementById("attnQuickBtn");
-      if (attnList.length > 0) {
-        attnBtn.style.display = "inline-flex";
-        document.getElementById("attnQuickText").textContent = tr.needYouShort(attnList.length);
-      } else {
-        attnBtn.style.display = "none";
-      }
+      document.getElementById("cntNeedVal").textContent = needCount;
+      document.getElementById("cntWorkVal").textContent = workCount;
+      document.getElementById("cntIdleVal").textContent = idleCount;
+      document.getElementById("cntNeed").classList.toggle("has-need", needCount > 0);
 
       const bots = snapshot.bots || [];
       const soloInLounge = snapshot.settings?.soloBotsInLounge !== false;
+      const main = document.getElementById("mainContent");
 
-      let html = "";
-      if (bots.length === 0) {
-        html = renderEmptyOffice();
+      if (viewMode === "list") {
+        main.innerHTML = renderWorkbenchList(bots);
       } else {
-        const teamBots = [];
-        const soloBots = [];
-        for (const b of bots) {
-          if (!soloInLounge || (b.workers && b.workers.length > 0)) teamBots.push(b);
-          else soloBots.push(b);
-        }
-        teamBots.sort((a, b) => {
-          const sc = (x) =>
-            (x.needsAttention ? 1000 : 0)
-            + (x.workingWorkerCount * 20)
-            + (x.state === "working" ? 10 : 0)
-            + (x.workers.length > 0 ? 2 : 0);
-          return sc(b) - sc(a);
-        });
+        let html = "";
+        if (bots.length === 0) {
+          html = renderEmptyOffice();
+        } else {
+          const teamBots = [];
+          const soloBots = [];
+          for (const b of bots) {
+            if (!soloInLounge || (b.workers && b.workers.length > 0)) teamBots.push(b);
+            else soloBots.push(b);
+          }
+          teamBots.sort((a, b) => {
+            const sc = (x) =>
+              (x.needsDecision ? 1000 : 0) + (x.workingWorkerCount * 20) + (x.state === "working" ? 10 : 0) + (x.workers.length > 0 ? 2 : 0);
+            return sc(b) - sc(a);
+          });
 
-        const shownTeams = activeOnly
-          ? teamBots.filter((b) => classifyBot(b).hot || b.workingWorkerCount > 0)
-          : teamBots;
-        const showLounge = soloBots.length > 0 && (!activeOnly || soloBots.some((b) => classifyBot(b).hot));
+          const shownTeams = activeOnly
+            ? teamBots.filter((b) => classifyBot(b).hot || b.workingWorkerCount > 0)
+            : teamBots;
+          const showLounge = soloBots.length > 0 && (!activeOnly || soloBots.some((b) => classifyBot(b).hot));
+          const totalStories = shownTeams.length + (showLounge ? 1 : 0);
 
-        const totalStories = shownTeams.length + (showLounge ? 1 : 0);
-        html = shownTeams.map((b, i) => renderTeamFloor(b, totalStories - i)).join("");
-        if (showLounge) {
-          html += renderLoungeFloor(soloBots);
+          html = shownTeams.map((b, i) => renderTeamFloor(b, totalStories - i)).join("");
+          if (showLounge) html += renderLoungeFloor(soloBots);
         }
+        main.innerHTML = `<div class="building">${html || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyBuilding)}</div>`}</div>`;
       }
 
-      document.getElementById("building").innerHTML =
-        html || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyBuilding)}</div>`;
+      // Bottom Status + Engine Legend (Magpie style)
+      document.getElementById("legendBar").innerHTML = `
+        <div class="legend-grp">
+          <span class="lg-item"><span class="lg-dot" style="background:#ef4444"></span>${esc(tr.legendNeed)}</span>
+          <span class="lg-item"><span class="lg-dot" style="background:#38bdf8"></span>${esc(tr.legendWork)}</span>
+          <span class="lg-item"><span class="lg-dot" style="background:#64748b"></span>${esc(tr.legendIdle)}</span>
+        </div>
+        <div class="legend-grp">
+          <span class="lg-item"><span class="lg-dot" style="background:#f59e0b"></span>Claude</span>
+          <span class="lg-item"><span class="lg-dot" style="background:#38bdf8"></span>Antigravity</span>
+          <span class="lg-item"><span class="lg-dot" style="background:#a78bfa"></span>Codex</span>
+          <span class="lg-item"><span class="lg-dot" style="background:#94a3b8"></span>Pi</span>
+        </div>`;
 
       // B1 Standalone Workspaces Bar
       const standalone = snapshot.standalone || [];
@@ -1496,11 +1778,11 @@
         guestBar.style.display = "none";
       } else {
         guestBar.style.display = "block";
-        const activeG = standalone.filter((w) => w.state === "working" || w.needsAttention).length;
+        const activeG = standalone.filter((w) => w.state === "working" || w.needsDecision).length;
         const listHtml = guestExpanded
           ? `<div class="guest-list">${standalone.map((w) => `
-              <span class="guest-chip ${w.needsAttention ? "attn" : ""}" data-card-standalone="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}" title="${esc(w.activity || tr.stateIdle)}">
-                ${w.needsAttention ? "🔴" : (w.state === "working" ? "🟢" : "🪑")} ${esc(w.displayName)}
+              <span class="guest-chip ${w.needsDecision ? "attn" : ""}" data-card-standalone="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}" title="${esc(w.activity || tr.stateIdle)}">
+                ${w.needsDecision ? "🔴" : (w.state === "working" ? "🟢" : "🪑")} ${esc(w.displayName)}
               </span>`).join("")}</div>`
           : "";
         guestBar.innerHTML = `
@@ -1514,7 +1796,6 @@
         });
       }
 
-      // Bind Click (Pop Inspector Card) & Double-Click (Direct Jump)
       document.querySelectorAll("[data-card-bot]").forEach((el) => {
         el.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -1563,56 +1844,55 @@
           Object.keys(avatars).length ? Promise.resolve(avatars) : orcaApi.plugin.request("office.getAvatars", {}),
         ]);
         if (avs) avatars = avs;
-        if (snap) snapshot = snap;
+        if (snap) {
+          snapshot = snap;
+          detectNewDecisions(snap);
+        }
         render();
       } catch (err) {
-        document.getElementById("building").innerHTML =
+        document.getElementById("mainContent").innerHTML =
           `<div style="color:#f87171;padding:18px">${esc(t().loadErr)}${esc(err?.message || err)}</div>`;
       }
     }
 
+    document.getElementById("viewOfficeBtn").addEventListener("click", () => { viewMode = "office"; render(); });
+    document.getElementById("viewListBtn").addEventListener("click", () => { viewMode = "list"; render(); });
     document.getElementById("refreshBtn").addEventListener("click", () => void loadAll(true));
     document.getElementById("activeOnlyBtn").addEventListener("click", (e) => {
       activeOnly = !activeOnly;
       e.currentTarget.classList.toggle("active", activeOnly);
       render();
     });
-    document.getElementById("attnQuickBtn").addEventListener("click", () => {
-      const list = snapshot?.attentionList || [];
+    document.getElementById("cntNeed").addEventListener("click", () => {
+      const list = snapshot?.decisionList || [];
       if (!list.length) return;
-      const item = list[attnCursor % list.length];
-      attnCursor += 1;
+      const item = list[decisionCursor % list.length];
+      decisionCursor += 1;
       openCard = item.kind === "bot"
         ? { kind: "bot", id: item.id }
         : { kind: "worker", worktreeId: item.worktreeId };
       renderModal();
     });
     window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && openCard) {
-        openCard = null;
-        renderModal();
-      }
+      if (e.key === "Escape" && openCard) { openCard = null; renderModal(); }
     });
 
     if (orcaApi?.plugin?.on) {
       orcaApi.plugin.on("office.snapshot", (snap) => {
-        if (snap) { snapshot = snap; render(); }
+        if (snap) { snapshot = snap; detectNewDecisions(snap); render(); }
       });
     }
     if (orcaApi?.on) {
       orcaApi.on("theme", () => render());
     }
 
-    // Hook for automated preview / stress tests when loaded locally outside Orca
     window.__botOfficeInjectMock = (mockSnap, mockAvatars = {}) => {
       snapshot = mockSnap;
       avatars = mockAvatars;
       render();
     };
-    window.__botOfficeOpenCard = (cardSpec) => {
-      openCard = cardSpec;
-      renderModal();
-    };
+    window.__botOfficeOpenCard = (cardSpec) => { openCard = cardSpec; renderModal(); };
+    window.__botOfficeSetView = (mode) => { viewMode = mode; render(); };
 
     document.getElementById("loadingText").textContent = t().loading;
     void loadAll(false);

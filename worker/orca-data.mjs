@@ -12,11 +12,10 @@ const STATE_PRIORITY = {
   permission: 0,
   waiting: 1,
   working: 2,
-  unread: 3,
-  active: 4,
-  done: 5,
-  idle: 6,
-  inactive: 6,
+  active: 3,
+  done: 4,
+  idle: 5,
+  inactive: 5,
 };
 
 export function locateOrcaBinary(env = process.env) {
@@ -80,33 +79,32 @@ function normalizeBranch(branch) {
   return String(branch || "").replace(/^refs\/heads\//, "");
 }
 
-function isAttentionState(state) {
+function isBlockingState(state) {
   return state === "blocked" || state === "permission" || state === "waiting";
 }
 
-function pickAgentState(agents, fallbackStatus, unread) {
+function pickAgentState(agents, fallbackStatus) {
   const list = Array.isArray(agents) ? agents : [];
   let best = null;
   for (const a of list) {
     const s = String(a?.state || "done").toLowerCase();
-    const score = STATE_PRIORITY[s] ?? 5;
+    const score = STATE_PRIORITY[s] ?? 4;
     if (!best || score < best.score) best = { state: s, score, agent: a };
   }
   const st = best?.state || String(fallbackStatus || "idle").toLowerCase();
-  if (isAttentionState(st)) {
+  if (isBlockingState(st)) {
     return { state: st, agent: best?.agent || null };
   }
   if (st === "working" || fallbackStatus === "working") {
     return { state: "working", agent: best?.agent || null };
   }
-  if (unread) return { state: "unread", agent: best?.agent || null };
   if (fallbackStatus === "active") return { state: "active", agent: best?.agent || null };
   return { state: "idle", agent: best?.agent || null };
 }
 
-function extractActivity(agent, fallback, maxLen = 90) {
-  if (agent?.toolName && (agent?.state === "working" || isAttentionState(agent?.state))) {
-    const detail = cleanText(agent.toolInput, Math.max(48, maxLen - 28));
+function extractActivity(agent, fallback, maxLen = 88) {
+  if (agent?.toolName && (agent?.state === "working" || isBlockingState(agent?.state))) {
+    const detail = cleanText(agent.toolInput, Math.max(44, maxLen - 28));
     return detail ? `${agent.toolName}: ${detail}` : `${agent.toolName}`;
   }
   if (agent?.taskTitle) return cleanText(agent.taskTitle, maxLen);
@@ -118,7 +116,7 @@ function extractActivity(agent, fallback, maxLen = 90) {
 function extractDetailedContext(agent, fallback) {
   const lines = [];
   if (agent?.taskTitle) lines.push(cleanText(agent.taskTitle, 240));
-  if (agent?.toolName && (agent?.state === "working" || isAttentionState(agent?.state))) {
+  if (agent?.toolName && (agent?.state === "working" || isBlockingState(agent?.state))) {
     const inp = cleanText(agent.toolInput, 220);
     lines.push(inp ? `[${agent.toolName}] ${inp}` : `[${agent.toolName}]`);
   }
@@ -133,23 +131,106 @@ function extractDetailedContext(agent, fallback) {
   return lines.slice(0, 3);
 }
 
-function buildWorkerItem(w) {
-  const picked = pickAgentState(w.agents, w.status, w.unread);
-  const needsAttention = isAttentionState(picked.state) || Boolean(w.unread);
-  const attentionReason = isAttentionState(picked.state)
-    ? picked.state
-    : w.unread
-      ? "unread"
-      : null;
+// Cache item details by item number + version so we never re-fetch unchanged needs_you items
+const itemDetailCache = new Map();
 
+function parseAskFromEvents(events, fallbackQuestion) {
+  const list = Array.isArray(events) ? events : [];
+  for (let i = list.length - 1; i >= 0; i--) {
+    const ev = list[i];
+    if (ev?.kind === "commented" && ev?.data?.ask) {
+      const ask = ev.data.ask;
+      const questions = Array.isArray(ask.questions)
+        ? ask.questions.map((q) => ({
+            prompt: String(q.prompt || ""),
+            multi: Boolean(q.multi),
+            recommended: typeof q.recommended === "number" ? q.recommended : null,
+            options: Array.isArray(q.options)
+              ? q.options.map((o) =>
+                  typeof o === "string"
+                    ? { label: o, detail: "" }
+                    : { label: String(o.label || ""), detail: String(o.detail || "") }
+                )
+              : [],
+          }))
+        : [];
+      return {
+        eventId: ev.id || null,
+        context: String(ask.context || ev.data.text || "").slice(0, 600),
+        questions,
+      };
+    }
+  }
+  // Fallback: latest bot comment when item was set to needs_you without structured --ask
+  for (let i = list.length - 1; i >= 0; i--) {
+    const ev = list[i];
+    if (ev?.kind === "commented" && ev?.actor?.kind === "bot" && ev?.data?.text) {
+      return {
+        eventId: ev.id || null,
+        context: String(ev.data.text).slice(0, 600),
+        questions: [],
+      };
+    }
+  }
+  return {
+    eventId: null,
+    context: typeof fallbackQuestion === "string" ? fallbackQuestion : "",
+    questions: [],
+  };
+}
+
+async function fetchBotNeedsYouItems(orcaBin, botName) {
+  try {
+    const res = await runOrcaJson(orcaBin, ["bot", "item", "list", "--bot", botName, "--status", "needs-you", "--limit", "20"], 7000);
+    const now = Date.now();
+    const rawItems = (Array.isArray(res?.items) ? res.items : []).filter(
+      (it) => !it.snoozedUntil || Number(it.snoozedUntil) <= now
+    );
+    const enriched = await Promise.all(
+      rawItems.map(async (it) => {
+        const cacheKey = `${it.number}:${it.version || it.lastEventId || it.updatedAt}`;
+        let ask = itemDetailCache.get(cacheKey);
+        if (!ask) {
+          try {
+            const detail = await runOrcaJson(orcaBin, ["bot", "item", "show", String(it.number)], 7000);
+            ask = parseAskFromEvents(detail?.events, it.question);
+            itemDetailCache.set(cacheKey, ask);
+            if (itemDetailCache.size > 120) {
+              const firstKey = itemDetailCache.keys().next().value;
+              itemDetailCache.delete(firstKey);
+            }
+          } catch {
+            ask = { eventId: null, context: cleanText(it.description || it.doneMeans || "", 320), questions: [] };
+          }
+        }
+        return {
+          number: it.number,
+          title: String(it.title || `#${it.number}`),
+          doneMeans: String(it.doneMeans || ""),
+          status: it.status,
+          updatedAt: it.updatedAt || it.lastActivityAt || null,
+          ask,
+        };
+      })
+    );
+    return enriched;
+  } catch {
+    return [];
+  }
+}
+
+function buildWorkerItem(w) {
+  const picked = pickAgentState(w.agents, w.status);
+  // Strict: Worker only gets a red dot when genuinely blocked / waiting for permission/input
+  const needsDecision = isBlockingState(picked.state);
   return {
     worktreeId: w.worktreeId,
     displayName: w.displayName || path.basename(w.path || ""),
     repo: w.repo || "",
     branch: normalizeBranch(w.branch),
     state: picked.state,
-    needsAttention,
-    attentionReason,
+    needsDecision,
+    decisionReason: needsDecision ? picked.state : null,
     agentType: picked.agent?.agentType || "",
     toolName: picked.agent?.toolName || "",
     activity: extractActivity(picked.agent, w.preview || w.comment || "", 88),
@@ -161,7 +242,7 @@ function buildWorkerItem(w) {
 }
 
 function compareWorkers(a, b) {
-  if (a.needsAttention !== b.needsAttention) return a.needsAttention ? -1 : 1;
+  if (a.needsDecision !== b.needsDecision) return a.needsDecision ? -1 : 1;
   const pa = STATE_PRIORITY[a.state] ?? 9;
   const pb = STATE_PRIORITY[b.state] ?? 9;
   if (pa !== pb) return pa - pb;
@@ -170,12 +251,11 @@ function compareWorkers(a, b) {
 
 function compareBots(a, b) {
   const rank = (bot) => {
-    if (isAttentionState(bot.state) || bot.attentionWorkerCount > 0) return 0;
-    if (bot.unread) return 1;
-    if (bot.state === "working") return 2;
-    if (bot.workingWorkerCount > 0) return 3;
-    if (bot.workers.length > 0) return 4;
-    return 5;
+    if (bot.needsDecision) return 0;
+    if (bot.state === "working") return 1;
+    if (bot.workingWorkerCount > 0) return 2;
+    if (bot.workers.length > 0) return 3;
+    return 4;
   };
   const ra = rank(a);
   const rb = rank(b);
@@ -198,6 +278,12 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
   const rawBots = Array.isArray(botRes.bots) ? botRes.bots : [];
   const rawWts = Array.isArray(wtRes.worktrees) ? wtRes.worktrees : [];
 
+  // Fetch every Bot's native Needs-You decision items in parallel
+  const needsYouEntries = await Promise.all(
+    rawBots.map(async (b) => [b.name, await fetchBotNeedsYouItems(orcaBin, b.name)])
+  );
+  const needsYouByBot = new Map(needsYouEntries);
+
   const homeByBot = new Map();
   const workersByBot = new Map();
   const standalone = [];
@@ -218,20 +304,29 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
   const bots = rawBots.map((b) => {
     const home = homeByBot.get(b.name) || null;
     const workers = (workersByBot.get(b.name) || []).sort(compareWorkers);
+    const needsYouItems = needsYouByBot.get(b.name) || [];
     const picked = home
-      ? pickAgentState(home.agents, home.status, home.unread)
+      ? pickAgentState(home.agents, home.status)
       : { state: "idle", agent: null };
 
     const workingWorkerCount = workers.filter((w) => w.state === "working").length;
-    const attentionWorkers = workers.filter((w) => w.needsAttention);
-    const attentionWorkerCount = attentionWorkers.length;
-    const selfNeedsAttention = isAttentionState(picked.state) || Boolean(home?.unread);
-    const needsAttention = selfNeedsAttention || attentionWorkerCount > 0;
-    const attentionCount = (selfNeedsAttention ? 1 : 0) + attentionWorkerCount;
+    const decisionWorkers = workers.filter((w) => w.needsDecision);
+    const decisionWorkerCount = decisionWorkers.length;
 
-    let activity = home ? extractActivity(picked.agent, "", 88) : "";
-    if (!activity && attentionWorkerCount > 0) {
-      activity = attentionWorkers[0].activity || attentionWorkers[0].displayName;
+    // Strict alignment with Orca native Bot Items (`needs_you`) + real terminal approval blockers!
+    const selfNeedsDecision = needsYouItems.length > 0 || isBlockingState(picked.state);
+    const needsDecision = selfNeedsDecision || decisionWorkerCount > 0;
+    const decisionCount = needsYouItems.length + (needsYouItems.length === 0 && isBlockingState(picked.state) ? 1 : 0) + decisionWorkerCount;
+
+    let activity = "";
+    if (needsYouItems.length > 0) {
+      const firstQ = needsYouItems[0].ask?.questions?.[0]?.prompt;
+      activity = cleanText(firstQ || needsYouItems[0].title, 88);
+    } else if (home) {
+      activity = extractActivity(picked.agent, "", 88);
+    }
+    if (!activity && decisionWorkerCount > 0) {
+      activity = decisionWorkers[0].activity || decisionWorkers[0].displayName;
     }
     if (!activity && workingWorkerCount > 0) {
       activity = workers[0].activity || workers[0].displayName;
@@ -250,22 +345,16 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
       worktreeId: home?.worktreeId || null,
       state: picked.state,
       unread: Boolean(home?.unread),
-      selfNeedsAttention,
-      needsAttention,
-      attentionCount,
-      attentionReason: isAttentionState(picked.state)
-        ? picked.state
-        : home?.unread
-          ? "unread"
-          : attentionWorkerCount > 0
-            ? "worker"
-            : null,
+      needsYouItems,
+      selfNeedsDecision,
+      needsDecision,
+      decisionCount,
+      decisionWorkerCount,
       activity,
       details,
       toolName: picked.agent?.toolName || "",
       lastActivityAt: home?.lastActivityAt || workers[0]?.lastActivityAt || null,
       workingWorkerCount,
-      attentionWorkerCount,
       workers,
     };
   });
@@ -273,14 +362,28 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
   bots.sort(compareBots);
   standalone.sort(compareWorkers);
 
-  const attentionList = [];
+  const decisionList = [];
   for (const b of bots) {
-    if (b.selfNeedsAttention) {
-      attentionList.push({ kind: "bot", id: b.id, worktreeId: b.worktreeId, name: b.name });
+    if (b.selfNeedsDecision) {
+      decisionList.push({
+        kind: "bot",
+        id: b.id,
+        worktreeId: b.worktreeId,
+        name: b.name,
+        title: b.needsYouItems[0]?.title || b.activity,
+        itemNumber: b.needsYouItems[0]?.number || null,
+      });
     }
     for (const w of b.workers) {
-      if (w.needsAttention) {
-        attentionList.push({ kind: "worker", worktreeId: w.worktreeId, botId: b.id, name: w.displayName });
+      if (w.needsDecision) {
+        decisionList.push({
+          kind: "worker",
+          worktreeId: w.worktreeId,
+          botId: b.id,
+          name: w.displayName,
+          title: w.activity,
+          itemNumber: null,
+        });
       }
     }
   }
@@ -288,13 +391,16 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
   const summary = {
     totalBots: bots.length,
     workingBots: bots.filter((b) => b.state === "working" || b.workingWorkerCount > 0).length,
-    attentionCount: attentionList.length,
+    decisionCount: bots.reduce((acc, b) => acc + b.decisionCount, 0),
     workingWorkers: bots.reduce((acc, b) => acc + b.workingWorkerCount, 0),
     totalWorkers: bots.reduce((acc, b) => acc + b.workers.length, 0),
+    idleTotal:
+      bots.filter((b) => !b.needsDecision && b.state !== "working" && b.workingWorkerCount === 0).length +
+      bots.reduce((acc, b) => acc + b.workers.filter((w) => !w.needsDecision && w.state !== "working").length, 0),
     standaloneWorking: standalone.filter((w) => w.state === "working").length,
   };
 
-  return { updatedAt: Date.now(), errors, summary, attentionList, bots, standalone };
+  return { updatedAt: Date.now(), errors, summary, decisionList, bots, standalone };
 }
 
 const avatarMemoryCache = new Map();

@@ -1,6 +1,6 @@
 # Bot Office — Orca Plugin
 
-An architectural cutaway **AI Headquarters** panel for Orca's right sidebar. See every Bot, their Workers, what everyone is working on, and who needs your attention at a glance — click anyone to inspect and jump right in.
+An architectural cutaway **Bot Office & Grouped Workbench** for Orca's right sidebar. See every Bot, their Workers, what everyone is doing, and every native **Needs-You** decision item at a glance.
 
 [中文说明](#中文说明)
 
@@ -8,28 +8,19 @@ An architectural cutaway **AI Headquarters** panel for Orca's right sidebar. See
 
 ## Features
 
-- **Cutaway Multi-Story Office**: Every Bot team with Workers gets its own studio floor (Lead Bot in a glass office on the left, Worker robots seated behind walnut wooden desks on the right with live dispatch wires and glowing screens).
-- **Unlimited Multi-Row Scaling**: Teams with 4+ Workers automatically expand into clean multi-row open bays (3 desks per row, no truncation), always prioritizing Workers that need you or are actively running.
-- **1F Open Workspace & Coffee Lounge**: Solo Bots (0 Workers) automatically gather on 1F — active ones at hot-desks, idle ones relaxing on plush velvet sofas (configurable to give every Bot its own floor).
-- **Red Notification Dots**: Any Bot or Worker waiting for approval, blocked, or with unread updates gets a pulsing **red dot** above their head plus a quick-jump counter in the top bar.
-- **Click-to-Inspect Card**: Click any Bot or Worker to pop open an inspector card showing full current task details, tool calls, team worker status, and a one-click **Handle Now / Open Workspace** button (double-click to jump immediately).
-- **Zero Configuration & Bilingual**: Automatically adapts to any Orca setup with 6 deterministic studio themes and automatic English / Chinese UI (`window.orca.locale`).
+- **Office & Grouped List Views**: Switch between the multi-story architectural cutaway office and a grouped workbench (`Needs Your Decision → Working → Idle`), with a live 3-bucket header and bottom status/engine legend.
+- **Synced 1:1 with Orca Native `Needs you` Items**: Red notification dots and counters strictly track each Bot's active (non-snoozed) native `Needs you` decision items and real Worker approval blockers — no noisy unread-chat false alarms.
+- **Interactive Decision & Inspector Card**: Click any Bot or Worker to view full task details, read every `Needs you` question with selectable options (`Recommended` badges included), copy your formatted decision, and jump straight to the Bot or Worker in one click (double-click to jump immediately).
+- **Unlimited Multi-Row Team Scaling**: Teams with 4+ Workers automatically expand into clean multi-row open bays (3 wooden desks per row, no truncation), and 1F Open Workspace & Coffee Lounge automatically expands for solo Bots.
+- **In-Panel Decision Toasts & Zero Config**: New `Needs you` items trigger a clickable toast in the bottom-right corner; 6 deterministic studio themes and automatic English / Chinese UI (`window.orca.locale`) work out of the box.
 
 ## Install
-
-### From GitHub (Orca CLI)
 
 ```bash
 orca plugin install TornadoDai/orca-bot-office
 ```
 
-Or in Orca: **Settings → Plugins → Install from Git** with:
-
-```
-https://github.com/TornadoDai/orca-bot-office
-```
-
-*(Also tagged with `orca-plugin` for automatic listing in Orca Community Plugins.)*
+Or in Orca: **Settings → Plugins → Install from Git** with `https://github.com/TornadoDai/orca-bot-office`.
 
 ## Settings
 
@@ -44,12 +35,11 @@ https://github.com/TornadoDai/orca-bot-office
 
 ## 中文说明
 
-挂在 Orca 右侧栏的**立体剖面「AI 总部大楼」插件**，一眼看清所有 Bot 主管和 Worker 正在干什么、谁需要你处理。
+挂在 Orca 右侧栏的**立体剖面「Bot 办公室」+ 分组工作台插件**，一眼看清所有 Bot 主管、Worker 动态以及需要你拍板的原生决策事件。
 
-- **每组一层真实工作室**：带 Worker 的 Bot 自动拥有独立楼层（左侧玻璃隔断主管间 + 右侧多排开放木桌工位），支持 **Worker 数量无上限自动扩排**（每排 3 桌，永不截断，待处理/干活中优先排前排）。
-- **1F 开放工区 & 咖啡茶水间**：未派 Worker 的单兵 Bot 自动归入 1F，干活坐工位、空闲躺沙发（也可在插件设置里切换为每个 Bot 独立一层）。
-- **红点提醒 & 点击弹窗卡片**：需要你审批、卡住或有未读消息的 Bot / Worker 头上亮起**脉冲红点**；单击任意角色弹出详情卡片查看完整任务上下文，点「立即进去处理」直达对应工作区和终端（双击也可秒跳）。
-- **开箱即用**：无任何硬编码配置，自动适配任意数量的 Bot / Worker，支持中英文自动切换。
+- **「办公室 / 列表」双视图**：保留干净无杂线的多楼层剖面工作室（支持 Worker 数量无上限自动扩排、1F 开放工区与沙发茶水间），同时支持一键切到按 **需要你决策 → 工作中 → 待命中** 分组的列表工作台。
+- **红点严格对齐 Orca 原生 `Needs you` 决策事件**：直接读取每个 Bot 的真实待决策事件（排除已延后项）与 Worker 真实审批阻塞，不再因普通未读消息误亮红点；有新决策到达时右下角弹出页内提醒。
+- **点击卡片内预选决策 & 一键直达**：单击任意角色弹窗查看完整任务上下文、原生 `Needs you` 问题与推荐选项，在卡片里点选好决策后一键复制并直达该 Bot 提交确认（双击角色可直接秒跳工作区）。
 
 ### 安装方式
 

@@ -4,15 +4,15 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.1.0",
-  "description": "Live architectural office view in Orca's right sidebar: see every Bot, their Workers, what they are doing, and who needs your attention with one-click jump.",
+  "version": "0.2.0",
+  "description": "Live architectural office & grouped workbench in Orca's right sidebar: track every Bot, their Workers, and native Needs-You decision items at a glance.",
   "license": "MIT",
   "icon": "assets/icon.png",
   "screenshots": [
     {
       "path": "assets/screenshot.png",
-      "alt": "Bot Office cutaway headquarters showing team studio floors, seated Bot leads, Worker robots, live activity bubbles, and an inspector card",
-      "caption": "Every Bot team gets its own studio floor; click anyone to inspect and jump right in"
+      "alt": "Bot Office cutaway headquarters and decision inspector card showing Bot teams, Worker robots, native Needs-You items, and grouped workbench",
+      "caption": "Every Bot team gets its own studio floor; switch between Office and List views and review Needs-You decisions inline"
     }
   ],
   "engines": {
