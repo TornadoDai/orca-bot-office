@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -51,7 +52,7 @@ export function buildExecEnv() {
   };
 }
 
-export async function runOrcaJson(orcaBin, args, timeoutMs = 10000) {
+export async function runOrcaJson(orcaBin, args, timeoutMs = 9000) {
   const { stdout } = await execFileAsync(orcaBin, [...args, "--json"], {
     timeout: timeoutMs,
     maxBuffer: 8 * 1024 * 1024,
@@ -92,19 +93,15 @@ function pickAgentState(agents, fallbackStatus) {
     if (!best || score < best.score) best = { state: s, score, agent: a };
   }
   const st = best?.state || String(fallbackStatus || "idle").toLowerCase();
-  if (isBlockingState(st)) {
-    return { state: st, agent: best?.agent || null };
-  }
-  if (st === "working" || fallbackStatus === "working") {
-    return { state: "working", agent: best?.agent || null };
-  }
+  if (isBlockingState(st)) return { state: st, agent: best?.agent || null };
+  if (st === "working" || fallbackStatus === "working") return { state: "working", agent: best?.agent || null };
   if (fallbackStatus === "active") return { state: "active", agent: best?.agent || null };
   return { state: "idle", agent: best?.agent || null };
 }
 
-function extractActivity(agent, fallback, maxLen = 88) {
+function extractActivity(agent, fallback, maxLen = 84) {
   if (agent?.toolName && (agent?.state === "working" || isBlockingState(agent?.state))) {
-    const detail = cleanText(agent.toolInput, Math.max(44, maxLen - 28));
+    const detail = cleanText(agent.toolInput, Math.max(40, maxLen - 24));
     return detail ? `${agent.toolName}: ${detail}` : `${agent.toolName}`;
   }
   if (agent?.taskTitle) return cleanText(agent.taskTitle, maxLen);
@@ -113,26 +110,50 @@ function extractActivity(agent, fallback, maxLen = 88) {
   return cleanText(fallback, maxLen);
 }
 
-function extractDetailedContext(agent, fallback) {
-  const lines = [];
-  if (agent?.taskTitle) lines.push(cleanText(agent.taskTitle, 240));
-  if (agent?.toolName && (agent?.state === "working" || isBlockingState(agent?.state))) {
-    const inp = cleanText(agent.toolInput, 220);
-    lines.push(inp ? `[${agent.toolName}] ${inp}` : `[${agent.toolName}]`);
+function extractTimeline(agents, fallback) {
+  const list = Array.isArray(agents) ? agents : [];
+  const entries = [];
+  const seen = new Set();
+  const push = (label, text, at) => {
+    const clean = cleanText(text, 240);
+    if (!clean || seen.has(clean)) return;
+    seen.add(clean);
+    entries.push({ label, text: clean, at: at || null });
+  };
+  for (const a of list.slice(0, 3)) {
+    const eng = a.agentType || "agent";
+    if (a.taskTitle) push("task", a.taskTitle, a.stateStartedAt);
+    if (a.toolName && (a.state === "working" || isBlockingState(a.state))) {
+      const inp = cleanText(a.toolInput, 180);
+      push("tool", inp ? `[${a.toolName}] ${inp}` : `[${a.toolName}]`, a.stateStartedAt);
+    }
+    if (a.prompt) push(`prompt (${eng})`, a.prompt, a.stateStartedAt);
+    if (a.lastAssistantMessage) push(`reply (${eng})`, a.lastAssistantMessage, a.stateStartedAt);
   }
-  if (agent?.prompt && cleanText(agent.prompt, 240) !== lines[0]) {
-    lines.push(cleanText(agent.prompt, 280));
-  }
-  if (agent?.lastAssistantMessage) {
-    const msg = cleanText(agent.lastAssistantMessage, 280);
-    if (msg && !lines.includes(msg)) lines.push(msg);
-  }
-  if (!lines.length && fallback) lines.push(cleanText(fallback, 280));
-  return lines.slice(0, 3);
+  if (!entries.length && fallback) push("status", fallback, null);
+  return entries.slice(0, 5);
 }
 
-// Cache item details by item number + version so we never re-fetch unchanged needs_you items
-const itemDetailCache = new Map();
+function extractLinkedRefs(rawLinks) {
+  const list = Array.isArray(rawLinks) ? rawLinks : [];
+  const out = [];
+  for (const item of list.slice(0, 6)) {
+    if (!item) continue;
+    const url = typeof item === "string" ? item : item.url || item.href || "";
+    const label =
+      typeof item === "string"
+        ? item.replace(/^https?:\/\/[^/]+\//, "").slice(0, 36)
+        : item.label || item.key || item.title || (item.number ? `#${item.number}` : url.replace(/^https?:\/\/[^/]+\//, "").slice(0, 36));
+    const kind = typeof item === "object" && item.kind ? String(item.kind) : /\/pull\/|\/merge_requests\//.test(url) ? "pr" : "issue";
+    if (label || url) out.push({ kind, label: cleanText(label || "Link", 36), url });
+  }
+  return out;
+}
+
+// Low-CPU throttled cache for bot list & native needs-you items
+const itemListCache = new Map(); // botName -> { fetchedAt, items }
+const itemDetailCache = new Map(); // "num:ver" -> ask
+let botListCache = { fetchedAt: 0, bots: [] };
 
 function parseAskFromEvents(events, fallbackQuestion) {
   const list = Array.isArray(events) ? events : [];
@@ -156,88 +177,102 @@ function parseAskFromEvents(events, fallbackQuestion) {
         : [];
       return {
         eventId: ev.id || null,
-        context: String(ask.context || ev.data.text || "").slice(0, 600),
+        context: String(ask.context || ev.data.text || "").slice(0, 520),
         questions,
       };
     }
   }
-  // Fallback: latest bot comment when item was set to needs_you without structured --ask
   for (let i = list.length - 1; i >= 0; i--) {
     const ev = list[i];
     if (ev?.kind === "commented" && ev?.actor?.kind === "bot" && ev?.data?.text) {
-      return {
-        eventId: ev.id || null,
-        context: String(ev.data.text).slice(0, 600),
-        questions: [],
-      };
+      return { eventId: ev.id || null, context: String(ev.data.text).slice(0, 520), questions: [] };
     }
   }
-  return {
-    eventId: null,
-    context: typeof fallbackQuestion === "string" ? fallbackQuestion : "",
-    questions: [],
-  };
+  return { eventId: null, context: typeof fallbackQuestion === "string" ? fallbackQuestion : "", questions: [] };
 }
 
-async function fetchBotNeedsYouItems(orcaBin, botName) {
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const idx = cursor++;
+      results[idx] = await fn(items[idx], idx);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+async function fetchBotNeedsYouItems(orcaBin, botName, forceItems = false) {
+  const now = Date.now();
+  const cached = itemListCache.get(botName);
+  // Reuse cached needs-you items for 22s unless forced, dramatically slashing CLI subprocess spikes
+  if (!forceItems && cached && now - cached.fetchedAt < 22000) {
+    return cached.items;
+  }
   try {
-    const res = await runOrcaJson(orcaBin, ["bot", "item", "list", "--bot", botName, "--status", "needs-you", "--limit", "20"], 7000);
-    const now = Date.now();
+    const res = await runOrcaJson(
+      orcaBin,
+      ["bot", "item", "list", "--bot", botName, "--status", "needs-you", "--limit", "15"],
+      6500
+    );
     const rawItems = (Array.isArray(res?.items) ? res.items : []).filter(
       (it) => !it.snoozedUntil || Number(it.snoozedUntil) <= now
     );
-    const enriched = await Promise.all(
-      rawItems.map(async (it) => {
-        const cacheKey = `${it.number}:${it.version || it.lastEventId || it.updatedAt}`;
-        let ask = itemDetailCache.get(cacheKey);
-        if (!ask) {
-          try {
-            const detail = await runOrcaJson(orcaBin, ["bot", "item", "show", String(it.number)], 7000);
-            ask = parseAskFromEvents(detail?.events, it.question);
-            itemDetailCache.set(cacheKey, ask);
-            if (itemDetailCache.size > 120) {
-              const firstKey = itemDetailCache.keys().next().value;
-              itemDetailCache.delete(firstKey);
-            }
-          } catch {
-            ask = { eventId: null, context: cleanText(it.description || it.doneMeans || "", 320), questions: [] };
+    const enriched = await mapWithConcurrency(rawItems, 2, async (it) => {
+      const cacheKey = `${it.number}:${it.version || it.lastEventId || it.updatedAt}`;
+      let ask = itemDetailCache.get(cacheKey);
+      if (!ask) {
+        try {
+          const detail = await runOrcaJson(orcaBin, ["bot", "item", "show", String(it.number)], 6500);
+          ask = parseAskFromEvents(detail?.events, it.question);
+          itemDetailCache.set(cacheKey, ask);
+          if (itemDetailCache.size > 100) {
+            itemDetailCache.delete(itemDetailCache.keys().next().value);
           }
+        } catch {
+          ask = { eventId: null, context: cleanText(it.description || it.doneMeans || "", 320), questions: [] };
         }
-        return {
-          number: it.number,
-          title: String(it.title || `#${it.number}`),
-          doneMeans: String(it.doneMeans || ""),
-          status: it.status,
-          updatedAt: it.updatedAt || it.lastActivityAt || null,
-          ask,
-        };
-      })
-    );
+      }
+      return {
+        number: it.number,
+        title: String(it.title || `#${it.number}`),
+        doneMeans: String(it.doneMeans || ""),
+        status: it.status,
+        updatedAt: it.updatedAt || it.lastActivityAt || null,
+        ask,
+      };
+    });
+    itemListCache.set(botName, { fetchedAt: now, items: enriched });
     return enriched;
   } catch {
-    return [];
+    return cached?.items || [];
   }
 }
 
 function buildWorkerItem(w) {
   const picked = pickAgentState(w.agents, w.status);
-  // Strict: Worker only gets a red dot when genuinely blocked / waiting for permission/input
   const needsDecision = isBlockingState(picked.state);
+  const stateStartedAt = picked.agent?.stateStartedAt || w.lastActivityAt || null;
   return {
     worktreeId: w.worktreeId,
     displayName: w.displayName || path.basename(w.path || ""),
     repo: w.repo || "",
     branch: normalizeBranch(w.branch),
+    path: w.path || "",
     state: picked.state,
     needsDecision,
     decisionReason: needsDecision ? picked.state : null,
     agentType: picked.agent?.agentType || "",
     toolName: picked.agent?.toolName || "",
-    activity: extractActivity(picked.agent, w.preview || w.comment || "", 88),
-    details: extractDetailedContext(picked.agent, w.preview || w.comment || ""),
+    activity: extractActivity(picked.agent, w.preview || w.comment || "", 84),
+    timeline: extractTimeline(w.agents, w.preview || w.comment || ""),
+    links: extractLinkedRefs(w.linkedItems),
     unread: Boolean(w.unread),
     liveTerminalCount: Number(w.liveTerminalCount || 0),
-    lastActivityAt: w.lastActivityAt || null,
+    stateStartedAt,
+    lastActivityAt: w.lastActivityAt || stateStartedAt || null,
   };
 }
 
@@ -263,26 +298,69 @@ function compareBots(a, b) {
   return (b.lastActivityAt || 0) - (a.lastActivityAt || 0);
 }
 
-export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } = {}) {
+export function computeSnapshotHash(snap) {
+  const payload = {
+    summary: snap.summary,
+    settings: snap.settings,
+    bots: (snap.bots || []).map((b) => ({
+      id: b.id,
+      name: b.name,
+      state: b.state,
+      needsDecision: b.needsDecision,
+      decisionCount: b.decisionCount,
+      activity: b.activity,
+      lastActivityAt: b.lastActivityAt,
+      items: (b.needsYouItems || []).map((i) => `${i.number}:${i.updatedAt}`),
+      workers: (b.workers || []).map((w) => ({
+        id: w.worktreeId,
+        state: w.state,
+        needsDecision: w.needsDecision,
+        activity: w.activity,
+        lastActivityAt: w.lastActivityAt,
+      })),
+    })),
+    standalone: (snap.standalone || []).map((w) => `${w.worktreeId}:${w.state}:${w.lastActivityAt}`),
+  };
+  return crypto.createHash("sha1").update(JSON.stringify(payload)).digest("hex");
+}
+
+export async function collectOfficeSnapshot(orcaBin, { showStandalone = true, forceItems = false } = {}) {
   const errors = [];
+  const now = Date.now();
+
+  // Bot roster rarely changes — cache for 60s unless forced
+  const botPromise =
+    !forceItems && botListCache.bots.length && now - botListCache.fetchedAt < 60000
+      ? Promise.resolve({ bots: botListCache.bots })
+      : runOrcaJson(orcaBin, ["bot", "list"])
+          .then((res) => {
+            if (Array.isArray(res?.bots)) {
+              botListCache = { fetchedAt: Date.now(), bots: res.bots };
+            }
+            return res;
+          })
+          .catch((err) => {
+            errors.push(`bot list: ${err?.message || err}`);
+            return { bots: botListCache.bots || [] };
+          });
+
   const [botRes, wtRes] = await Promise.all([
-    runOrcaJson(orcaBin, ["bot", "list"]).catch((err) => {
-      errors.push(`bot list: ${err?.message || err}`);
-      return { bots: [] };
-    }),
+    botPromise,
     runOrcaJson(orcaBin, ["worktree", "ps", "--since", "7d"]).catch((err) => {
       errors.push(`worktree ps: ${err?.message || err}`);
       return { worktrees: [] };
     }),
   ]);
+
   const rawBots = Array.isArray(botRes.bots) ? botRes.bots : [];
   const rawWts = Array.isArray(wtRes.worktrees) ? wtRes.worktrees : [];
 
-  // Fetch every Bot's native Needs-You decision items in parallel
-  const needsYouEntries = await Promise.all(
-    rawBots.map(async (b) => [b.name, await fetchBotNeedsYouItems(orcaBin, b.name)])
-  );
-  const needsYouByBot = new Map(needsYouEntries);
+  // Concurrency-capped (3 at a time) + 22s cached native Needs-You item fetch
+  const needsYouList = await mapWithConcurrency(rawBots, 3, async (b) => [
+    b.name,
+    await fetchBotNeedsYouItems(orcaBin, b.name, forceItems),
+  ]);
+  const needsYouByBot = new Map(needsYouList);
 
   const homeByBot = new Map();
   const workersByBot = new Map();
@@ -305,25 +383,25 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
     const home = homeByBot.get(b.name) || null;
     const workers = (workersByBot.get(b.name) || []).sort(compareWorkers);
     const needsYouItems = needsYouByBot.get(b.name) || [];
-    const picked = home
-      ? pickAgentState(home.agents, home.status)
-      : { state: "idle", agent: null };
+    const picked = home ? pickAgentState(home.agents, home.status) : { state: "idle", agent: null };
 
     const workingWorkerCount = workers.filter((w) => w.state === "working").length;
     const decisionWorkers = workers.filter((w) => w.needsDecision);
     const decisionWorkerCount = decisionWorkers.length;
 
-    // Strict alignment with Orca native Bot Items (`needs_you`) + real terminal approval blockers!
     const selfNeedsDecision = needsYouItems.length > 0 || isBlockingState(picked.state);
     const needsDecision = selfNeedsDecision || decisionWorkerCount > 0;
-    const decisionCount = needsYouItems.length + (needsYouItems.length === 0 && isBlockingState(picked.state) ? 1 : 0) + decisionWorkerCount;
+    const decisionCount =
+      needsYouItems.length +
+      (needsYouItems.length === 0 && isBlockingState(picked.state) ? 1 : 0) +
+      decisionWorkerCount;
 
     let activity = "";
     if (needsYouItems.length > 0) {
       const firstQ = needsYouItems[0].ask?.questions?.[0]?.prompt;
-      activity = cleanText(firstQ || needsYouItems[0].title, 88);
+      activity = cleanText(firstQ || needsYouItems[0].title, 84);
     } else if (home) {
-      activity = extractActivity(picked.agent, "", 88);
+      activity = extractActivity(picked.agent, "", 84);
     }
     if (!activity && decisionWorkerCount > 0) {
       activity = decisionWorkers[0].activity || decisionWorkers[0].displayName;
@@ -333,8 +411,12 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
     }
     if (!activity) activity = cleanText(b.specialty, 84);
 
-    const details = home ? extractDetailedContext(picked.agent, "") : [];
-    if (!details.length && b.specialty) details.push(cleanText(b.specialty, 240));
+    const timeline = home ? extractTimeline(home.agents, "") : [];
+    if (!timeline.length && b.specialty) {
+      timeline.push({ label: "role", text: cleanText(b.specialty, 220), at: null });
+    }
+
+    const stateStartedAt = picked.agent?.stateStartedAt || home?.lastActivityAt || null;
 
     return {
       id: b.id,
@@ -343,6 +425,7 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
       paused: Boolean(b.paused),
       specialty: cleanText(b.specialty, 160),
       worktreeId: home?.worktreeId || null,
+      path: home?.path || "",
       state: picked.state,
       unread: Boolean(home?.unread),
       needsYouItems,
@@ -351,8 +434,10 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
       decisionCount,
       decisionWorkerCount,
       activity,
-      details,
+      timeline,
+      links: extractLinkedRefs(home?.linkedItems),
       toolName: picked.agent?.toolName || "",
+      stateStartedAt,
       lastActivityAt: home?.lastActivityAt || workers[0]?.lastActivityAt || null,
       workingWorkerCount,
       workers,
@@ -361,6 +446,28 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
 
   bots.sort(compareBots);
   standalone.sort(compareWorkers);
+
+  // Derive active mail / envelope traffic between Lead Bots & Workers (and cross-bot references)
+  const mailLinks = [];
+  for (const b of bots) {
+    for (const w of b.workers) {
+      if (w.needsDecision) {
+        mailLinks.push({ from: w.worktreeId, to: b.id, kind: "alert", label: w.activity || "Needs approval" });
+      } else if (w.state === "working") {
+        // Boss dispatching to active worker + worker reporting back
+        mailLinks.push({ from: b.id, to: w.worktreeId, kind: "dispatch", label: w.toolName || w.activity || "Working" });
+      }
+    }
+    // Cross-bot handoff/mail hint when a working bot mentions another bot in its active task/reply
+    if (b.state === "working" && b.activity) {
+      for (const other of bots) {
+        if (other.id !== b.id && other.name.length >= 2 && b.activity.includes(other.name)) {
+          mailLinks.push({ from: b.id, to: other.id, kind: "handoff", label: b.activity });
+          break;
+        }
+      }
+    }
+  }
 
   const decisionList = [];
   for (const b of bots) {
@@ -400,7 +507,7 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true } =
     standaloneWorking: standalone.filter((w) => w.state === "working").length,
   };
 
-  return { updatedAt: Date.now(), errors, summary, decisionList, bots, standalone };
+  return { updatedAt: Date.now(), errors, summary, decisionList, mailLinks, bots, standalone };
 }
 
 const avatarMemoryCache = new Map();
@@ -422,7 +529,7 @@ async function toTinyAvatarDataUrl(imgPath, cacheKey, mtimeMs) {
       avatarMemoryCache.set(cacheKey, { mtimeMs, dataUrl });
       return dataUrl;
     } catch {
-      // Fall through to raw check below
+      // Fall through to raw check
     }
   }
 
@@ -446,26 +553,24 @@ export async function collectBotAvatars() {
   if (!fs.existsSync(botsRoot)) return avatars;
 
   const dirs = fs.readdirSync(botsRoot, { withFileTypes: true }).filter((d) => d.isDirectory());
-  await Promise.all(
-    dirs.map(async (dir) => {
-      const folder = path.join(botsRoot, dir.name);
-      const metaPath = path.join(folder, "bot.json");
-      if (!fs.existsSync(metaPath)) return;
-      const imgPath = ["avatar.png", "avatar.jpg", "avatar.jpeg", "avatar.webp"]
-        .map((f) => path.join(folder, f))
-        .find((p) => fs.existsSync(p));
-      if (!imgPath) return;
-      try {
-        const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
-        const stat = fs.statSync(imgPath);
-        const key = String(meta.id || dir.name).replace(/[^a-zA-Z0-9_-]/g, "_");
-        const dataUrl = await toTinyAvatarDataUrl(imgPath, key, stat.mtimeMs);
-        if (dataUrl && meta.id) avatars[meta.id] = dataUrl;
-        if (dataUrl && meta.name) avatars[meta.name] = dataUrl;
-      } catch {
-        // Ignore unreadable bot folder
-      }
-    })
-  );
+  await mapWithConcurrency(dirs, 3, async (dir) => {
+    const folder = path.join(botsRoot, dir.name);
+    const metaPath = path.join(folder, "bot.json");
+    if (!fs.existsSync(metaPath)) return;
+    const imgPath = ["avatar.png", "avatar.jpg", "avatar.jpeg", "avatar.webp"]
+      .map((f) => path.join(folder, f))
+      .find((p) => fs.existsSync(p));
+    if (!imgPath) return;
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+      const stat = fs.statSync(imgPath);
+      const key = String(meta.id || dir.name).replace(/[^a-zA-Z0-9_-]/g, "_");
+      const dataUrl = await toTinyAvatarDataUrl(imgPath, key, stat.mtimeMs);
+      if (dataUrl && meta.id) avatars[meta.id] = dataUrl;
+      if (dataUrl && meta.name) avatars[meta.name] = dataUrl;
+    } catch {
+      // Ignore unreadable folder
+    }
+  });
   return avatars;
 }

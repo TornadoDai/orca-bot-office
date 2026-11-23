@@ -7,31 +7,28 @@
   <style>
     * { box-sizing: border-box; }
     :root {
-      --bg: #090c12;
-      --surface: #111622;
-      --card: #141b29;
-      --border: rgba(255, 255, 255, 0.09);
-      --border-hi: rgba(255, 255, 255, 0.16);
+      --bg: #090d16;
+      --surface: #111827;
+      --card: #151d2e;
+      --border: rgba(148, 163, 184, 0.16);
       --fg: #eef2f8;
       --muted: #8e9db5;
       --cyan: #38bdf8;
       --green: #4ade80;
       --amber: #fbbf24;
       --red: #ef4444;
-      --purple: #c084fc;
     }
     html.light {
       --bg: #e5ebf3;
       --surface: #f8fafc;
       --card: #ffffff;
-      --border: rgba(15, 23, 42, 0.11);
-      --border-hi: rgba(15, 23, 42, 0.2);
+      --border: rgba(15, 23, 42, 0.12);
       --fg: #0f172a;
       --muted: #64748b;
     }
     body {
       margin: 0;
-      padding: 7px 8px 18px;
+      padding: 6px 8px 14px;
       background: var(--bg);
       color: var(--fg);
       font-family: var(--orca-font-sans, -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif);
@@ -40,541 +37,317 @@
       user-select: none;
     }
 
-    /* Sleek Two-Row Glass Header */
+    /* Ultra-lightweight header: ZERO backdrop-filter, ZERO infinite CSS animations */
     .topbar {
       position: sticky;
       top: 0;
-      z-index: 70;
-      margin-bottom: 8px;
-      padding: 8px 10px;
-      background: linear-gradient(180deg, rgba(22, 29, 44, 0.96), rgba(15, 20, 32, 0.94));
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      z-index: 60;
+      margin-bottom: 6px;
+      padding: 7px 10px;
+      background: #131a29;
+      border: 1px solid var(--border);
+      border-radius: 10px;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
     }
-    .topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
     .brand { display: flex; align-items: center; gap: 7px; min-width: 0; }
     .brand-icon {
       width: 20px; height: 20px; border-radius: 6px;
       background: linear-gradient(135deg, #0ea5e9, #6366f1);
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35); flex-shrink: 0;
+      font-size: 11px; flex-shrink: 0;
     }
-    .brand-title { font-weight: 800; font-size: 13px; color: #f8fafc; letter-spacing: -0.01em; white-space: nowrap; }
+    .brand-title { font-weight: 800; font-size: 13px; color: #f8fafc; white-space: nowrap; }
     .live-pill {
       display: inline-flex; align-items: center; gap: 4px;
-      padding: 1.5px 7px; border-radius: 999px;
-      font-size: 9.5px; font-weight: 700;
-      background: rgba(74, 222, 128, 0.12);
-      border: 1px solid rgba(74, 222, 128, 0.3);
-      color: #86efac;
+      padding: 1px 7px; border-radius: 999px; font-size: 9.5px; font-weight: 700;
+      background: rgba(74, 222, 128, 0.12); border: 1px solid rgba(74, 222, 128, 0.32); color: #86efac;
     }
-    .live-dot {
-      width: 5.5px; height: 5.5px; border-radius: 50%;
-      background: #4ade80; box-shadow: 0 0 6px #4ade80;
-      animation: pulse 2s infinite;
-    }
+    .live-dot { width: 5.5px; height: 5.5px; border-radius: 50%; background: #4ade80; }
 
-    /* 3-Bucket Status Counters */
-    .counters { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+    .counters { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .cnt {
       display: inline-flex; align-items: center; gap: 4px;
-      font-size: 11px; color: #94a3b8; padding: 2px 7px; border-radius: 7px;
-      background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.06);
-      transition: all 0.15s;
+      font-size: 11px; color: #94a3b8; padding: 2px 7px; border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06);
     }
     .cnt b { color: #f1f5f9; font-weight: 800; font-variant-numeric: tabular-nums; }
     .cnt-dot { width: 6.5px; height: 6.5px; border-radius: 50%; flex-shrink: 0; }
-    .cnt-dot.red { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
-    .cnt-dot.blue { background: #38bdf8; box-shadow: 0 0 5px rgba(56, 189, 248, 0.55); }
+    .cnt-dot.red { background: #ef4444; }
+    .cnt-dot.blue { background: #38bdf8; }
     .cnt-dot.gray { background: #64748b; }
     .cnt.clickable { cursor: pointer; }
     .cnt.has-need {
-      background: linear-gradient(180deg, rgba(239, 68, 68, 0.24), rgba(185, 28, 28, 0.22));
-      border-color: rgba(248, 113, 113, 0.65);
-      color: #fecaca;
-      animation: attnGlow 1.9s ease-in-out infinite;
+      background: rgba(220, 38, 38, 0.24); border-color: rgba(248, 113, 113, 0.72); color: #fecaca;
     }
-    .cnt.has-need:hover { background: rgba(239, 68, 68, 0.34); color: #fff; }
+    .cnt.has-need:hover { background: rgba(220, 38, 38, 0.36); color: #fff; }
 
-    /* Segmented View Switcher */
+    .ctrl-left, .ctrl-right { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .seg {
-      display: inline-flex; padding: 2px; border-radius: 8px;
-      background: rgba(8, 12, 20, 0.85); border: 1px solid rgba(148, 163, 184, 0.16);
+      display: inline-flex; padding: 2px; border-radius: 7px;
+      background: #0a0f1a; border: 1px solid var(--border);
     }
     .seg-btn {
       border: none; background: transparent; color: #8e9db5;
-      font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 6px;
-      cursor: pointer; transition: all 0.15s;
+      font-size: 11px; font-weight: 700; padding: 2.5px 9px; border-radius: 5px; cursor: pointer;
     }
-    .seg-btn.active {
-      background: linear-gradient(180deg, #f8fafc, #e2e8f0);
-      color: #0f172a;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.38);
-    }
+    .seg-btn.active { background: #f1f5f9; color: #0f172a; }
     .seg-btn:not(.active):hover { color: #e2e8f0; }
 
-    .ctrl-right { display: flex; align-items: center; gap: 5px; }
+    .search-box {
+      width: 118px;
+      padding: 3px 7px; border-radius: 6px;
+      border: 1px solid var(--border); background: #0b101c; color: #e2e8f0;
+      font-size: 11px; outline: none;
+    }
+    .search-box:focus { border-color: var(--cyan); width: 146px; }
+    .eng-select {
+      padding: 2.5px 5px; border-radius: 6px;
+      border: 1px solid var(--border); background: #0b101c; color: #cbd5e1;
+      font-size: 11px; outline: none; cursor: pointer;
+    }
     .btn {
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6); color: #cbd5e1;
-      border-radius: 7px; padding: 3.5px 9px; font-size: 11px; font-weight: 600;
-      cursor: pointer; white-space: nowrap; transition: all 0.14s;
+      border: 1px solid var(--border); background: #1a2336; color: #cbd5e1;
+      border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
     }
-    .btn:hover, .btn.active {
-      border-color: rgba(56, 189, 248, 0.65); color: #7dd3fc;
-      background: rgba(56, 189, 248, 0.14);
-    }
+    .btn:hover, .btn.active { border-color: var(--cyan); color: #7dd3fc; background: rgba(56, 189, 248, 0.14); }
 
-    /* Architectural Cutaway Building Shell */
-    .building {
-      display: flex; flex-direction: column;
-      border: 2px solid #283348;
-      border-radius: 13px;
-      overflow: hidden;
-      background: #121722;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    }
-    .floor-story {
-      position: relative; width: 100%;
-      border-bottom: 7px solid #192030;
-      overflow: hidden; background: #161b26;
-    }
-    .floor-story:last-child { border-bottom: none; }
-    .floor-story::before {
-      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.5px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
-      z-index: 35; pointer-events: none;
-    }
-    .floor-story::after {
-      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2.5px;
-      background: linear-gradient(90deg, #0b0f18, #384662, #0b0f18);
-      z-index: 35; pointer-events: none;
-    }
-
-    .floor-bg-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 10; }
-    .floor-actors { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
-    .floor-fg-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 24; pointer-events: none; }
-    .floor-labels { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
-
-    /* Refined Brushed-Glass Floor Plaque */
-    .floor-sign {
-      position: absolute; top: 6px; left: 9px; z-index: 36;
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 2.5px 9px 2.5px 5px; border-radius: 7px;
-      background: rgba(9, 13, 22, 0.76);
-      border: 1px solid rgba(255, 255, 255, 0.13);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-      pointer-events: none;
-    }
-    .f-num {
-      font-size: 9.5px; font-weight: 800; font-family: ui-monospace, SFMono-Regular, monospace;
-      color: #fde68a; background: rgba(251, 191, 36, 0.18);
-      border: 1px solid rgba(251, 191, 36, 0.25);
-      padding: 0 4.5px; border-radius: 4px;
-    }
-    .f-name {
-      font-size: 10.5px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.01em;
-      max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .f-badge {
-      position: absolute; top: 6px; right: 9px; z-index: 36;
-      font-size: 9.5px; font-weight: 700; padding: 2.5px 8.5px; border-radius: 999px;
-      background: rgba(9, 13, 22, 0.78);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      color: #94a3b8; backdrop-filter: blur(8px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      pointer-events: none;
-    }
-    .f-badge.hot { color: #86efac; border-color: rgba(74, 222, 128, 0.45); background: rgba(6, 78, 59, 0.72); }
-    .f-badge.attn { color: #fecaca; border-color: rgba(248, 113, 113, 0.75); background: rgba(127, 29, 29, 0.86); }
-
-    /* Seated Characters */
-    .actor {
-      position: absolute; transform: translate(-50%, -100%);
-      display: flex; flex-direction: column; align-items: center;
-      pointer-events: auto; cursor: pointer;
-    }
-    .actor:hover .actor-head { transform: scale(1.1) translateY(-1px); }
-    .actor-body { position: relative; display: flex; flex-direction: column; align-items: center; }
-    .actor.is-working .actor-body { animation: typingBob 1.2s ease-in-out infinite; }
-    .actor.is-attn .actor-body { animation: alertHop 1.5s ease-in-out infinite; }
-    .actor.is-idle .actor-body { animation: chillBreathe 3.4s ease-in-out infinite; }
-
-    .actor-head {
+    /* 2.5D Isometric Stage */
+    .stage-wrap {
       position: relative;
-      width: 35px; height: 35px; border-radius: 12px; overflow: hidden;
-      border: 2px solid rgba(255, 255, 255, 0.26); background: #1e293b;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.52);
-      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 800; font-size: 14px; z-index: 2;
+      width: 100%;
+      height: calc(100vh - 156px);
+      min-height: 460px;
+      max-height: 700px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: #0c1220;
     }
-    .actor-head img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .actor.is-working .actor-head {
-      border-color: #38bdf8;
-      box-shadow: 0 0 14px rgba(56, 189, 248, 0.7), 0 4px 10px rgba(0, 0, 0, 0.55);
+    #officeCanvas { display: block; width: 100%; height: 100%; }
+    .stage-hud {
+      position: absolute; right: 9px; bottom: 9px; z-index: 15;
+      display: flex; align-items: center; gap: 4px;
     }
-    .actor.is-attn .actor-head {
-      border-color: #f87171;
-      box-shadow: 0 0 16px rgba(239, 68, 68, 0.85), 0 4px 10px rgba(0, 0, 0, 0.55);
+    .hud-btn {
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      background: rgba(15, 23, 42, 0.88); color: #e2e8f0;
+      border-radius: 6px; padding: 3px 7px; font-size: 10.5px; font-weight: 700;
+      cursor: pointer;
     }
-    .actor.is-idle .actor-head { width: 32px; height: 32px; border-radius: 10px; filter: brightness(0.9) saturate(0.88); }
-    .actor.is-worker .actor-head {
-      width: 38px; height: 46px; border-radius: 0;
-      background: transparent; border: none; box-shadow: none; overflow: visible;
-    }
-    .actor.is-worker.is-attn .actor-head { filter: drop-shadow(0 0 7px rgba(239, 68, 68, 0.92)); }
-
-    .actor-torso {
-      width: 32px; height: 18px; margin-top: -4px;
-      border-radius: 12px 12px 2px 2px;
-      background: linear-gradient(180deg, #3b4b63, #232f42);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      position: relative; z-index: 1;
-    }
-    .actor-torso::after {
-      content: ""; position: absolute; top: 1px; left: 50%; transform: translateX(-50%);
-      width: 6px; height: 8px; border-radius: 0 0 3px 3px; background: rgba(255, 255, 255, 0.28);
-    }
-    .actor.is-working .actor-torso { background: linear-gradient(180deg, #0284c7, #1e3a5f); }
-    .actor.is-attn .actor-torso { background: linear-gradient(180deg, #dc2626, #7f1d1d); }
-    .actor.is-worker .actor-torso { display: none; }
-
-    /* Pulsing Red Decision Dot (Clicking jumps STRAIGHT to that Bot/Worker!) */
-    .head-red-dot {
-      position: absolute; transform: translate(-50%, -50%);
-      min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
-      background: linear-gradient(180deg, #f87171, #dc2626);
-      border: 2px solid #ffffff; color: #ffffff;
-      font-size: 9.5px; font-weight: 900; line-height: 1;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.95), 0 2px 6px rgba(0, 0, 0, 0.6);
-      pointer-events: auto; cursor: pointer; z-index: 38;
-      transition: transform 0.14s;
-    }
-    .head-red-dot:hover { transform: translate(-50%, -50%) scale(1.18); }
-    .head-red-dot::before {
-      content: ""; position: absolute; inset: -4px; border-radius: 999px;
-      border: 2px solid rgba(239, 68, 68, 0.82);
-      animation: redPing 1.45s cubic-bezier(0, 0, 0.2, 1) infinite;
+    .hud-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+    .stage-hint {
+      position: absolute; left: 9px; bottom: 9px; z-index: 15;
+      font-size: 10px; color: rgba(148, 163, 184, 0.78);
+      background: rgba(11, 16, 28, 0.78); padding: 2px 7px; border-radius: 5px;
       pointer-events: none;
     }
-
-    /* Refined Frosted Dark-Glass Floating Status Pills */
-    .pill-bubble {
-      position: absolute; transform: translate(-50%, -100%);
-      max-width: 146px;
-      padding: 2.5px 8.5px;
-      border-radius: 999px;
-      font-size: 9.5px; font-weight: 600; line-height: 1.3;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      display: inline-flex; align-items: center; gap: 5px;
-      background: rgba(11, 17, 30, 0.88);
-      color: #e2f2ff;
-      border: 1px solid rgba(56, 189, 248, 0.58);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      pointer-events: auto; cursor: pointer;
-      transition: transform 0.14s, border-color 0.14s;
+    .empty-overlay {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 18;
+      background: rgba(15, 23, 42, 0.94); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 18px; text-align: center; max-width: 80%;
     }
-    .pill-bubble:hover { transform: translate(-50%, -108%); border-color: #7dd3fc; }
-    .pill-bubble.worker {
-      border-color: rgba(74, 222, 128, 0.65);
-      background: rgba(6, 36, 28, 0.9);
-      color: #dcfce7;
-      max-width: 132px;
-    }
-    .pill-bubble.attn {
-      background: linear-gradient(180deg, rgba(153, 27, 27, 0.95), rgba(110, 18, 18, 0.95));
-      color: #fef2f2;
-      border-color: #f87171;
-      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-      font-weight: 700;
-    }
-    .pb-dot { width: 5.5px; height: 5.5px; border-radius: 50%; flex-shrink: 0; background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
-    .pill-bubble.worker .pb-dot { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
-    .pill-bubble.attn .pb-dot { background: #ffffff; box-shadow: 0 0 6px #ffffff; }
-    .pb-txt { overflow: hidden; text-overflow: ellipsis; }
-
-    /* Anodized Desk Front Nameplate */
-    .nameplate {
-      position: absolute; transform: translate(-50%, 0);
-      padding: 1.5px 7px; border-radius: 5px;
-      background: rgba(11, 15, 25, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #f8fafc; font-size: 9px; font-weight: 700; letter-spacing: 0.01em;
-      white-space: nowrap; max-width: 108px; overflow: hidden; text-overflow: ellipsis;
-      pointer-events: auto; cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.48);
-      transition: transform 0.12s, border-color 0.12s;
-    }
-    .nameplate:hover { transform: translate(-50%, -1px); border-color: rgba(255, 255, 255, 0.35); }
-    .nameplate.worker-hot { border-color: rgba(74, 222, 128, 0.62); color: #86efac; background: rgba(6, 38, 30, 0.92); }
-    .nameplate.boss-hot { border-color: rgba(56, 189, 248, 0.58); color: #e0f2fe; }
-    .nameplate.attn { border-color: rgba(248, 113, 113, 0.85); color: #fecaca; background: rgba(127, 29, 29, 0.92); }
-    .nameplate.idle { color: #cbd5e1; opacity: 0.92; }
-
-    .fx-z {
-      position: absolute; top: -6px; right: -8px;
-      font-size: 9px; font-weight: 800; color: #e9d5ff;
-      text-shadow: 0 0 6px rgba(192, 132, 252, 0.95);
-      animation: floatZ 2.4s ease-in-out infinite; pointer-events: none;
-    }
+    .empty-overlay-title { font-size: 13px; font-weight: 800; color: #f8fafc; margin-bottom: 4px; }
+    .empty-overlay-sub { font-size: 11px; color: var(--muted); }
 
     /* Grouped Workbench List View */
     .workbench { display: flex; flex-direction: column; gap: 8px; }
-    .wb-group {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
-    }
-    .wb-group.attn { border-color: rgba(248, 113, 113, 0.48); }
+    .wb-group { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .wb-group.attn { border-color: rgba(248, 113, 113, 0.52); }
     .wb-g-head {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 12px; background: rgba(255, 255, 255, 0.028);
-      border-bottom: 1px solid var(--border);
-      font-size: 11px; font-weight: 800; color: var(--fg);
+      padding: 7px 11px; background: rgba(255, 255, 255, 0.025);
+      border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 800; color: var(--fg);
     }
     .wb-g-head .left { display: flex; align-items: center; gap: 6px; }
     .wb-row {
-      display: flex; align-items: center; gap: 10px; padding: 8.5px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.045);
-      cursor: pointer; transition: background 0.12s;
+      display: flex; align-items: center; gap: 9px; padding: 8px 11px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.045); cursor: pointer;
     }
     .wb-row:last-child { border-bottom: none; }
     .wb-row:hover { background: rgba(56, 189, 248, 0.08); }
-    .wb-row.attn { background: rgba(239, 68, 68, 0.07); }
+    .wb-row.attn { background: rgba(239, 68, 68, 0.08); }
     .wb-row.attn:hover { background: rgba(239, 68, 68, 0.14); }
     .wb-av {
-      position: relative; width: 34px; height: 34px; border-radius: 10px;
+      position: relative; width: 32px; height: 32px; border-radius: 9px;
       background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.14);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .wb-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
+    .wb-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
     .wb-av-dot {
       position: absolute; top: -4px; right: -4px; min-width: 14px; height: 14px;
-      border-radius: 999px; background: #ef4444; border: 1.5px solid #141b29;
+      border-radius: 999px; background: #ef4444; border: 1.5px solid #151d2e;
       color: #fff; font-size: 8.5px; font-weight: 900; display: flex; align-items: center; justify-content: center;
     }
     .wb-body { min-width: 0; flex: 1; }
-    .wb-top { display: flex; align-items: center; gap: 6px; }
+    .wb-top { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .wb-name { font-weight: 700; font-size: 12px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .wb-tag { font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: rgba(148, 163, 184, 0.12); color: var(--muted); white-space: nowrap; }
+    .wb-tag { font-size: 9.5px; font-weight: 700; padding: 1px 5.5px; border-radius: 4px; background: rgba(148, 163, 184, 0.12); color: var(--muted); }
     .wb-tag.eng { background: rgba(56, 189, 248, 0.14); color: #7dd3fc; }
+    .wb-tag.stall { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
     .wb-sub { margin-top: 2px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .wb-go-btn {
-      padding: 4px 9px; border-radius: 7px; font-size: 10.5px; font-weight: 700;
-      border: 1px solid rgba(248, 113, 113, 0.6); background: rgba(239, 68, 68, 0.2);
+      padding: 4px 9px; border-radius: 6px; font-size: 10.5px; font-weight: 700;
+      border: 1px solid rgba(248, 113, 113, 0.65); background: rgba(220, 38, 38, 0.22);
       color: #fecaca; cursor: pointer; white-space: nowrap; flex-shrink: 0;
     }
-    .wb-go-btn:hover { background: rgba(239, 68, 68, 0.36); color: #fff; }
+    .wb-go-btn:hover { background: rgba(220, 38, 38, 0.4); color: #fff; }
     .wb-time { font-size: 10.5px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
 
-    /* Bottom Status + Engine Legend */
+    /* Bottom Legend & B1 Standalone Bar */
     .legend {
-      margin-top: 7px; padding: 6px 10px; border-radius: 9px;
+      margin-top: 6px; padding: 5px 9px; border-radius: 8px;
       background: var(--surface); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;
       font-size: 10px; color: var(--muted);
     }
-    .legend-grp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .lg-item { display: inline-flex; align-items: center; gap: 4.5px; }
+    .legend-grp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .lg-item { display: inline-flex; align-items: center; gap: 4px; }
     .lg-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-    /* Guest Bar */
     .guest-bar {
-      margin-top: 7px; background: var(--card); border: 1px solid var(--border);
-      border-radius: 10px; padding: 7px 11px;
+      margin-top: 6px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 9px; padding: 6px 10px;
     }
     .guest-head {
       display: flex; align-items: center; justify-content: space-between;
       font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer;
     }
-    .guest-list { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .guest-list { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
     .guest-chip {
-      padding: 3.5px 8.5px; border-radius: 7px; font-size: 10.5px;
-      background: rgba(148, 163, 184, 0.09); border: 1px solid var(--border);
-      color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 8px; border-radius: 6px; font-size: 10.5px;
+      background: rgba(148, 163, 184, 0.1); border: 1px solid var(--border);
+      color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
     }
     .guest-chip:hover { border-color: var(--cyan); color: var(--cyan); }
     .guest-chip.attn { border-color: rgba(239, 68, 68, 0.65); color: #fecaca; background: rgba(239, 68, 68, 0.14); }
 
-    /* Sleek Preview & Jump Card (Zero fake checkboxes / zero copy-paste!) */
+    /* Sleek Preview & Jump Modal (ZERO backdrop-filter for ultra-low GPU!) */
     .card-backdrop {
       position: fixed; inset: 0; z-index: 120;
-      background: rgba(4, 7, 14, 0.66); backdrop-filter: blur(6px);
+      background: rgba(4, 7, 14, 0.74);
       display: flex; align-items: center; justify-content: center;
-      padding: 14px; animation: fadeIn 0.14s ease-out;
+      padding: 12px;
     }
     .inspector-card {
-      width: 100%; max-width: 404px; max-height: calc(100vh - 30px);
+      width: 100%; max-width: 416px; max-height: calc(100vh - 28px);
       overflow-y: auto;
-      background: linear-gradient(180deg, #182133, #121927);
-      color: #f1f5f9;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      border-radius: 15px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      padding: 15px;
-      animation: popIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      background: #151e30; color: #f1f5f9;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 13px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.68);
+      padding: 14px;
     }
-    .inspector-card.is-attn {
-      border-color: rgba(248, 113, 113, 0.68);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.76), 0 0 32px rgba(239, 68, 68, 0.2);
-    }
-    .ic-head { display: flex; align-items: center; gap: 11px; }
+    .inspector-card.is-attn { border-color: rgba(248, 113, 113, 0.72); }
+    .ic-head { display: flex; align-items: center; gap: 10px; }
     .ic-av {
-      position: relative; width: 44px; height: 44px; border-radius: 13px;
+      position: relative; width: 42px; height: 42px; border-radius: 12px;
       background: #1e293b; border: 1.5px solid rgba(255, 255, 255, 0.18);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .ic-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; display: block; }
+    .ic-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
     .ic-av-dot {
-      position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; border-radius: 50%;
-      background: #ef4444; border: 2px solid #161f30; box-shadow: 0 0 8px #ef4444;
+      position: absolute; top: -5px; right: -5px; width: 13px; height: 13px; border-radius: 50%;
+      background: #ef4444; border: 2px solid #151e30;
     }
     .ic-title-wrap { min-width: 0; flex: 1; }
-    .ic-name { font-size: 14.5px; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ic-meta { margin-top: 3px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 10.5px; color: #94a3b8; }
-    .ic-pill { padding: 1.5px 6.5px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(148, 163, 184, 0.14); color: #cbd5e1; }
+    .ic-name { font-size: 14px; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ic-meta { margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .ic-pill { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(148, 163, 184, 0.14); color: #cbd5e1; }
     .ic-pill.eng { background: rgba(56, 189, 248, 0.16); color: #7dd3fc; }
+    .ic-pill.branch { cursor: pointer; background: rgba(167, 139, 250, 0.16); color: #ddd6fe; }
+    .ic-pill.branch:hover { background: rgba(167, 139, 250, 0.28); }
     .ic-close {
-      width: 27px; height: 27px; border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(15, 23, 42, 0.65);
-      color: #cbd5e1; font-size: 15px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      width: 26px; height: 26px; border-radius: 7px;
+      border: 1px solid var(--border); background: #1e293b; color: #cbd5e1;
+      font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .ic-close:hover { background: rgba(148, 163, 184, 0.22); color: #fff; }
+    .ic-close:hover { background: #334155; color: #fff; }
 
     .ic-status-bar {
-      margin-top: 11px; padding: 7.5px 11px; border-radius: 10px;
+      margin-top: 10px; padding: 7px 10px; border-radius: 9px;
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11.5px; font-weight: 700;
-      background: rgba(30, 41, 59, 0.72); border: 1px solid rgba(148, 163, 184, 0.16);
+      background: #1d273b; border: 1px solid var(--border);
     }
-    .ic-status-bar.attn { background: rgba(127, 29, 29, 0.5); border-color: rgba(248, 113, 113, 0.52); color: #fecaca; }
-    .ic-status-bar.working { background: rgba(6, 78, 59, 0.44); border-color: rgba(74, 222, 128, 0.4); color: #bbf7d0; }
-    .ic-time { font-size: 10.5px; font-weight: 500; opacity: 0.85; white-space: nowrap; }
+    .ic-status-bar.attn { background: rgba(127, 29, 29, 0.55); border-color: rgba(248, 113, 113, 0.55); color: #fecaca; }
+    .ic-status-bar.stall { background: rgba(120, 53, 15, 0.55); border-color: rgba(251, 191, 36, 0.55); color: #fef3c7; }
+    .ic-status-bar.working { background: rgba(6, 78, 59, 0.48); border-color: rgba(74, 222, 128, 0.42); color: #bbf7d0; }
+    .ic-time { font-size: 10.5px; font-weight: 500; opacity: 0.9; white-space: nowrap; }
 
-    /* Clean Read-Only Native Needs-You Decision Summary */
+    .ic-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .ic-link-chip {
+      font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 7px;
+      background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.38);
+      color: #7dd3fc; cursor: pointer;
+    }
+    .ic-link-chip:hover { background: rgba(56, 189, 248, 0.26); color: #fff; }
+
     .ic-decision-box {
-      margin-top: 10px;
-      background: rgba(127, 29, 29, 0.16);
-      border: 1px solid rgba(248, 113, 113, 0.42);
-      border-radius: 11px;
-      padding: 10px 11px;
+      margin-top: 9px; background: rgba(127, 29, 29, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.45); border-radius: 10px; padding: 10px;
     }
-    .ic-dec-title {
-      display: flex; align-items: flex-start; gap: 6px;
-      font-size: 12px; font-weight: 800; color: #fee2e2; line-height: 1.4;
-    }
-    .ic-dec-num {
-      font-family: ui-monospace, monospace; font-size: 10px;
-      padding: 1px 5.5px; border-radius: 4px;
-      background: rgba(239, 68, 68, 0.32); color: #fecaca; flex-shrink: 0; margin-top: 1px;
-    }
+    .ic-dec-title { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; font-weight: 800; color: #fee2e2; line-height: 1.4; }
+    .ic-dec-num { font-family: ui-monospace, monospace; font-size: 10px; padding: 1px 5px; border-radius: 4px; background: rgba(239, 68, 68, 0.32); color: #fecaca; flex-shrink: 0; }
     .ic-dec-ctx {
-      margin-top: 7px; padding: 7px 9px; border-radius: 8px;
-      background: rgba(9, 13, 23, 0.62);
-      font-size: 11px; line-height: 1.5; color: #dbe5f3;
-      white-space: pre-wrap; max-height: 105px; overflow-y: auto; user-select: text;
+      margin-top: 6px; padding: 7px 8px; border-radius: 7px; background: rgba(9, 13, 23, 0.7);
+      font-size: 11px; line-height: 1.5; color: #dbe5f3; white-space: pre-wrap; max-height: 100px; overflow-y: auto; user-select: text;
     }
-    .ic-q-list { margin-top: 8px; display: flex; flex-direction: column; gap: 7px; }
-    .ic-q-item {
-      padding: 7px 9px; border-radius: 8px;
-      background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(148, 163, 184, 0.16);
+    .ic-q-list { margin-top: 7px; display: flex; flex-direction: column; gap: 6px; }
+    .ic-q-item { padding: 6px 8px; border-radius: 7px; background: rgba(15, 23, 42, 0.72); border: 1px solid var(--border); }
+    .ic-q-prompt { font-size: 11px; font-weight: 700; color: #f8fafc; line-height: 1.4; }
+    .ic-q-opts { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .ic-q-chip { font-size: 10px; padding: 2px 6px; border-radius: 999px; background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid var(--border); }
+    .ic-q-chip.rec { background: rgba(251, 191, 36, 0.16); color: #fde68a; border-color: rgba(251, 191, 36, 0.45); font-weight: 700; }
+
+    .ic-section-title { margin: 11px 0 5px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #8e9db5; }
+    .ic-timeline {
+      background: #0d1320; border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 7px; user-select: text;
     }
-    .ic-q-prompt { font-size: 11.5px; font-weight: 700; color: #f8fafc; line-height: 1.4; }
-    .ic-q-opts { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; }
-    .ic-q-chip {
-      font-size: 10px; padding: 2px 7px; border-radius: 999px;
-      background: rgba(148, 163, 184, 0.12); color: #cbd5e1;
-      border: 1px solid rgba(148, 163, 184, 0.18);
-    }
-    .ic-q-chip.rec {
-      background: rgba(251, 191, 36, 0.16); color: #fde68a;
-      border-color: rgba(251, 191, 36, 0.45); font-weight: 700;
+    .ic-tl-row { font-size: 11px; line-height: 1.48; color: #e2e8f0; word-break: break-word; }
+    .ic-tl-row + .ic-tl-row { padding-top: 6px; border-top: 1px dashed rgba(148, 163, 184, 0.16); color: #94a3b8; }
+    .ic-tl-lbl {
+      display: inline-block; font-size: 9.5px; font-weight: 700; padding: 0 5px; margin-right: 5px;
+      border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: #7dd3fc; text-transform: uppercase;
     }
 
-    .ic-section-title {
-      margin: 12px 0 5px;
-      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-      color: #8e9db5;
-    }
-    .ic-task-box {
-      background: rgba(9, 13, 23, 0.7); border: 1px solid rgba(148, 163, 184, 0.15);
-      border-radius: 10px; padding: 9px 11px;
-      font-size: 11.5px; line-height: 1.5; color: #e2e8f0;
-      word-break: break-word; user-select: text;
-    }
-    .ic-task-line + .ic-task-line {
-      margin-top: 6px; padding-top: 6px;
-      border-top: 1px dashed rgba(148, 163, 184, 0.16); color: #94a3b8; font-size: 11px;
-    }
-
-    .ic-workers { display: flex; flex-direction: column; gap: 5px; max-height: 150px; overflow-y: auto; }
+    .ic-workers { display: flex; flex-direction: column; gap: 5px; max-height: 145px; overflow-y: auto; }
     .ic-worker-row {
-      display: flex; align-items: center; gap: 8px; padding: 6.5px 9px; border-radius: 9px;
-      background: rgba(15, 23, 42, 0.72); border: 1px solid rgba(148, 163, 184, 0.14);
-      cursor: pointer; transition: all 0.12s;
+      display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px;
+      background: #0f172a; border: 1px solid var(--border); cursor: pointer;
     }
-    .ic-worker-row:hover { border-color: rgba(56, 189, 248, 0.55); background: rgba(30, 41, 59, 0.85); }
+    .ic-worker-row:hover { border-color: var(--cyan); }
     .ic-worker-row.attn { border-color: rgba(248, 113, 113, 0.55); background: rgba(127, 29, 29, 0.25); }
-    .ic-w-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #64748b; }
-    .ic-w-dot.working { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
-    .ic-w-dot.attn { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+    .ic-w-dot { width: 7.5px; height: 7.5px; border-radius: 50%; flex-shrink: 0; background: #64748b; }
+    .ic-w-dot.working { background: #4ade80; }
+    .ic-w-dot.attn { background: #ef4444; }
     .ic-w-main { min-width: 0; flex: 1; }
     .ic-w-name { font-size: 11px; font-weight: 700; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ic-w-act { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ic-w-go { font-size: 10.5px; color: #7dd3fc; font-weight: 700; flex-shrink: 0; }
 
-    .ic-actions { margin-top: 13px; display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+    .ic-actions { margin-top: 12px; display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
     .ic-btn {
-      border-radius: 9px; padding: 7px 13px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+      border-radius: 8px; padding: 6.5px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer;
       border: 1px solid rgba(56, 189, 248, 0.55); background: rgba(56, 189, 248, 0.2); color: #e0f2fe;
-      transition: all 0.14s;
     }
     .ic-btn:hover { background: rgba(56, 189, 248, 0.34); }
-    .ic-btn.primary-attn {
-      border-color: #f87171; background: linear-gradient(180deg, #ef4444, #dc2626); color: #ffffff;
-      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
-    }
-    .ic-btn.primary-attn:hover { filter: brightness(1.08); }
-    .ic-btn.secondary { border-color: rgba(148, 163, 184, 0.24); background: rgba(30, 41, 59, 0.72); color: #cbd5e1; }
-    .ic-btn.secondary:hover { border-color: rgba(148, 163, 184, 0.52); color: #fff; }
+    .ic-btn.primary-attn { border-color: #f87171; background: #dc2626; color: #ffffff; }
+    .ic-btn.primary-attn:hover { background: #ef4444; }
+    .ic-btn.secondary { border-color: var(--border); background: #1e293b; color: #cbd5e1; }
+    .ic-btn.secondary:hover { border-color: rgba(148, 163, 184, 0.5); color: #fff; }
 
-    /* Bottom-right Toast Alert */
     .toast-wrap { position: fixed; right: 12px; bottom: 12px; z-index: 150; display: flex; flex-direction: column; gap: 6px; max-width: 300px; }
     .toast {
-      background: rgba(15, 23, 42, 0.96); border: 1px solid rgba(56, 189, 248, 0.55);
-      border-radius: 10px; padding: 8px 12px; color: #f8fafc; font-size: 11px; line-height: 1.4;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55); cursor: pointer; animation: popIn 0.16s ease-out;
+      background: #131c2e; border: 1px solid rgba(56, 189, 248, 0.55);
+      border-radius: 9px; padding: 8px 11px; color: #f8fafc; font-size: 11px; line-height: 1.4;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55); cursor: pointer;
     }
-    .toast.attn { border-color: rgba(248, 113, 113, 0.78); background: rgba(69, 10, 10, 0.96); color: #fee2e2; }
-
-    .empty-note {
-      position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); z-index: 35;
-      background: rgba(11, 16, 28, 0.9); border: 1px solid rgba(148, 163, 184, 0.28);
-      border-radius: 11px; padding: 11px 18px; text-align: center;
-      backdrop-filter: blur(8px); max-width: 82%;
-    }
-    .empty-note-title { font-size: 12.5px; font-weight: 800; color: #f8fafc; margin-bottom: 3px; }
-    .empty-note-sub { font-size: 11px; color: #94a3b8; }
-
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
-    @keyframes attnGlow { 0%, 100% { box-shadow: 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 14px rgba(239,68,68,0.52); } }
-    @keyframes redPing { 0% { transform: scale(0.95); opacity: 0.9; } 100% { transform: scale(1.8); opacity: 0; } }
-    @keyframes typingBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-    @keyframes alertHop { 0%, 75%, 100% { transform: translateY(0); } 82% { transform: translateY(-4px); } 90% { transform: translateY(0); } }
-    @keyframes chillBreathe { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
-    @keyframes floatZ { 0% { opacity: 0; transform: translate(0, 2px); } 45% { opacity: 0.95; } 100% { opacity: 0; transform: translate(5px, -7px); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes popIn { from { opacity: 0; transform: scale(0.94) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .toast.attn { border-color: rgba(248, 113, 113, 0.78); background: #450a0a; color: #fee2e2; }
   </style>
 </head>
 <body>
@@ -582,7 +355,7 @@
     <div class="topbar-row">
       <div class="brand">
         <span class="brand-icon">🏢</span>
-        <span class="brand-title" id="brandTitle">Bot Office</span>
+        <span class="brand-title" id="brandTitle">AI 总部大楼</span>
         <span class="live-pill"><span class="live-dot"></span><span id="liveLabel">Live</span></span>
       </div>
       <div class="counters">
@@ -592,9 +365,19 @@
       </div>
     </div>
     <div class="topbar-row">
-      <div class="seg">
-        <button class="seg-btn active" id="viewOfficeBtn"></button>
-        <button class="seg-btn" id="viewListBtn"></button>
+      <div class="ctrl-left">
+        <div class="seg">
+          <button class="seg-btn active" id="viewOfficeBtn"></button>
+          <button class="seg-btn" id="viewListBtn"></button>
+        </div>
+        <input class="search-box" id="searchInput" type="search" />
+        <select class="eng-select" id="engFilter">
+          <option value="all">All</option>
+          <option value="claude">Claude</option>
+          <option value="antigravity">Antigravity</option>
+          <option value="codex">Codex</option>
+          <option value="pi">Pi</option>
+        </select>
       </div>
       <div class="ctrl-right">
         <button class="btn" id="activeOnlyBtn"></button>
@@ -603,55 +386,62 @@
     </div>
   </div>
 
-  <div id="mainContent">
-    <div class="building"><div style="text-align:center;color:var(--muted);padding:36px" id="loadingText">…</div></div>
+  <div id="officeView">
+    <div class="stage-wrap" id="stageWrap">
+      <canvas id="officeCanvas"></canvas>
+      <div class="stage-hint" id="stageHint"></div>
+      <div class="stage-hud">
+        <button class="hud-btn" id="zoomInBtn" title="Zoom In">+</button>
+        <button class="hud-btn" id="zoomOutBtn" title="Zoom Out">−</button>
+        <button class="hud-btn" id="fitBtn"></button>
+      </div>
+      <div class="empty-overlay" id="emptyOverlay" style="display:none">
+        <div class="empty-overlay-title" id="emptyTitle"></div>
+        <div class="empty-overlay-sub" id="emptySub"></div>
+      </div>
+    </div>
   </div>
 
+  <div id="listView" style="display:none"></div>
   <div class="legend" id="legendBar"></div>
   <div class="guest-bar" id="guestBar" style="display:none"></div>
   <div id="modalRoot"></div>
   <div class="toast-wrap" id="toastWrap"></div>
 
+  <script src="./iso-scene.js"></script>
   <script>
     const orcaApi = window.orca;
     let snapshot = null;
     let avatars = {};
     let viewMode = "office";
     let activeOnly = false;
+    let searchQuery = "";
+    let engineFilter = "all";
     let guestExpanded = false;
     let openCard = null;
     let decisionCursor = 0;
     let seenDecisionKeys = new Set();
     let hasLoadedOnce = false;
-
-    const W = 680;
-    const BASE_H = 196;
-    const ROW_STEP = 102;
+    const expandedStaleTeams = new Set();
 
     const I18N = {
       zh: {
-        title: "Bot 办公室",
+        title: "AI 总部大楼",
         live: "实时",
-        loading: "正在布置办公室楼层…",
         needLbl: "需要你",
         workLbl: "工作中",
         idleLbl: "待命",
-        tabOffice: "办公室",
+        tabOffice: "工位视图",
         tabList: "列表",
+        searchPh: "搜索 Bot / Worker…",
+        allEng: "全部引擎",
         activeOnly: "只看在忙",
         refresh: "刷新",
-        loungeName: "开放工区 & 咖啡茶水间",
-        loungeBadge: (w, i, d) => d > 0 ? `🔴 ${d} 待决策 · ${w} 在工位` : `${w} 在工位 · ${i} 沙发休息`,
-        teamBadge: (ww, tw, d) => d > 0 ? `🔴 ${d} 待决策 / ${tw} Worker` : `${ww} 干活 / ${tw} Worker`,
-        stateNeed: "需要你决策",
-        stateNeedItem: (n) => `有 ${n} 条待决策事件`,
-        stateNeedPerm: "等待你的权限审批/输入",
-        stateNeedWorker: "团队中有 Worker 待审批",
-        stateWorking: "工作中",
-        stateIdle: "待命休息",
-        emptyBuilding: "当前没有在忙的楼层",
-        emptyRoomTitle: "办公室已就绪，等待第一位 Bot 入驻",
-        emptyRoomSub: "在 Orca 中创建 Bot 或启动 Worker 后，它们会自动坐进工位。",
+        fit: "重置视角",
+        hint: "滚轮缩放 · 拖拽平移 · 点红点秒跳 · 悬停高亮整组",
+        emptyTitle: "AI 总部大楼已就绪",
+        emptySub: "在 Orca 中创建 Bot 或启动 Worker 后，它们会自动入驻立体工位。",
+        emptyFilter: "没有符合筛选条件的 Bot 或 Worker",
         grpNeed: "需要你决策",
         grpWork: "工作中",
         grpIdle: "待命中",
@@ -661,83 +451,89 @@
         roleBot: "主管 Bot",
         roleWorker: (boss) => `${boss} Worker`,
         roleStandalone: "独立工作区",
+        stateNeed: "需要你决策",
+        stateNeedItem: (n) => `有 ${n} 条待决策事件`,
+        stateNeedPerm: "等待你的权限审批/输入",
+        stateNeedWorker: "团队中有 Worker 待审批",
+        stateWorking: "工作中",
+        stateStall: (d) => `⚠ 已运行 ${d}（超过 10 分钟无新动态）`,
+        stateRunDur: (d) => `已运行 ${d}`,
+        stateIdle: "待命休息",
         secDecisions: "待你决策的事件（与 Bot 原生 Needs you 同步）",
-        secActivity: "当前正在做什么",
-        secWorkers: (ww, tw) => `带领的 Worker（${ww} 干活 / 共 ${tw}）`,
+        secTimeline: "最近动态与上下文",
+        secWorkers: (ww, tw) => `团队 Worker（${ww} 干活 / 共 ${tw}）`,
         noActivity: "当前没有正在执行的任务，随时可唤醒。",
-        recPrefix: "★ ",
         btnGoDecide: "🔴 前往该 Bot 决策 ↗",
         btnGoWorker: "🔴 去审批 Worker ↗",
         btnOpenTasks: "事件列表",
         btnOpenWs: "进入工作区 ↗",
         btnClose: "关闭",
         listGoDecide: "去决策 ↗",
+        copiedBranch: (b) => `已复制分支名：${b}`,
         toastNewDecision: (name, title) => `🔴 ${name} 需要你决策：${title}（点击直达）`,
         justNow: "刚刚",
         minsAgo: (m) => `${m} 分钟前`,
         hrsAgo: (h) => `${h} 小时前`,
         daysAgo: (d) => `${d} 天前`,
-        loadErr: "加载失败：",
-        tipClick: "单击看详情 · 双击直达",
-        tipRedDot: "点击直达该 Bot 处理决策",
-        legendNeed: "需要你决策",
+        legendNeed: "待决策",
         legendWork: "工作中",
-        legendIdle: "待命",
+        legendMail: "信件传递",
+        legendStall: "超时预警",
       },
       en: {
         title: "Bot Office",
         live: "Live",
-        loading: "Setting up office floors…",
         needLbl: "Need You",
         workLbl: "Working",
         idleLbl: "Idle",
         tabOffice: "Office",
         tabList: "List",
+        searchPh: "Search Bot / Worker…",
+        allEng: "All Engines",
         activeOnly: "Active",
         refresh: "Refresh",
-        loungeName: "Open Workspace & Coffee Lounge",
-        loungeBadge: (w, i, d) => d > 0 ? `🔴 ${d} to decide · ${w} working` : `${w} at desk · ${i} on sofa`,
-        teamBadge: (ww, tw, d) => d > 0 ? `🔴 ${d} to decide / ${tw} workers` : `${ww} working / ${tw} workers`,
-        stateNeed: "Needs your decision",
-        stateNeedItem: (n) => `${n} Needs-You item${n > 1 ? "s" : ""}`,
-        stateNeedPerm: "Waiting for your approval / input",
-        stateNeedWorker: "A worker in this team needs approval",
-        stateWorking: "Working",
-        stateIdle: "Idle",
-        emptyBuilding: "No active floors right now",
-        emptyRoomTitle: "Your Bot Office is ready",
-        emptyRoomSub: "Create a Bot or dispatch a Worker in Orca and they will take their seats here.",
+        fit: "Fit",
+        hint: "Wheel zoom · Drag pan · Click red dot to jump · Hover to highlight team",
+        emptyTitle: "Your Bot Office is ready",
+        emptySub: "Create a Bot or dispatch a Worker in Orca and they will take their seats here.",
+        emptyFilter: "No matching Bots or Workers",
         grpNeed: "Needs Your Decision",
         grpWork: "Working",
         grpIdle: "Idle / Resting",
-        guestBar: (active, total) => `🛋️ B1 Hot Desks (Standalone Workspaces: ${active ? `${active} active / ` : ""}${total})`,
+        guestBar: (active, total) => `🛋️ B1 Hot Desks (Standalone: ${active ? `${active} active / ` : ""}${total})`,
         expand: "Expand ▾",
         collapse: "Collapse ▴",
         roleBot: "Lead Bot",
         roleWorker: (boss) => `${boss} Worker`,
         roleStandalone: "Standalone",
+        stateNeed: "Needs your decision",
+        stateNeedItem: (n) => `${n} Needs-You item${n > 1 ? "s" : ""}`,
+        stateNeedPerm: "Waiting for your approval / input",
+        stateNeedWorker: "A worker in this team needs approval",
+        stateWorking: "Working",
+        stateStall: (d) => `⚠ Running ${d} (no progress >10m)`,
+        stateRunDur: (d) => `Running ${d}`,
+        stateIdle: "Idle",
         secDecisions: "Needs-You Decisions (Synced with Orca Bot Items)",
-        secActivity: "What they are doing",
+        secTimeline: "Recent Activity & Context",
         secWorkers: (ww, tw) => `Team Workers (${ww} active / ${tw} total)`,
         noActivity: "No active task right now — ready whenever you need.",
-        recPrefix: "★ ",
         btnGoDecide: "🔴 Go to Bot & Decide ↗",
         btnGoWorker: "🔴 Approve Worker ↗",
         btnOpenTasks: "Items",
         btnOpenWs: "Open Workspace ↗",
         btnClose: "Close",
         listGoDecide: "Decide ↗",
+        copiedBranch: (b) => `Copied branch: ${b}`,
         toastNewDecision: (name, title) => `🔴 ${name} needs your decision: ${title} (click to jump)`,
         justNow: "just now",
         minsAgo: (m) => `${m}m ago`,
         hrsAgo: (h) => `${h}h ago`,
         daysAgo: (d) => `${d}d ago`,
-        loadErr: "Failed to load: ",
-        tipClick: "Click to inspect · Double-click to open",
-        tipRedDot: "Click to jump straight to Bot & decide",
-        legendNeed: "Needs Decision",
+        legendNeed: "Decision",
         legendWork: "Working",
-        legendIdle: "Idle",
+        legendMail: "Mail",
+        legendStall: "No Progress",
       },
     };
 
@@ -748,34 +544,17 @@
       return loc.startsWith("zh") ? "zh" : "en";
     }
     function t() { return I18N[getLang()] || I18N.en; }
-
-    const STUDIO_THEMES = [
-      { wallTop: "#1f2b40", wallBot: "#151e2e", accent: "#38bdf8", rug: "#0c4a6e", decor: "wave" },
-      { wallTop: "#2c203e", wallBot: "#1d152c", accent: "#e879f9", rug: "#581c87", decor: "shelf" },
-      { wallTop: "#172d2b", wallBot: "#101f1e", accent: "#34d399", rug: "#064e3b", decor: "server" },
-      { wallTop: "#2e241a", wallBot: "#1e1812", accent: "#fbbf24", rug: "#78350f", decor: "vault" },
-      { wallTop: "#1c2542", wallBot: "#13192f", accent: "#818cf8", rug: "#312e81", decor: "code" },
-      { wallTop: "#301d2b", wallBot: "#1f131d", accent: "#fb7185", rug: "#881337", decor: "blueprint" },
-    ];
-
-    function hashString(str) {
-      let h = 2166136261;
-      for (let i = 0; i < str.length; i++) {
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619);
-      }
-      return Math.abs(h);
-    }
-    function pickTheme(bot) {
-      return STUDIO_THEMES[hashString(String(bot.id || bot.name || "bot")) % STUDIO_THEMES.length];
-    }
-
     function esc(s) {
-      return String(s || "").replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[c]));
+      return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
     function shortEng(e) { return e === "antigravity" ? "agy" : (e || "agent"); }
+    function fmtDur(ms) {
+      const mins = Math.max(0, Math.floor(ms / 60000));
+      if (mins < 1) return "<1m";
+      if (mins < 60) return `${mins}m`;
+      const h = Math.floor(mins / 60);
+      return `${h}h${mins % 60 ? (mins % 60) + "m" : ""}`;
+    }
     function relTime(ts) {
       if (!ts) return "";
       const sec = Math.max(0, Math.floor((Date.now() - Number(ts)) / 1000));
@@ -787,6 +566,10 @@
       if (hr < 24) return tr.hrsAgo(hr);
       return tr.daysAgo(Math.floor(hr / 24));
     }
+    function isStalled(entity) {
+      const touch = Math.max(Number(entity.lastActivityAt || 0), Number(entity.stateStartedAt || 0));
+      return entity.state === "working" && touch > 0 && Date.now() - touch > 12 * 60 * 1000;
+    }
 
     function showToast(msg, isAttn = false, onClick = null) {
       const wrap = document.getElementById("toastWrap");
@@ -795,584 +578,97 @@
       el.textContent = msg;
       el.addEventListener("click", () => { if (onClick) onClick(); el.remove(); });
       wrap.appendChild(el);
-      setTimeout(() => el.remove(), 6000);
-    }
-
-    function classifyBot(b) {
-      const tr = t();
-      if (b.needsDecision) {
-        const itemsN = (b.needsYouItems || []).length;
-        const reason = itemsN > 0
-          ? tr.stateNeedItem(itemsN)
-          : b.selfNeedsDecision
-            ? tr.stateNeedPerm
-            : tr.stateNeedWorker;
-        return { mode: "attn", hot: true, label: tr.stateNeed, reason, bubble: b.activity || reason };
-      }
-      if (b.state === "working" || b.workingWorkerCount > 0) {
-        return { mode: "working", hot: true, label: tr.stateWorking, reason: tr.stateWorking, bubble: b.activity };
-      }
-      return { mode: "idle", hot: false, label: tr.stateIdle, reason: tr.stateIdle, bubble: "" };
-    }
-
-    function classifyWorker(w) {
-      const tr = t();
-      if (w.needsDecision) {
-        return { mode: "attn", hot: true, label: tr.stateNeed, reason: tr.stateNeedPerm, bubble: w.activity || tr.stateNeedPerm };
-      }
-      if (w.state === "working") {
-        return { mode: "working", hot: true, label: tr.stateWorking, reason: tr.stateWorking, bubble: w.activity || tr.stateWorking };
-      }
-      return { mode: "idle", hot: false, label: tr.stateIdle, reason: tr.stateIdle, bubble: "" };
-    }
-
-    // Enhanced Architectural Room Shell (richer lighting, recessed ceiling track, glass window reflections, bookshelf/plant depth)
-    function commonRoomBgSvg(idSuffix, H, wallTop, wallBot, isHot, accent = "#38bdf8", showWhiteboard = true) {
-      let planks = "";
-      for (let py = 143; py < H; py += 12) {
-        planks += `<line x1="0" y1="${py}" x2="${W}" y2="${py}" stroke="rgba(14,8,4,0.46)" stroke-width="1"/>`;
-        for (let px = (py % 24 === 0 ? 44 : 98); px < W; px += 112) {
-          planks += `<line x1="${px}" y1="${py - 12}" x2="${px}" y2="${py}" stroke="rgba(14,8,4,0.3)" stroke-width="1"/>`;
-        }
-      }
-      const whiteboard = showWhiteboard ? `
-        <g>
-          <rect x="244" y="34" width="124" height="58" rx="5" fill="#0f172a" fill-opacity="0.45" stroke="#64748b" stroke-width="1.4"/>
-          <rect x="247" y="37" width="118" height="52" rx="3" fill="#e2e8f0" fill-opacity="0.06"/>
-          <rect x="251" y="43" width="16" height="14" rx="2" fill="#fde047" opacity="0.88"/>
-          <rect x="271" y="43" width="16" height="14" rx="2" fill="#67e8f9" opacity="0.84"/>
-          <rect x="291" y="43" width="16" height="14" rx="2" fill="#f9a8d4" opacity="0.84"/>
-          <rect x="251" y="61" width="16" height="14" rx="2" fill="#86efac" opacity="0.84"/>
-          <line x1="316" y1="47" x2="357" y2="47" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          <line x1="316" y1="55" x2="349" y2="55" stroke="${accent}" stroke-width="2" stroke-linecap="round"/>
-          <line x1="316" y1="63" x2="355" y2="63" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          <line x1="316" y1="71" x2="341" y2="71" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
-          <rect x="262" y="92" width="86" height="3.5" rx="1.5" fill="#475569"/>
-        </g>` : "";
-
-      return `
-        <defs>
-          <linearGradient id="wall_${idSuffix}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${wallTop}"/>
-            <stop offset="100%" stop-color="${wallBot}"/>
-          </linearGradient>
-          <linearGradient id="wood_${idSuffix}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#5a4330"/>
-            <stop offset="48%" stop-color="#433022"/>
-            <stop offset="100%" stop-color="#2a1d14"/>
-          </linearGradient>
-          <linearGradient id="sky_${idSuffix}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#081026"/>
-            <stop offset="65%" stop-color="#15234a"/>
-            <stop offset="100%" stop-color="#243566"/>
-          </linearGradient>
-          <radialGradient id="lampCone_${idSuffix}" cx="50%" cy="0%" r="92%">
-            <stop offset="0%" stop-color="#fef08a" stop-opacity="${isHot ? '0.24' : '0.07'}"/>
-            <stop offset="60%" stop-color="#fde68a" stop-opacity="${isHot ? '0.08' : '0.02'}"/>
-            <stop offset="100%" stop-color="#fde68a" stop-opacity="0"/>
-          </radialGradient>
-          <radialGradient id="ambientWall_${idSuffix}" cx="50%" cy="18%" r="70%">
-            <stop offset="0%" stop-color="${accent}" stop-opacity="${isHot ? '0.11' : '0.03'}"/>
-            <stop offset="100%" stop-color="${accent}" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-
-        <!-- Back Wall + Subtle Architectural Vignette -->
-        <rect x="0" y="0" width="${W}" height="128" fill="url(#wall_${idSuffix})"/>
-        <rect x="0" y="0" width="${W}" height="128" fill="url(#ambientWall_${idSuffix})"/>
-        <!-- Recessed Ceiling Lighting Track -->
-        <rect x="0" y="0" width="${W}" height="5" fill="#0d121d"/>
-        <!-- Acoustic Wood Slat Feature Wall (Left) -->
-        <g opacity="0.28">
-          ${[12,20,28,36,44,52,60,68,76,84].map(x => `<rect x="${x}" y="25" width="4" height="101" fill="#a87952"/>`).join("")}
-        </g>
-        <!-- Warm Baseboard Trim -->
-        <rect x="0" y="124" width="${W}" height="7" fill="#221710"/>
-        <line x1="0" y1="124" x2="${W}" y2="124" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
-
-        <!-- Hardwood Walnut Floor -->
-        <rect x="0" y="131" width="${W}" height="${H - 131}" fill="url(#wood_${idSuffix})"/>
-        ${planks}
-        <rect x="0" y="131" width="${W}" height="9" fill="rgba(0,0,0,0.34)"/>
-
-        <!-- Hanging Matte-Black & Brass Industrial Pendant Lamps -->
-        ${[114, 326, 520].map(lx => `
-          <line x1="${lx}" y1="4" x2="${lx}" y2="14" stroke="#64748b" stroke-width="1.6"/>
-          <rect x="${lx-3}" y="11" width="6" height="4" rx="1" fill="#d97706"/>
-          <path d="M${lx-13} 23 Q${lx} 11 ${lx+13} 23 Z" fill="#1e293b" stroke="#64748b" stroke-width="0.9"/>
-          <ellipse cx="${lx}" cy="23" rx="8.5" ry="2.3" fill="${isHot ? '#fef08a' : '#475569'}"/>
-          <polygon points="${lx-10},24 ${lx+10},24 ${lx+74},146 ${lx-74},146" fill="url(#lampCone_${idSuffix})"/>
-        `).join("")}
-
-        ${whiteboard}
-
-        <!-- Panoramic Night-City Window with Glass Sheen -->
-        <g>
-          <rect x="424" y="28" width="178" height="72" rx="5" fill="url(#sky_${idSuffix})" stroke="#334155" stroke-width="2.6"/>
-          <!-- City Skyline Silhouette -->
-          <rect x="434" y="66" width="22" height="32" fill="#101830"/>
-          <rect x="462" y="52" width="28" height="46" fill="#162244"/>
-          <rect x="496" y="70" width="20" height="28" fill="#101830"/>
-          <rect x="522" y="48" width="30" height="50" fill="#18254a"/>
-          <rect x="558" y="62" width="26" height="36" fill="#111a36"/>
-          <!-- Warm City Lights -->
-          <rect x="469" y="60" width="4" height="4" rx="0.6" fill="#fde68a" opacity="0.85"/>
-          <rect x="479" y="68" width="4" height="4" rx="0.6" fill="#fde68a" opacity="0.68"/>
-          <rect x="469" y="76" width="4" height="4" rx="0.6" fill="#7dd3fc" opacity="0.6"/>
-          <rect x="530" y="56" width="4" height="4" rx="0.6" fill="#7dd3fc" opacity="0.82"/>
-          <rect x="540" y="66" width="4" height="4" rx="0.6" fill="#fde68a" opacity="0.72"/>
-          <rect x="566" y="72" width="4" height="4" rx="0.6" fill="#f5d0fe" opacity="0.75"/>
-          <!-- Crescent Moon & Stars -->
-          <circle cx="446" cy="42" r="4.8" fill="#fef08a" opacity="0.9"/>
-          <circle cx="448.5" cy="40.5" r="3.8" fill="#0d1736"/>
-          <circle cx="508" cy="39" r="1.4" fill="#e0f2fe"/>
-          <circle cx="574" cy="38" r="1.3" fill="#e0f2fe"/>
-          <circle cx="546" cy="42" r="1" fill="#fde68a"/>
-          <!-- Subtle Glass Reflection Streaks -->
-          <polygon points="434,29 452,29 428,98 424,98" fill="rgba(255,255,255,0.045)"/>
-          <polygon points="528,29 544,29 520,98 514,98" fill="rgba(255,255,255,0.04)"/>
-          <!-- Window Mullions & Oak Sill -->
-          <line x1="513" y1="28" x2="513" y2="100" stroke="#334155" stroke-width="2.2"/>
-          <line x1="424" y1="64" x2="602" y2="64" stroke="#334155" stroke-width="1.8"/>
-          <rect x="418" y="99" width="190" height="5.5" rx="2" fill="#75553d"/>
-        </g>
-
-        <!-- Potted Monstera Plant on Mid-Century Wooden Stand -->
-        <g>
-          <ellipse cx="648" cy="155" rx="17" ry="5.5" fill="rgba(0,0,0,0.4)"/>
-          <line x1="638" y1="146" x2="635" y2="155" stroke="#7c5538" stroke-width="2.2" stroke-linecap="round"/>
-          <line x1="658" y1="146" x2="661" y2="155" stroke="#7c5538" stroke-width="2.2" stroke-linecap="round"/>
-          <polygon points="636,125 660,125 656,148 640,148" fill="#b86b44" stroke="#6b3a22" stroke-width="1"/>
-          <ellipse cx="648" cy="125" rx="12" ry="3.5" fill="#d4845a"/>
-          <path d="M648 125 C625 107 623 86 641 98 Z" fill="#15803d"/>
-          <path d="M648 125 C671 107 673 86 655 98 Z" fill="#22c55e"/>
-          <path d="M648 125 C637 84 659 84 648 109 Z" fill="#4ade80"/>
-          <path d="M648 125 C632 104 636 90 647 104 Z" fill="#16a34a" opacity="0.8"/>
-        </g>`;
-    }
-
-    function roomDecorSvg(decor, accent) {
-      if (decor === "wave") {
-        return `<rect x="92" y="34" width="96" height="44" rx="5" fill="#0b1222" stroke="${accent}" stroke-width="1.4" opacity="0.94"/>
-          <polyline points="100,56 112,56 119,44 128,68 137,40 147,65 156,50 165,58 180,56" fill="none" stroke="${accent}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>`;
-      }
-      if (decor === "shelf") {
-        return `<rect x="92" y="54" width="96" height="5" rx="2" fill="#8d6546"/>
-          <circle cx="112" cy="45" r="8" fill="#fb923c"/><circle cx="106" cy="38" r="3" fill="#fb923c"/><circle cx="118" cy="38" r="3" fill="#fb923c"/>
-          <rect x="132" y="38" width="14" height="16" rx="4" fill="#c084fc"/><circle cx="164" cy="45" r="7.5" fill="#38bdf8"/>
-          <rect x="92" y="80" width="96" height="5" rx="2" fill="#8d6546"/>
-          <rect x="104" y="67" width="9" height="13" rx="2" fill="#f472b6"/><rect x="116" y="69" width="9" height="11" rx="2" fill="#fbbf24"/><rect x="128" y="65" width="9" height="15" rx="2" fill="#38bdf8"/>`;
-      }
-      if (decor === "server" || decor === "vault") {
-        return `<rect x="14" y="38" width="42" height="90" rx="4" fill="#0e1626" stroke="${accent}" stroke-width="1.4"/>
-          ${[46,60,74,88,102,116].map((y, i) => `<rect x="19" y="${y}" width="32" height="9" rx="2" fill="#1e293b"/><circle cx="45" cy="${y + 4.5}" r="1.9" fill="${i % 2 === 0 ? accent : '#4ade80'}"/>`).join("")}`;
-      }
-      if (decor === "code") {
-        return `<rect x="90" y="34" width="98" height="48" rx="5" fill="#0b1222" stroke="${accent}" stroke-width="1.4"/>
-          <rect x="98" y="42" width="34" height="3.5" rx="1.5" fill="${accent}"/>
-          <rect x="98" y="50" width="64" height="3.5" rx="1.5" fill="#4ade80" opacity="0.88"/>
-          <rect x="106" y="58" width="50" height="3.5" rx="1.5" fill="#94a3b8"/>
-          <rect x="98" y="66" width="44" height="3.5" rx="1.5" fill="#f472b6" opacity="0.88"/>`;
-      }
-      if (decor === "blueprint") {
-        return `<rect x="90" y="34" width="98" height="48" rx="5" fill="#172554" stroke="${accent}" stroke-width="1.4"/>
-          <rect x="100" y="42" width="24" height="14" rx="2" fill="none" stroke="#93c5fd" stroke-width="1.2"/>
-          <rect x="150" y="42" width="26" height="14" rx="2" fill="none" stroke="${accent}" stroke-width="1.2"/>
-          <rect x="124" y="64" width="30" height="11" rx="2" fill="none" stroke="#93c5fd" stroke-width="1.2"/>
-          <line x1="124" y1="49" x2="150" y2="49" stroke="#93c5fd" stroke-width="1.1"/>
-          <line x1="139" y1="49" x2="139" y2="64" stroke="#93c5fd" stroke-width="1.1"/>`;
-      }
-      return "";
-    }
-
-    function officeChairBgSvg(cx, rowOffsetY = 0, isExecutive = false) {
-      const cw = isExecutive ? 44 : 36;
-      const topY = (isExecutive ? 104 : 108) + rowOffsetY;
-      return `<g>
-        <rect x="${cx - cw/2}" y="${topY}" width="${cw}" height="42" rx="11" fill="#1a2232" stroke="#475569" stroke-width="1.4"/>
-        <rect x="${cx - cw/2 + 5}" y="${topY + 6}" width="${cw - 10}" height="24" rx="6" fill="#273348" opacity="0.72"/>
-        <rect x="${cx - cw/2 - 5}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
-        <rect x="${cx + cw/2 - 1}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
-      </g>`;
-    }
-
-    function foregroundDeskSvg(cx, width, rowOffsetY, isLit, glowCol, isExecutive = false, hasPerson = true) {
-      const w2 = width / 2;
-      const topY = 144 + rowOffsetY;
-      const lapX = cx + (isExecutive ? 26 : 20);
-      const lapW = isExecutive ? 32 : 25;
-      const lapH = isExecutive ? 20 : 16;
-      return `<g>
-        ${isLit ? `<ellipse cx="${cx}" cy="${topY + 42}" rx="${w2 + 12}" ry="9" fill="${glowCol}" opacity="0.1"/>` : ""}
-        <ellipse cx="${cx}" cy="${topY + 43}" rx="${w2 + 8}" ry="7.5" fill="rgba(0,0,0,0.48)"/>
-        <rect x="${cx - w2 + 5}" y="${topY + 12}" width="6" height="31" rx="2" fill="#182030"/>
-        <rect x="${cx + w2 - 11}" y="${topY + 12}" width="6" height="31" rx="2" fill="#182030"/>
-        <rect x="${cx - w2 + 11}" y="${topY + 16}" width="${width - 22}" height="14" fill="#131a28" opacity="0.9"/>
-        <!-- Warm Walnut Desktop with Crisp Top Highlight -->
-        <polygon points="${cx - w2},${topY} ${cx + w2},${topY} ${cx + w2 + 6},${topY + 11} ${cx - w2 - 6},${topY + 11}" fill="#a1744c" stroke="#c29268" stroke-width="0.9"/>
-        <rect x="${cx - w2 - 6}" y="${topY + 11}" width="${width + 12}" height="7" rx="2" fill="#68472b"/>
-        ${isLit ? `<ellipse cx="${cx + 4}" cy="${topY + 5}" rx="${width * 0.36}" ry="5.5" fill="${glowCol}" opacity="0.34"/>` : ""}
-        <!-- Keyboard & Mousepad -->
-        <polygon points="${cx - 18},${topY + 3} ${cx + 10},${topY + 3} ${cx + 12},${topY + 8} ${cx - 20},${topY + 8}" fill="#1e293b" stroke="${isLit ? glowCol : '#475569'}" stroke-width="0.8"/>
-        <!-- Silver Laptop (3/4 rear angle) -->
-        <g>
-          <polygon points="${lapX - lapW/2},${topY - lapH + 4} ${lapX + lapW/2},${topY - lapH + 1} ${lapX + lapW/2 - 3},${topY + 5} ${lapX - lapW/2 - 2},${topY + 6}"
-                   fill="#dbe4ef" stroke="${isLit ? glowCol : '#64748b'}" stroke-width="1.2"/>
-          <circle cx="${lapX - 1}" cy="${topY - lapH/2 + 3}" r="2.7" fill="${isLit ? glowCol : '#64748b'}"/>
-          <rect x="${lapX - lapW/2 - 4}" y="${topY + 5}" width="${lapW + 4}" height="3" rx="1" fill="#94a3b8"/>
-        </g>
-        <!-- Architect Desk Lamp -->
-        <g>
-          <ellipse cx="${cx - w2 + 12}" cy="${topY + 7}" rx="6" ry="2.2" fill="#334155"/>
-          <polyline points="${cx - w2 + 12},${topY + 6} ${cx - w2 + 6},${topY - 7} ${cx - w2 + 16},${topY - 12}" fill="none" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M${cx - w2 + 12},${topY - 14} L${cx - w2 + 23},${topY - 9} L${cx - w2 + 18},${topY - 5} Z" fill="${isLit ? '#fef08a' : '#475569'}"/>
-        </g>
-        <!-- Ceramic Mug -->
-        <g>
-          <rect x="${cx - w2 + 25}" y="${topY - 1}" width="7" height="7" rx="1.5" fill="#f8fafc"/>
-          <path d="M${cx - w2 + 32},${topY + 1} Q${cx - w2 + 35},${topY + 2.5} ${cx - w2 + 32},${topY + 4.5}" fill="none" stroke="#f8fafc" stroke-width="1.2"/>
-          ${isLit && hasPerson ? `<path d="M${cx - w2 + 28},${topY - 3} Q${cx - w2 + 26},${topY - 7} ${cx - w2 + 29},${topY - 10}" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1" stroke-linecap="round"/>` : ""}
-        </g>
-      </g>`;
-    }
-
-    function miniWorkerRobotSvg(w, size = 38) {
-      const run = w.state === "working";
-      const attn = Boolean(w.needsDecision);
-      const eng = w.agentType || "";
-      const trim = attn ? "#ef4444" : (eng === "claude" ? "#f59e0b" : (eng === "antigravity" ? "#38bdf8" : (eng === "codex" ? "#a78bfa" : "#94a3b8")));
-      const eye = attn ? "#f87171" : (run ? "#4ade80" : "#64748b");
-      const h = Math.round(size * 46 / 38);
-      return `<svg viewBox="0 0 40 48" width="${size}" height="${h}">
-        <line x1="20" y1="2" x2="20" y2="8" stroke="${trim}" stroke-width="2.2" stroke-linecap="round"/>
-        <circle cx="20" cy="2.5" r="2.9" fill="${attn ? '#ef4444' : (run ? '#4ade80' : trim)}"/>
-        <rect x="6" y="8" width="28" height="21" rx="8" fill="#f8fafc" stroke="${trim}" stroke-width="2.2"/>
-        <rect x="10" y="10" width="12" height="2.2" rx="1" fill="#ffffff" opacity="0.9"/>
-        <rect x="10" y="12.5" width="20" height="12" rx="4.2" fill="#0f172a"/>
-        ${run || attn
-          ? `<rect x="14" y="15.5" width="3.8" height="5.5" rx="1.9" fill="${eye}"/><rect x="22.2" y="15.5" width="3.8" height="5.5" rx="1.9" fill="${eye}"/>`
-          : `<path d="M13 18.5 Q15.3 20.5 17.6 18.5" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round"/><path d="M22.4 18.5 Q24.7 20.5 27 18.5" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round"/>`}
-        <rect x="9" y="30" width="22" height="16" rx="6" fill="#e2e8f0" stroke="${trim}" stroke-width="1.8"/>
-        <circle cx="20" cy="37" r="3" fill="${attn ? '#ef4444' : (run ? '#4ade80' : '#94a3b8')}"/>
-        <path d="M9 34 Q4 38 7 45" fill="none" stroke="#cbd5e1" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M31 34 Q36 38 33 45" fill="none" stroke="#cbd5e1" stroke-width="3.5" stroke-linecap="round"/>
-      </svg>`;
-    }
-
-    function rowSlotXs(count) {
-      if (count <= 1) return [438];
-      if (count === 2) return [368, 520];
-      return [314, 438, 560];
+      setTimeout(() => el.remove(), 5500);
     }
 
     async function openWorkspace(worktreeId, focusAttention = false) {
       if (!worktreeId || !orcaApi?.plugin?.request) return;
-      try {
-        await orcaApi.plugin.request("office.openWorkspace", { workspaceId: worktreeId, focusAttention });
-      } catch (err) {
-        console.error("openWorkspace failed:", err);
-      }
+      try { await orcaApi.plugin.request("office.openWorkspace", { workspaceId: worktreeId, focusAttention }); }
+      catch (err) { console.error("openWorkspace failed:", err); }
     }
     async function openTasksView() {
       if (!orcaApi?.plugin?.request) return;
-      try {
-        await orcaApi.plugin.request("office.openTasksView", {});
-      } catch (err) {
-        console.error("openTasksView failed:", err);
+      try { await orcaApi.plugin.request("office.openTasksView", {}); }
+      catch (err) { console.error("openTasksView failed:", err); }
+    }
+    async function openExternalUrl(url) {
+      if (!url) return;
+      if (orcaApi?.shell?.openExternal) {
+        await orcaApi.shell.openExternal(url).catch(() => {});
       }
     }
 
     function jumpToBotDecision(bot) {
-      if (bot.selfNeedsDecision && bot.worktreeId) {
-        void openWorkspace(bot.worktreeId, true);
-        return;
-      }
+      if (bot.selfNeedsDecision && bot.worktreeId) { void openWorkspace(bot.worktreeId, true); return; }
       const blockedW = (bot.workers || []).find((w) => w.needsDecision);
-      if (blockedW?.worktreeId) {
-        void openWorkspace(blockedW.worktreeId, true);
-        return;
-      }
+      if (blockedW?.worktreeId) { void openWorkspace(blockedW.worktreeId, true); return; }
       if (bot.worktreeId) void openWorkspace(bot.worktreeId, true);
       else void openTasksView();
     }
 
-    function renderTeamFloor(bot, floorNum) {
-      const tr = t();
-      const st = classifyBot(bot);
-      const theme = pickTheme(bot);
-      const workers = bot.workers || [];
-      const rowCount = Math.max(1, Math.ceil(workers.length / 3));
-      const H = BASE_H + (rowCount - 1) * ROW_STEP;
-      const pxX = (x) => `${(x / W * 100).toFixed(2)}%`;
-      const pxY = (y) => `${(y / H * 100).toFixed(2)}%`;
+    // Initialize 2.5D Isometric Canvas Engine
+    const isoEngine = new window.IsoOfficeEngine(document.getElementById("officeCanvas"), {
+      onRedDotClick(node) {
+        if (node.kind === "bot") jumpToBotDecision(node.bot);
+        else if (node.worker?.worktreeId) void openWorkspace(node.worker.worktreeId, true);
+      },
+      onActorClick(node) {
+        openCard = node.kind === "bot"
+          ? { kind: "bot", id: node.bot.id }
+          : { kind: "worker", worktreeId: node.worker.worktreeId };
+        renderModal();
+      },
+      onActorDblClick(node) {
+        const wid = node.kind === "bot" ? node.bot.worktreeId : node.worker.worktreeId;
+        if (wid) void openWorkspace(wid, true);
+      },
+      onArchiveClick(botId) {
+        if (expandedStaleTeams.has(botId)) expandedStaleTeams.delete(botId);
+        else expandedStaleTeams.add(botId);
+        render();
+      },
+    });
 
-      const isHot = st.hot || bot.workingWorkerCount > 0;
-      const leadX = 114;
-
-      // Executive Rug under Boss Private Office Desk + Chair + Glass Partition
-      let bgDesks = `
-        <ellipse cx="${leadX}" cy="182" rx="76" ry="13" fill="${theme.rug}" opacity="0.42" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="1"/>
-        ${officeChairBgSvg(leadX, 0, true)}
-        <g>
-          <rect x="206" y="24" width="12" height="108" fill="rgba(186,230,253,0.1)"/>
-          <line x1="206" y1="24" x2="206" y2="132" stroke="#64748b" stroke-width="2.2"/>
-          <line x1="218" y1="24" x2="218" y2="132" stroke="#475569" stroke-width="1.6"/>
-          <line x1="206" y1="24" x2="218" y2="24" stroke="#94a3b8" stroke-width="2.2"/>
-          <line x1="208" y1="42" x2="216" y2="32" stroke="rgba(255,255,255,0.25)" stroke-width="1.3"/>
-          <line x1="208" y1="68" x2="216" y2="58" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>
-          <rect x="214" y="84" width="2.2" height="13" rx="1" fill="#cbd5e1"/>
-        </g>`;
-
-      let fgDesks = foregroundDeskSvg(leadX, 126, 0, st.hot, st.mode === "attn" ? "#ef4444" : theme.accent, true, true);
-
-      if (rowCount >= 2) {
-        const ly = 248;
-        bgDesks += `
-          <g opacity="0.92">
-            <ellipse cx="110" cy="${ly + 14}" rx="64" ry="16" fill="${theme.rug}" opacity="0.34" stroke="${theme.accent}" stroke-opacity="0.26" stroke-width="1"/>
-            <ellipse cx="110" cy="${ly + 14}" rx="30" ry="8" fill="rgba(0,0,0,0.38)"/>
-            <rect x="106" y="${ly + 2}" width="8" height="12" fill="#3c2a1e"/>
-            <ellipse cx="110" cy="${ly + 1}" rx="34" ry="9" fill="#9a6e48" stroke="#be8f65" stroke-width="0.9"/>
-            <rect x="96" y="${ly - 5}" width="6" height="6" rx="1.2" fill="#f8fafc"/>
-            <rect x="118" y="${ly - 4}" width="6" height="6" rx="1.2" fill="#fde68a"/>
-          </g>`;
-      }
-
-      let actorsHtml = "";
-      let labelsHtml = "";
-
-      const av = avatars[bot.id] || avatars[bot.name];
-      const avHtml = av ? `<img src="${av}" alt="${esc(bot.name)}"/>` : esc((bot.name || "?").slice(0, 1).toUpperCase());
-
-      actorsHtml += `
-        <div class="actor is-${st.mode}"
-             style="left:${pxX(leadX)};top:${pxY(152)}"
-             data-card-bot="${esc(bot.id)}" data-dblopen="${esc(bot.worktreeId || "")}"
-             title="${esc(bot.name)} · ${esc(tr.tipClick)}">
-          <div class="actor-body">
-            <div class="actor-head">${avHtml}</div>
-            <div class="actor-torso"></div>
-            ${st.mode === "idle" ? `<span class="fx-z">zZ</span>` : ""}
-          </div>
-        </div>`;
-
-      labelsHtml += `
-        ${st.bubble ? `<div class="pill-bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(leadX)};top:${pxY(96)}" data-card-bot="${esc(bot.id)}"><span class="pb-dot"></span><span class="pb-txt">${esc(st.bubble)}</span></div>` : ""}
-        ${bot.needsDecision ? `<div class="head-red-dot" style="left:${pxX(leadX + 16)};top:${pxY(107)}" data-jump-bot="${esc(bot.id)}" title="${esc(tr.tipRedDot)}">${bot.decisionCount > 1 ? bot.decisionCount : "!"}</div>` : ""}
-        <div class="nameplate ${st.mode === "attn" ? "attn" : (st.hot ? "boss-hot" : "idle")}"
-             style="left:${pxX(leadX)};top:${pxY(161)}"
-             data-card-bot="${esc(bot.id)}" data-dblopen="${esc(bot.worktreeId || "")}">${esc(bot.name)}</div>`;
-
-      if (workers.length === 0) {
-        [368, 520].forEach((wx) => {
-          bgDesks += officeChairBgSvg(wx, 0, false);
-          fgDesks += foregroundDeskSvg(wx, 98, 0, false, "#4ade80", false, false);
-        });
-      } else {
-        for (let r = 0; r < rowCount; r++) {
-          const slice = workers.slice(r * 3, r * 3 + 3);
-          const xs = rowSlotXs(slice.length);
-          const offY = r * ROW_STEP;
-
-          slice.forEach((w, idx) => {
-            const wx = xs[idx];
-            const ws = classifyWorker(w);
-            const deskGlow = ws.mode === "attn" ? "#ef4444" : "#4ade80";
-            bgDesks += officeChairBgSvg(wx, offY, false);
-            fgDesks += foregroundDeskSvg(wx, 98, offY, ws.hot, deskGlow, false, true);
-
-            actorsHtml += `
-              <div class="actor is-worker is-${ws.mode}"
-                   style="left:${pxX(wx)};top:${pxY(154 + offY)}"
-                   data-card-worker="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}"
-                   title="${esc(w.displayName)} · ${esc(tr.tipClick)}">
-                <div class="actor-body">
-                  <div class="actor-head">${miniWorkerRobotSvg(w)}</div>
-                  ${ws.mode === "idle" ? `<span class="fx-z">zZ</span>` : ""}
-                </div>
-              </div>`;
-
-            labelsHtml += `
-              ${ws.bubble ? `<div class="pill-bubble ${ws.mode === "attn" ? "attn" : "worker"}" style="left:${pxX(wx)};top:${pxY(98 + offY)}" data-card-worker="${esc(w.worktreeId)}"><span class="pb-dot"></span><span class="pb-txt">${esc(ws.bubble)}</span></div>` : ""}
-              ${w.needsDecision ? `<div class="head-red-dot" style="left:${pxX(wx + 14)};top:${pxY(112 + offY)}" data-jump-ws="${esc(w.worktreeId)}" title="${esc(tr.tipRedDot)}">!</div>` : ""}
-              <div class="nameplate ${ws.mode === "attn" ? "attn" : (ws.hot ? "worker-hot" : "idle")}"
-                   style="left:${pxX(wx)};top:${pxY(161 + offY)}"
-                   data-card-worker="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}">${esc(w.displayName)}</div>`;
+    function filterBots(rawBots) {
+      const q = searchQuery.trim().toLowerCase();
+      const eng = engineFilter;
+      return rawBots
+        .map((b) => {
+          const matchBotEng = eng === "all" || String(b.agent || "").toLowerCase() === eng;
+          const matchBotQ = !q || b.name.toLowerCase().includes(q) || (b.activity || "").toLowerCase().includes(q);
+          const filteredWorkers = (b.workers || []).filter((w) => {
+            const wEng = eng === "all" || String(w.agentType || "").toLowerCase() === eng;
+            const wQ = !q || w.displayName.toLowerCase().includes(q) || (w.activity || "").toLowerCase().includes(q) || (w.branch || "").toLowerCase().includes(q);
+            const wAct = !activeOnly || w.needsDecision || w.state === "working";
+            return wEng && wQ && wAct;
           });
-        }
-      }
-
-      const bgSvg = `
-        ${commonRoomBgSvg(`team_${floorNum}`, H, theme.wallTop, theme.wallBot, isHot, theme.accent, true)}
-        ${roomDecorSvg(theme.decor, theme.accent)}
-        ${bgDesks}`;
-
-      const badgeText = workers.length
-        ? tr.teamBadge(bot.workingWorkerCount, workers.length, bot.decisionCount)
-        : st.label;
-      const badgeCls = bot.needsDecision ? "attn" : (isHot ? "hot" : "");
-
-      return `
-        <div class="floor-story" style="aspect-ratio:${W}/${H}">
-          <div class="floor-sign"><span class="f-num">${floorNum}F</span><span class="f-name">${esc(bot.name)}</span></div>
-          <div class="f-badge ${badgeCls}">${esc(badgeText)}</div>
-          <svg class="floor-bg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${bgSvg}</svg>
-          <div class="floor-actors">${actorsHtml}</div>
-          <svg class="floor-fg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${fgDesks}</svg>
-          <div class="floor-labels">${labelsHtml}</div>
-        </div>`;
+          const botActive = !activeOnly || b.needsDecision || b.state === "working" || b.workingWorkerCount > 0;
+          const keep = (matchBotEng && matchBotQ && botActive) || filteredWorkers.length > 0;
+          if (!keep) return null;
+          return { ...b, workers: q || eng !== "all" || activeOnly ? filteredWorkers : b.workers };
+        })
+        .filter(Boolean);
     }
 
-    function renderLoungeFloor(soloBots) {
-      const tr = t();
-      const working = soloBots.filter((b) => classifyBot(b).hot);
-      const idle = soloBots.filter((b) => !classifyBot(b).hot);
-      const decCount = soloBots.reduce((acc, b) => acc + (b.decisionCount || 0), 0);
-      const isHot = working.length > 0;
-
-      const workRows = Math.max(1, Math.ceil(working.length / 2));
-      const sofaRows = Math.max(1, Math.ceil(idle.length / 3));
-      const rowCount = Math.max(workRows, sofaRows);
-      const H = BASE_H + (rowCount - 1) * ROW_STEP;
-      const pxX = (x) => `${(x / W * 100).toFixed(2)}%`;
-      const pxY = (y) => `${(y / H * 100).toFixed(2)}%`;
-
-      const hotSlots = [94, 214];
-      let bgFurn = "";
-      let fgFurn = "";
-
-      for (let r = 0; r < workRows; r++) {
-        const offY = r * ROW_STEP;
-        hotSlots.forEach((hx, idx) => {
-          const bot = working[r * 2 + idx] || null;
-          const st = bot ? classifyBot(bot) : null;
-          bgFurn += officeChairBgSvg(hx, offY, false);
-          fgFurn += foregroundDeskSvg(hx, 96, offY, Boolean(bot), st?.mode === "attn" ? "#ef4444" : "#38bdf8", false, Boolean(bot));
-        });
-      }
-
-      for (let r = 0; r < sofaRows; r++) {
-        const offY = r * ROW_STEP;
-        bgFurn += `
-          <ellipse cx="424" cy="${176 + offY}" rx="124" ry="18" fill="#3b2654" opacity="0.68" stroke="rgba(192,132,252,0.34)" stroke-width="1.2"/>
-          ${r === 0 ? `<path d="M300,164 L300,82 Q300,66 320,70" fill="none" stroke="#94a3b8" stroke-width="2.4"/><path d="M312,70 L330,70 L326,81 L316,81 Z" fill="#fbbf24"/><ellipse cx="321" cy="122" rx="46" ry="44" fill="#fbbf24" opacity="0.1"/>` : ""}
-          <g>
-            <ellipse cx="424" cy="${172 + offY}" rx="98" ry="9" fill="rgba(0,0,0,0.42)"/>
-            <rect x="332" y="${108 + offY}" width="184" height="40" rx="12" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.2"/>
-            <!-- Cozy Throw Pillows -->
-            <rect x="342" y="${122 + offY}" width="16" height="14" rx="4" fill="#f472b6" opacity="0.72" transform="rotate(-8 350 ${129 + offY})"/>
-            <rect x="490" y="${122 + offY}" width="16" height="14" rx="4" fill="#fbbf24" opacity="0.72" transform="rotate(8 498 ${129 + offY})"/>
-            <rect x="338" y="${138 + offY}" width="56" height="20" rx="7" fill="#6d28d9" stroke="#8b5cf6" stroke-width="0.9"/>
-            <rect x="396" y="${138 + offY}" width="56" height="20" rx="7" fill="#6d28d9" stroke="#8b5cf6" stroke-width="0.9"/>
-            <rect x="454" y="${138 + offY}" width="56" height="20" rx="7" fill="#6d28d9" stroke="#8b5cf6" stroke-width="0.9"/>
-            <rect x="326" y="${124 + offY}" width="14" height="34" rx="6" fill="#5b21b6"/>
-            <rect x="508" y="${124 + offY}" width="14" height="34" rx="6" fill="#5b21b6"/>
-            <rect x="336" y="${158 + offY}" width="6" height="10" rx="2" fill="#5e4028"/>
-            <rect x="506" y="${158 + offY}" width="6" height="10" rx="2" fill="#5e4028"/>
-          </g>`;
-        fgFurn += `
-          <g>
-            <ellipse cx="424" cy="${187 + offY}" rx="44" ry="7" fill="rgba(0,0,0,0.44)"/>
-            <rect x="420" y="${172 + offY}" width="8" height="14" fill="#3c2a1e"/>
-            <ellipse cx="424" cy="${171 + offY}" rx="46" ry="9.5" fill="#a1744c" stroke="#c29268" stroke-width="1"/>
-            <rect x="404" y="${163 + offY}" width="7" height="7" rx="1.5" fill="#f8fafc"/>
-            <rect x="435" y="${164 + offY}" width="7" height="7" rx="1.5" fill="#fde68a"/>
-          </g>`;
-      }
-
-      // Warm Espresso Bar + Subtle Neon Coffee Plaque on Right
-      bgFurn += `
-        <g>
-          <rect x="556" y="64" width="52" height="16" rx="4" fill="#1e132c" stroke="#fbbf24" stroke-opacity="0.6" stroke-width="1"/>
-          <text x="582" y="75" text-anchor="middle" fill="#fde68a" font-size="7.5" font-weight="800" font-family="ui-monospace, monospace">CAFÉ</text>
-          <rect x="548" y="124" width="66" height="44" rx="4" fill="#5c4028" stroke="#7c5a3c" stroke-width="1"/>
-          <rect x="544" y="120" width="74" height="7" rx="2" fill="#9a6e48"/>
-          <rect x="564" y="94" width="32" height="26" rx="4" fill="#334155" stroke="#64748b" stroke-width="1"/>
-          <rect x="570" y="105" width="20" height="11" rx="2" fill="#0f172a"/>
-          <circle cx="590" cy="100" r="2.2" fill="#fbbf24"/>
-          <path d="M578,91 Q576,86 580,82" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.1" stroke-linecap="round"/>
-          <path d="M584,91 Q582,85 586,81" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.1" stroke-linecap="round"/>
-        </g>`;
-
-      const bgSvg = `${commonRoomBgSvg("lounge_1f", H, "#231c38", "#171326", isHot, "#c084fc", false)}${bgFurn}`;
-      let actorsHtml = "";
-      let labelsHtml = "";
-
-      working.forEach((b, idx) => {
-        const st = classifyBot(b);
-        const r = Math.floor(idx / 2);
-        const x = hotSlots[idx % 2];
-        const offY = r * ROW_STEP;
-        const av = avatars[b.id] || avatars[b.name];
-        const avHtml = av ? `<img src="${av}" alt="${esc(b.name)}"/>` : esc((b.name || "?").slice(0, 1).toUpperCase());
-
-        actorsHtml += `
-          <div class="actor is-${st.mode}" style="left:${pxX(x)};top:${pxY(152 + offY)}"
-               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}" title="${esc(b.name)} · ${esc(tr.tipClick)}">
-            <div class="actor-body"><div class="actor-head">${avHtml}</div><div class="actor-torso"></div></div>
-          </div>`;
-        labelsHtml += `
-          ${st.bubble ? `<div class="pill-bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(x)};top:${pxY(96 + offY)}" data-card-bot="${esc(b.id)}"><span class="pb-dot"></span><span class="pb-txt">${esc(st.bubble)}</span></div>` : ""}
-          ${b.needsDecision ? `<div class="head-red-dot" style="left:${pxX(x + 15)};top:${pxY(107 + offY)}" data-jump-bot="${esc(b.id)}" title="${esc(tr.tipRedDot)}">${b.decisionCount > 1 ? b.decisionCount : "!"}</div>` : ""}
-          <div class="nameplate ${st.mode === "attn" ? "attn" : "boss-hot"}" style="left:${pxX(x)};top:${pxY(161 + offY)}"
-               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}">${esc(b.name)}</div>`;
-      });
-
-      const sofaXs = [366, 424, 482];
-      idle.forEach((b, idx) => {
-        const r = Math.floor(idx / 3);
-        const x = sofaXs[idx % 3];
-        const offY = r * ROW_STEP;
-        const av = avatars[b.id] || avatars[b.name];
-        const avHtml = av ? `<img src="${av}" alt="${esc(b.name)}"/>` : esc((b.name || "?").slice(0, 1).toUpperCase());
-
-        actorsHtml += `
-          <div class="actor is-idle" style="left:${pxX(x)};top:${pxY(154 + offY)}"
-               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}" title="${esc(b.name)} · ${esc(tr.tipClick)}">
-            <div class="actor-body"><div class="actor-head">${avHtml}</div><div class="actor-torso"></div><span class="fx-z">zZ</span></div>
-          </div>`;
-        labelsHtml += `
-          <div class="nameplate idle" style="left:${pxX(x)};top:${pxY(156 + offY)}"
-               data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}">${esc(b.name)}</div>`;
-      });
-
-      return `
-        <div class="floor-story" style="aspect-ratio:${W}/${H}">
-          <div class="floor-sign"><span class="f-num">1F</span><span class="f-name">${esc(tr.loungeName)}</span></div>
-          <div class="f-badge ${decCount > 0 ? "attn" : (isHot ? "hot" : "")}">${esc(tr.loungeBadge(working.length, idle.length, decCount))}</div>
-          <svg class="floor-bg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${bgSvg}</svg>
-          <div class="floor-actors">${actorsHtml}</div>
-          <svg class="floor-fg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${fgFurn}</svg>
-          <div class="floor-labels">${labelsHtml}</div>
-        </div>`;
+    function miniRobotBadgeHtml(w) {
+      const col = w.needsDecision ? "#ef4444" : (w.state === "working" ? "#4ade80" : "#64748b");
+      return `<svg viewBox="0 0 28 28" width="22" height="22">
+        <rect x="4" y="6" width="20" height="16" rx="5" fill="#f8fafc" stroke="${col}" stroke-width="2"/>
+        <rect x="7" y="10" width="14" height="8" rx="3" fill="#0f172a"/>
+        <circle cx="11.5" cy="14" r="1.8" fill="${col}"/><circle cx="16.5" cy="14" r="1.8" fill="${col}"/>
+      </svg>`;
     }
 
-    function renderEmptyOffice() {
+    function renderListView(bots) {
       const tr = t();
-      const H = BASE_H;
-      const bg = commonRoomBgSvg("empty_1f", H, "#1f2b40", "#151e2e", true, "#38bdf8", true)
-        + officeChairBgSvg(180, 0, false) + officeChairBgSvg(460, 0, false);
-      const fg = foregroundDeskSvg(180, 110, 0, true, "#38bdf8", false, false)
-        + foregroundDeskSvg(460, 110, 0, false, "#4ade80", false, false);
-      return `
-        <div class="floor-story" style="aspect-ratio:${W}/${H}">
-          <div class="floor-sign"><span class="f-num">1F</span><span class="f-name">Bot Office</span></div>
-          <svg class="floor-bg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${bg}</svg>
-          <svg class="floor-fg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${fg}</svg>
-          <div class="empty-note">
-            <div class="empty-note-title">${esc(tr.emptyRoomTitle)}</div>
-            <div class="empty-note-sub">${esc(tr.emptyRoomSub)}</div>
-          </div>
-        </div>`;
-    }
-
-    function renderWorkbenchList(bots) {
-      const tr = t();
+      const now = Date.now();
       const needRows = [], workRows = [], idleRows = [];
 
       for (const b of bots) {
         const av = avatars[b.id] || avatars[b.name];
-        const avHtml = av ? `<img src="${av}" alt=""/>` : `<span style="font-weight:800;font-size:13px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
+        const avHtml = av ? `<img src="${av}" alt=""/>` : `<span style="font-weight:800">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
+        const bStall = isStalled(b);
+        const bDur = b.state === "working" && b.stateStartedAt ? fmtDur(now - b.stateStartedAt) : "";
         const bRow = {
           attr: `data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}"`,
           jumpAttr: `data-jump-bot="${esc(b.id)}"`,
@@ -1380,36 +676,35 @@
           sub: b.needsYouItems?.length ? `#${b.needsYouItems[0].number} ${b.needsYouItems[0].title}` : (b.activity || tr.stateIdle),
           attnCount: b.decisionCount || 0, needs: b.needsDecision,
           working: b.state === "working" || b.workingWorkerCount > 0,
-          time: relTime(b.lastActivityAt),
+          stall: bStall, dur: bDur, time: relTime(b.lastActivityAt),
         };
         if (bRow.needs) needRows.push(bRow);
         else if (bRow.working) workRows.push(bRow);
-        else if (!activeOnly) idleRows.push(bRow);
+        else idleRows.push(bRow);
 
         for (const w of (b.workers || [])) {
+          const wStall = isStalled(w);
+          const wDur = w.state === "working" && w.stateStartedAt ? fmtDur(now - w.stateStartedAt) : "";
           const wRow = {
             attr: `data-card-worker="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}"`,
             jumpAttr: `data-jump-ws="${esc(w.worktreeId)}"`,
-            avHtml: miniWorkerRobotSvg(w, 25),
+            avHtml: miniRobotBadgeHtml(w),
             name: w.displayName, role: tr.roleWorker(b.name), eng: shortEng(w.agentType),
             sub: w.activity || tr.stateIdle,
             attnCount: w.needsDecision ? 1 : 0, needs: w.needsDecision,
-            working: w.state === "working", time: relTime(w.lastActivityAt),
+            working: w.state === "working", stall: wStall, dur: wDur, time: relTime(w.lastActivityAt),
           };
           if (wRow.needs) needRows.push(wRow);
           else if (wRow.working) workRows.push(wRow);
-          else if (!activeOnly) idleRows.push(wRow);
+          else idleRows.push(wRow);
         }
       }
 
-      const renderGroup = (title, dotCls, rows, isAttn = false) => {
+      const renderGrp = (title, dot, rows, attn = false) => {
         if (!rows.length) return "";
         return `
-          <div class="wb-group ${isAttn ? "attn" : ""}">
-            <div class="wb-g-head">
-              <span class="left"><span class="cnt-dot ${dotCls}"></span>${esc(title)}</span>
-              <span>${rows.length}</span>
-            </div>
+          <div class="wb-group ${attn ? "attn" : ""}">
+            <div class="wb-g-head"><span class="left"><span class="cnt-dot ${dot}"></span>${esc(title)}</span><span>${rows.length}</span></div>
             ${rows.map((r) => `
               <div class="wb-row ${r.needs ? "attn" : ""}" ${r.attr}>
                 <div class="wb-av">${r.avHtml}${r.needs ? `<span class="wb-av-dot">${r.attnCount > 1 ? r.attnCount : "!"}</span>` : ""}</div>
@@ -1418,21 +713,19 @@
                     <span class="wb-name">${esc(r.name)}</span>
                     <span class="wb-tag">${esc(r.role)}</span>
                     <span class="wb-tag eng">${esc(r.eng)}</span>
+                    ${r.stall ? `<span class="wb-tag stall">⚠ ${esc(r.dur)}</span>` : (r.dur ? `<span class="wb-tag">${esc(r.dur)}</span>` : "")}
                   </div>
                   <div class="wb-sub">${esc(r.sub)}</div>
                 </div>
-                ${r.needs
-                  ? `<button class="wb-go-btn" ${r.jumpAttr}>${esc(tr.listGoDecide)}</button>`
-                  : `<span class="wb-time">${esc(r.time || "↗")}</span>`}
+                ${r.needs ? `<button class="wb-go-btn" ${r.jumpAttr}>${esc(tr.listGoDecide)}</button>` : `<span class="wb-time">${esc(r.time || "↗")}</span>`}
               </div>`).join("")}
           </div>`;
       };
 
-      const content =
-        renderGroup(tr.grpNeed, "red", needRows, true) +
-        renderGroup(tr.grpWork, "blue", workRows, false) +
-        renderGroup(tr.grpIdle, "gray", idleRows, false);
-      return `<div class="workbench">${content || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyBuilding)}</div>`}</div>`;
+      const html = renderGrp(tr.grpNeed, "red", needRows, true) + renderGrp(tr.grpWork, "blue", workRows) + renderGrp(tr.grpIdle, "gray", idleRows);
+      const listEl = document.getElementById("listView");
+      listEl.innerHTML = `<div class="workbench">${html || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyFilter)}</div>`}</div>`;
+      bindDomClickHandlers(listEl);
     }
 
     function findCardTarget() {
@@ -1461,32 +754,45 @@
       const target = findCardTarget();
       if (!target) { root.innerHTML = ""; return; }
       const tr = t();
+      const now = Date.now();
 
-      let title = "", roleText = "", engine = "", branch = "", repo = "";
+      let title = "", roleText = "", engine = "", repo = "", branch = "";
       let statusCls = "idle", statusText = "", needsDec = false, lastAt = null;
-      let details = [], avatarHtml = "", primaryWsId = null, attnWorkerWsId = null;
-      let workersHtml = "", decisionsHtml = "";
-      let hasItems = false;
+      let timeline = [], links = [], avatarHtml = "", primaryWsId = null, attnWorkerWsId = null;
+      let workersHtml = "", decisionsHtml = "", hasItems = false;
 
       if (target.kind === "bot") {
         const b = target.bot;
-        const st = classifyBot(b);
         title = b.name;
         roleText = tr.roleBot;
         engine = shortEng(b.agent);
-        statusCls = st.mode;
-        statusText = st.mode === "attn" ? `🔴 ${st.reason}` : (st.mode === "working" ? `🔵 ${st.label}` : `💤 ${st.label}`);
         needsDec = b.needsDecision;
         lastAt = b.lastActivityAt;
-        details = (b.details && b.details.length) ? b.details : (b.activity ? [b.activity] : []);
+        timeline = b.timeline || [];
+        links = b.links || [];
         primaryWsId = b.worktreeId;
         const firstDecW = (b.workers || []).find((w) => w.needsDecision);
         if (!b.selfNeedsDecision && firstDecW) attnWorkerWsId = firstDecW.worktreeId;
 
-        const av = avatars[b.id] || avatars[b.name];
-        avatarHtml = av ? `<img src="${av}" alt="${esc(b.name)}"/>` : `<span style="font-weight:800;font-size:16px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
+        const stall = isStalled(b);
+        const dur = b.state === "working" && b.stateStartedAt ? fmtDur(now - b.stateStartedAt) : "";
+        if (needsDec) {
+          statusCls = "attn";
+          statusText = `🔴 ${(b.needsYouItems || []).length ? tr.stateNeedItem(b.needsYouItems.length) : (b.selfNeedsDecision ? tr.stateNeedPerm : tr.stateNeedWorker)}`;
+        } else if (stall) {
+          statusCls = "stall";
+          statusText = tr.stateStall(dur);
+        } else if (b.state === "working" || b.workingWorkerCount > 0) {
+          statusCls = "working";
+          statusText = `🔵 ${tr.stateWorking}${dur ? ` · ${tr.stateRunDur(dur)}` : ""}`;
+        } else {
+          statusCls = "idle";
+          statusText = `💤 ${tr.stateIdle}`;
+        }
 
-        // Pure Read-Only Decision Summary (zero fake checkboxes, zero copy-paste!)
+        const av = avatars[b.id] || avatars[b.name];
+        avatarHtml = av ? `<img src="${av}" alt=""/>` : `<span style="font-weight:800;font-size:16px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
+
         const items = b.needsYouItems || [];
         hasItems = items.length > 0;
         if (hasItems) {
@@ -1503,7 +809,7 @@
                       <div class="ic-q-prompt">${qi + 1}. ${esc(q.prompt)}</div>
                       ${(q.options || []).length ? `<div class="ic-q-opts">${q.options.map((opt, oi) => {
                         const isRec = q.recommended === oi;
-                        return `<span class="ic-q-chip ${isRec ? "rec" : ""}">${isRec ? esc(tr.recPrefix) : ""}${esc(opt.label)}</span>`;
+                        return `<span class="ic-q-chip ${isRec ? "rec" : ""}">${isRec ? "★ " : ""}${esc(opt.label)}</span>`;
                       }).join("")}</div>` : ""}
                     </div>`).join("")}</div>` : ""}
                 </div>`;
@@ -1515,12 +821,13 @@
             <div class="ic-section-title">${esc(tr.secWorkers(b.workingWorkerCount, b.workers.length))}</div>
             <div class="ic-workers">
               ${b.workers.map((w) => {
-                const ws = classifyWorker(w);
+                const mode = w.needsDecision ? "attn" : (w.state === "working" ? "working" : "idle");
+                const wd = w.state === "working" && w.stateStartedAt ? fmtDur(now - w.stateStartedAt) : "";
                 return `
-                  <div class="ic-worker-row ${ws.mode === "attn" ? "attn" : ""}" data-modal-switch-worker="${esc(w.worktreeId)}">
-                    <span class="ic-w-dot ${ws.mode}"></span>
+                  <div class="ic-worker-row ${mode === "attn" ? "attn" : ""}" data-modal-switch-worker="${esc(w.worktreeId)}">
+                    <span class="ic-w-dot ${mode}"></span>
                     <div class="ic-w-main">
-                      <div class="ic-w-name">${esc(w.displayName)}</div>
+                      <div class="ic-w-name">${esc(w.displayName)}${wd ? ` · ${esc(wd)}` : ""}</div>
                       <div class="ic-w-act">${esc(w.activity || tr.stateIdle)}</div>
                     </div>
                     <span class="ic-w-go" data-modal-jump="${esc(w.worktreeId)}" data-modal-attn="${w.needsDecision ? "1" : "0"}">${w.needsDecision ? "🔴 ↗" : "↗"}</span>
@@ -1530,24 +837,33 @@
         }
       } else {
         const w = target.worker;
-        const ws = classifyWorker(w);
         title = w.displayName;
         roleText = target.kind === "worker" ? tr.roleWorker(target.bot.name) : tr.roleStandalone;
         engine = shortEng(w.agentType);
         repo = w.repo;
         branch = w.branch;
-        statusCls = ws.mode;
-        statusText = ws.mode === "attn" ? `🔴 ${ws.reason}` : (ws.mode === "working" ? `🔵 ${ws.label}` : `💤 ${ws.label}`);
         needsDec = w.needsDecision;
         lastAt = w.lastActivityAt;
-        details = (w.details && w.details.length) ? w.details : (w.activity ? [w.activity] : []);
+        timeline = w.timeline || [];
+        links = w.links || [];
         primaryWsId = w.worktreeId;
-        avatarHtml = miniWorkerRobotSvg(w, 32);
+        avatarHtml = miniRobotBadgeHtml(w);
+
+        const stall = isStalled(w);
+        const dur = w.state === "working" && w.stateStartedAt ? fmtDur(now - w.stateStartedAt) : "";
+        if (needsDec) { statusCls = "attn"; statusText = `🔴 ${tr.stateNeedPerm}`; }
+        else if (stall) { statusCls = "stall"; statusText = tr.stateStall(dur); }
+        else if (w.state === "working") { statusCls = "working"; statusText = `🔵 ${tr.stateWorking}${dur ? ` · ${tr.stateRunDur(dur)}` : ""}`; }
+        else { statusCls = "idle"; statusText = `💤 ${tr.stateIdle}`; }
       }
 
-      const taskHtml = details.length
-        ? details.map((line) => `<div class="ic-task-line">${esc(line)}</div>`).join("")
-        : `<div class="ic-task-line" style="color:#94a3b8">${esc(tr.noActivity)}</div>`;
+      const linksHtml = links.length
+        ? `<div class="ic-links">${links.map((lk) => `<button class="ic-link-chip" data-ext-url="${esc(lk.url)}">${lk.kind === "pr" ? "🔀 " : "🔗 "}${esc(lk.label)} ↗</button>`).join("")}</div>`
+        : "";
+
+      const timelineHtml = timeline.length
+        ? timeline.map((row) => `<div class="ic-tl-row"><span class="ic-tl-lbl">${esc(row.label)}</span>${esc(row.text)}</div>`).join("")
+        : `<div class="ic-tl-row" style="color:#94a3b8">${esc(tr.noActivity)}</div>`;
 
       const primaryLabel = needsDec && !attnWorkerWsId
         ? (target.kind === "bot" ? tr.btnGoDecide : tr.btnGoWorker)
@@ -1558,9 +874,7 @@
       const jumpAttnWorkerBtn = attnWorkerWsId
         ? `<button class="ic-btn primary-attn" id="icJumpAttnWorkerBtn">${esc(tr.btnGoWorker)}</button>`
         : "";
-      const tasksBtn = hasItems
-        ? `<button class="ic-btn secondary" id="icTasksBtn">${esc(tr.btnOpenTasks)}</button>`
-        : "";
+      const tasksBtn = hasItems ? `<button class="ic-btn secondary" id="icTasksBtn">${esc(tr.btnOpenTasks)}</button>` : "";
 
       root.innerHTML = `
         <div class="card-backdrop" id="cardBackdrop">
@@ -1573,7 +887,7 @@
                   <span class="ic-pill">${esc(roleText)}</span>
                   <span class="ic-pill eng">${esc(engine)}</span>
                   ${repo ? `<span class="ic-pill">${esc(repo)}</span>` : ""}
-                  ${branch ? `<span class="ic-pill">${esc(branch)}</span>` : ""}
+                  ${branch ? `<span class="ic-pill branch" id="icCopyBranch" title="Click to copy branch">${esc(branch)}</span>` : ""}
                 </div>
               </div>
               <button class="ic-close" id="icCloseBtn">×</button>
@@ -1582,9 +896,10 @@
               <span>${esc(statusText)}</span>
               ${lastAt ? `<span class="ic-time">${esc(relTime(lastAt))}</span>` : ""}
             </div>
+            ${linksHtml}
             ${decisionsHtml}
-            <div class="ic-section-title">${esc(tr.secActivity)}</div>
-            <div class="ic-task-box">${taskHtml}</div>
+            <div class="ic-section-title">${esc(tr.secTimeline)}</div>
+            <div class="ic-timeline">${timelineHtml}</div>
             ${workersHtml}
             <div class="ic-actions">
               <button class="ic-btn secondary" id="icDismissBtn">${esc(tr.btnClose)}</button>
@@ -1596,37 +911,57 @@
         </div>`;
 
       const close = () => { openCard = null; renderModal(); };
-      document.getElementById("cardBackdrop")?.addEventListener("click", (e) => {
-        if (e.target.id === "cardBackdrop") close();
-      });
+      document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") close(); });
       document.getElementById("icCloseBtn")?.addEventListener("click", close);
       document.getElementById("icDismissBtn")?.addEventListener("click", close);
-      document.getElementById("icOpenBtn")?.addEventListener("click", () => {
-        if (primaryWsId) void openWorkspace(primaryWsId, needsDec);
-        close();
+      document.getElementById("icOpenBtn")?.addEventListener("click", () => { if (primaryWsId) void openWorkspace(primaryWsId, needsDec); close(); });
+      document.getElementById("icJumpAttnWorkerBtn")?.addEventListener("click", () => { if (attnWorkerWsId) void openWorkspace(attnWorkerWsId, true); close(); });
+      document.getElementById("icTasksBtn")?.addEventListener("click", () => { void openTasksView(); close(); });
+      document.getElementById("icCopyBranch")?.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(branch); showToast(tr.copiedBranch(branch)); } catch {}
       });
-      document.getElementById("icJumpAttnWorkerBtn")?.addEventListener("click", () => {
-        if (attnWorkerWsId) void openWorkspace(attnWorkerWsId, true);
-        close();
-      });
-      document.getElementById("icTasksBtn")?.addEventListener("click", () => {
-        void openTasksView();
-        close();
+      document.querySelectorAll("[data-ext-url]").forEach((el) => {
+        el.addEventListener("click", () => void openExternalUrl(el.getAttribute("data-ext-url")));
       });
       document.querySelectorAll("[data-modal-switch-worker]").forEach((el) => {
-        el.addEventListener("click", () => {
-          openCard = { kind: "worker", worktreeId: el.getAttribute("data-modal-switch-worker") };
-          renderModal();
-        });
+        el.addEventListener("click", () => { openCard = { kind: "worker", worktreeId: el.getAttribute("data-modal-switch-worker") }; renderModal(); });
       });
       document.querySelectorAll("[data-modal-jump]").forEach((el) => {
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           const wid = el.getAttribute("data-modal-jump");
-          const isA = el.getAttribute("data-modal-attn") === "1";
-          if (wid) void openWorkspace(wid, isA);
+          if (wid) void openWorkspace(wid, el.getAttribute("data-modal-attn") === "1");
           close();
         });
+      });
+    }
+
+    function bindDomClickHandlers(container) {
+      container.querySelectorAll("[data-jump-bot]").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const bot = (snapshot?.bots || []).find((b) => b.id === el.getAttribute("data-jump-bot"));
+          if (bot) jumpToBotDecision(bot);
+        });
+      });
+      container.querySelectorAll("[data-jump-ws]").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const wid = el.getAttribute("data-jump-ws");
+          if (wid) void openWorkspace(wid, true);
+        });
+      });
+      container.querySelectorAll("[data-card-bot]").forEach((el) => {
+        el.addEventListener("click", (e) => { e.stopPropagation(); openCard = { kind: "bot", id: el.getAttribute("data-card-bot") }; renderModal(); });
+        el.addEventListener("dblclick", (e) => { e.stopPropagation(); const w = el.getAttribute("data-dblopen"); if (w) void openWorkspace(w, true); });
+      });
+      container.querySelectorAll("[data-card-worker]").forEach((el) => {
+        el.addEventListener("click", (e) => { e.stopPropagation(); openCard = { kind: "worker", worktreeId: el.getAttribute("data-card-worker") }; renderModal(); });
+        el.addEventListener("dblclick", (e) => { e.stopPropagation(); const w = el.getAttribute("data-dblopen"); if (w) void openWorkspace(w, true); });
+      });
+      container.querySelectorAll("[data-card-standalone]").forEach((el) => {
+        el.addEventListener("click", (e) => { e.stopPropagation(); openCard = { kind: "standalone", worktreeId: el.getAttribute("data-card-standalone") }; renderModal(); });
+        el.addEventListener("dblclick", (e) => { e.stopPropagation(); const w = el.getAttribute("data-dblopen"); if (w) void openWorkspace(w, true); });
       });
     }
 
@@ -1639,12 +974,6 @@
         if (hasLoadedOnce && !seenDecisionKeys.has(key)) {
           showToast(tr.toastNewDecision(item.name, item.title || tr.stateNeed), true, () => {
             if (item.worktreeId) void openWorkspace(item.worktreeId, true);
-            else {
-              openCard = item.kind === "bot"
-                ? { kind: "bot", id: item.id }
-                : { kind: "worker", worktreeId: item.worktreeId };
-              renderModal();
-            }
           });
         }
       }
@@ -1661,8 +990,12 @@
       document.getElementById("cntIdleLbl").textContent = tr.idleLbl;
       document.getElementById("viewOfficeBtn").textContent = tr.tabOffice;
       document.getElementById("viewListBtn").textContent = tr.tabList;
+      document.getElementById("searchInput").placeholder = tr.searchPh;
+      document.getElementById("engFilter").options[0].textContent = tr.allEng;
       document.getElementById("activeOnlyBtn").textContent = tr.activeOnly;
       document.getElementById("refreshBtn").textContent = tr.refresh;
+      document.getElementById("fitBtn").textContent = tr.fit;
+      document.getElementById("stageHint").textContent = tr.hint;
       document.getElementById("viewOfficeBtn").classList.toggle("active", viewMode === "office");
       document.getElementById("viewListBtn").classList.toggle("active", viewMode === "list");
 
@@ -1677,50 +1010,61 @@
       document.getElementById("cntIdleVal").textContent = idleCount;
       document.getElementById("cntNeed").classList.toggle("has-need", needCount > 0);
 
-      const bots = snapshot.bots || [];
-      const soloInLounge = snapshot.settings?.soloBotsInLounge !== false;
-      const main = document.getElementById("mainContent");
+      const bots = filterBots(snapshot.bots || []);
+      const officeWrap = document.getElementById("officeView");
+      const listWrap = document.getElementById("listView");
 
       if (viewMode === "list") {
-        main.innerHTML = renderWorkbenchList(bots);
+        officeWrap.style.display = "none";
+        listWrap.style.display = "block";
+        isoEngine.pause();
+        renderListView(bots);
       } else {
-        let html = "";
-        if (bots.length === 0) {
-          html = renderEmptyOffice();
-        } else {
-          const teamBots = [];
-          const soloBots = [];
-          for (const b of bots) {
-            if (!soloInLounge || (b.workers && b.workers.length > 0)) teamBots.push(b);
-            else soloBots.push(b);
-          }
-          teamBots.sort((a, b) => {
-            const sc = (x) =>
-              (x.needsDecision ? 1000 : 0) + (x.workingWorkerCount * 20) + (x.state === "working" ? 10 : 0) + (x.workers.length > 0 ? 2 : 0);
-            return sc(b) - sc(a);
-          });
+        officeWrap.style.display = "block";
+        listWrap.style.display = "none";
+        isoEngine.resize();
 
-          const shownTeams = activeOnly
-            ? teamBots.filter((b) => classifyBot(b).hot || b.workingWorkerCount > 0)
-            : teamBots;
-          const showLounge = soloBots.length > 0 && (!activeOnly || soloBots.some((b) => classifyBot(b).hot));
-          const totalStories = shownTeams.length + (showLounge ? 1 : 0);
-
-          html = shownTeams.map((b, i) => renderTeamFloor(b, totalStories - i)).join("");
-          if (showLounge) html += renderLoungeFloor(soloBots);
+        const soloInLounge = snapshot.settings?.soloBotsInLounge !== false;
+        const teamBots = [];
+        const soloBots = [];
+        for (const b of bots) {
+          if (!soloInLounge || (b.workers && b.workers.length > 0)) teamBots.push(b);
+          else soloBots.push(b);
         }
-        main.innerHTML = `<div class="building">${html || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyBuilding)}</div>`}</div>`;
+        teamBots.sort((a, b) => {
+          const sc = (x) => (x.needsDecision ? 1000 : 0) + (x.workingWorkerCount * 20) + (x.state === "working" ? 10 : 0) + (x.workers.length > 0 ? 2 : 0);
+          return sc(b) - sc(a);
+        });
+
+        const emptyEl = document.getElementById("emptyOverlay");
+        if (bots.length === 0) {
+          emptyEl.style.display = "block";
+          document.getElementById("emptyTitle").textContent = (snapshot.bots || []).length ? tr.emptyFilter : tr.emptyTitle;
+          document.getElementById("emptySub").textContent = (snapshot.bots || []).length ? "" : tr.emptySub;
+        } else {
+          emptyEl.style.display = "none";
+        }
+
+        isoEngine.setData({
+          teamBots,
+          soloBots,
+          mailLinks: snapshot.mailLinks || [],
+          expandedStaleTeams,
+          staleHours: Number(snapshot.settings?.hideStaleIdleHours ?? 24),
+          lang: getLang(),
+        });
       }
 
       document.getElementById("legendBar").innerHTML = `
         <div class="legend-grp">
           <span class="lg-item"><span class="lg-dot" style="background:#ef4444"></span>${esc(tr.legendNeed)}</span>
           <span class="lg-item"><span class="lg-dot" style="background:#38bdf8"></span>${esc(tr.legendWork)}</span>
-          <span class="lg-item"><span class="lg-dot" style="background:#64748b"></span>${esc(tr.legendIdle)}</span>
+          <span class="lg-item"><span class="lg-dot" style="background:#fbbf24"></span>${esc(tr.legendStall)}</span>
+          <span class="lg-item">✉️ ${esc(tr.legendMail)}</span>
         </div>
         <div class="legend-grp">
           <span class="lg-item"><span class="lg-dot" style="background:#f59e0b"></span>Claude</span>
-          <span class="lg-item"><span class="lg-dot" style="background:#38bdf8"></span>Antigravity</span>
+          <span class="lg-item"><span class="lg-dot" style="background:#38bdf8"></span>agy</span>
           <span class="lg-item"><span class="lg-dot" style="background:#a78bfa"></span>Codex</span>
           <span class="lg-item"><span class="lg-dot" style="background:#94a3b8"></span>Pi</span>
         </div>`;
@@ -1734,7 +1078,7 @@
         const activeG = standalone.filter((w) => w.state === "working" || w.needsDecision).length;
         const listHtml = guestExpanded
           ? `<div class="guest-list">${standalone.map((w) => `
-              <span class="guest-chip ${w.needsDecision ? "attn" : ""}" data-card-standalone="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}" title="${esc(w.activity || tr.stateIdle)}">
+              <span class="guest-chip ${w.needsDecision ? "attn" : ""}" data-card-standalone="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}">
                 ${w.needsDecision ? "🔴" : (w.state === "working" ? "🟢" : "🪑")} ${esc(w.displayName)}
               </span>`).join("")}</div>`
           : "";
@@ -1743,65 +1087,9 @@
             <span>${esc(tr.guestBar(activeG, standalone.length))}</span>
             <span>${esc(guestExpanded ? tr.collapse : tr.expand)}</span>
           </div>${listHtml}`;
-        document.getElementById("guestToggle")?.addEventListener("click", () => {
-          guestExpanded = !guestExpanded;
-          render();
-        });
+        document.getElementById("guestToggle")?.addEventListener("click", () => { guestExpanded = !guestExpanded; render(); });
+        bindDomClickHandlers(guestBar);
       }
-
-      // Clicking a Red Dot jumps IMMEDIATELY to that Bot / Worker!
-      document.querySelectorAll("[data-jump-bot]").forEach((el) => {
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const bot = (snapshot?.bots || []).find((b) => b.id === el.getAttribute("data-jump-bot"));
-          if (bot) jumpToBotDecision(bot);
-        });
-      });
-      document.querySelectorAll("[data-jump-ws]").forEach((el) => {
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const wid = el.getAttribute("data-jump-ws");
-          if (wid) void openWorkspace(wid, true);
-        });
-      });
-
-      // Clicking a Character / Pill / Row opens the clean Preview Card; double-click jumps immediately
-      document.querySelectorAll("[data-card-bot]").forEach((el) => {
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openCard = { kind: "bot", id: el.getAttribute("data-card-bot") };
-          renderModal();
-        });
-        el.addEventListener("dblclick", (e) => {
-          e.stopPropagation();
-          const wid = el.getAttribute("data-dblopen");
-          if (wid) void openWorkspace(wid, true);
-        });
-      });
-      document.querySelectorAll("[data-card-worker]").forEach((el) => {
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openCard = { kind: "worker", worktreeId: el.getAttribute("data-card-worker") };
-          renderModal();
-        });
-        el.addEventListener("dblclick", (e) => {
-          e.stopPropagation();
-          const wid = el.getAttribute("data-dblopen");
-          if (wid) void openWorkspace(wid, true);
-        });
-      });
-      document.querySelectorAll("[data-card-standalone]").forEach((el) => {
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openCard = { kind: "standalone", worktreeId: el.getAttribute("data-card-standalone") };
-          renderModal();
-        });
-        el.addEventListener("dblclick", (e) => {
-          e.stopPropagation();
-          const wid = el.getAttribute("data-dblopen");
-          if (wid) void openWorkspace(wid, true);
-        });
-      });
 
       if (openCard) renderModal();
     }
@@ -1813,15 +1101,11 @@
           orcaApi.plugin.request("office.getSnapshot", { force }),
           Object.keys(avatars).length ? Promise.resolve(avatars) : orcaApi.plugin.request("office.getAvatars", {}),
         ]);
-        if (avs) avatars = avs;
-        if (snap) {
-          snapshot = snap;
-          detectNewDecisions(snap);
-        }
+        if (avs) { avatars = avs; isoEngine.setAvatars(avs); }
+        if (snap) { snapshot = snap; detectNewDecisions(snap); }
         render();
       } catch (err) {
-        document.getElementById("mainContent").innerHTML =
-          `<div style="color:#f87171;padding:18px">${esc(t().loadErr)}${esc(err?.message || err)}</div>`;
+        console.error("loadAll failed:", err);
       }
     }
 
@@ -1833,6 +1117,18 @@
       e.currentTarget.classList.toggle("active", activeOnly);
       render();
     });
+    document.getElementById("searchInput").addEventListener("input", (e) => { searchQuery = e.target.value; render(); });
+    document.getElementById("engFilter").addEventListener("change", (e) => { engineFilter = e.target.value; render(); });
+    document.getElementById("zoomInBtn").addEventListener("click", () => {
+      isoEngine.zoom = Math.min(2.1, isoEngine.zoom * 1.15);
+      isoEngine.bgDirty = true; isoEngine.drawNow();
+    });
+    document.getElementById("zoomOutBtn").addEventListener("click", () => {
+      isoEngine.zoom = Math.max(0.55, isoEngine.zoom * 0.87);
+      isoEngine.bgDirty = true; isoEngine.drawNow();
+    });
+    document.getElementById("fitBtn").addEventListener("click", () => { isoEngine.fitCamera(); isoEngine.drawNow(); });
+
     document.getElementById("cntNeed").addEventListener("click", () => {
       const list = snapshot?.decisionList || [];
       if (!list.length) return;
@@ -1843,30 +1139,27 @@
         : { kind: "worker", worktreeId: item.worktreeId };
       renderModal();
     });
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && openCard) { openCard = null; renderModal(); }
-    });
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape" && openCard) { openCard = null; renderModal(); } });
+    window.addEventListener("resize", () => { if (viewMode === "office") isoEngine.resize(); });
 
     if (orcaApi?.plugin?.on) {
       orcaApi.plugin.on("office.snapshot", (snap) => {
         if (snap) { snapshot = snap; detectNewDecisions(snap); render(); }
       });
     }
-    if (orcaApi?.on) {
-      orcaApi.on("theme", () => render());
-    }
+    if (orcaApi?.on) { orcaApi.on("theme", () => render()); }
 
     window.__botOfficeInjectMock = (mockSnap, mockAvatars = {}) => {
       snapshot = mockSnap;
       avatars = mockAvatars;
+      isoEngine.setAvatars(mockAvatars);
       render();
     };
     window.__botOfficeOpenCard = (cardSpec) => { openCard = cardSpec; renderModal(); };
     window.__botOfficeSetView = (mode) => { viewMode = mode; render(); };
 
-    document.getElementById("loadingText").textContent = t().loading;
+    isoEngine.resize();
     void loadAll(false);
-    setInterval(() => { if (snapshot) render(); }, 15000);
   </script>
 </body>
 </html>

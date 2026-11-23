@@ -4,15 +4,15 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.2.1",
-  "description": "Live architectural office & grouped workbench in Orca's right sidebar: track every Bot, their Workers, and native Needs-You decision items with one-click jump.",
+  "version": "0.3.0",
+  "description": "Ultra-lightweight 2.5D isometric AI HQ & grouped workbench in Orca's right sidebar: watch Bot teams, Worker robots, live mail dispatches, and native Needs-You decisions with near-zero GPU/CPU overhead.",
   "license": "MIT",
   "icon": "assets/icon.png",
   "screenshots": [
     {
       "path": "assets/screenshot.png",
-      "alt": "Bot Office cutaway headquarters and decision preview card showing Bot teams, Worker robots, native Needs-You items, and grouped workbench",
-      "caption": "Every Bot team gets its own studio floor; click any red dot to jump right in and decide"
+      "alt": "Bot Office 2.5D isometric headquarters showing team pods, Lead Bots, Worker robots, gliding mail envelopes, and a Needs-You decision preview card",
+      "caption": "2.5D isometric team pods with live mail packets, stall alerts, and one-click jump to native Needs-You decisions"
     }
   ],
   "engines": {
@@ -58,17 +58,25 @@
     "settings": [
       {
         "key": "refreshIntervalSeconds",
-        "title": "Background Refresh Interval (seconds)",
+        "title": "Background Fallback Refresh Interval (seconds)",
         "type": "integer",
-        "default": 8,
-        "minimum": 3,
+        "default": 25,
+        "minimum": 8,
         "maximum": 120
       },
       {
         "key": "soloBotsInLounge",
-        "title": "Group solo Bots (0 Workers) on 1F Open Floor & Lounge",
+        "title": "Group solo Bots (0 Workers) in the Open Workspace & Coffee Lounge",
         "type": "boolean",
         "default": true
+      },
+      {
+        "key": "hideStaleIdleHours",
+        "title": "Auto-collapse idle Workers older than N hours (0 = show all)",
+        "type": "integer",
+        "default": 24,
+        "minimum": 0,
+        "maximum": 168
       },
       {
         "key": "showStandaloneWorkspaces",

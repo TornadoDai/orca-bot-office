@@ -3,6 +3,7 @@ import {
   buildExecEnv,
   collectBotAvatars,
   collectOfficeSnapshot,
+  computeSnapshotHash,
   locateOrcaBinary,
   runOrcaJson,
 } from "./orca-data.mjs";
@@ -37,18 +38,21 @@ function formatStatusBar(summary) {
 export default function activate(orca) {
   const orcaBin = locateOrcaBinary(process.env);
   let latestSnapshot = null;
+  let lastBroadcastHash = "";
   let refreshing = null;
   let resolvedPluginKey = null;
 
   async function readOptions() {
-    const interval = Number((await orca.settings?.get?.("refreshIntervalSeconds").catch(() => 8)) || 8);
+    const interval = Number((await orca.settings?.get?.("refreshIntervalSeconds").catch(() => 25)) || 25);
     const showStandalone = (await orca.settings?.get?.("showStandaloneWorkspaces").catch(() => true)) !== false;
     const soloBotsInLounge = (await orca.settings?.get?.("soloBotsInLounge").catch(() => true)) !== false;
+    const hideStaleIdleHours = Number((await orca.settings?.get?.("hideStaleIdleHours").catch(() => 24)) ?? 24);
     const language = String((await orca.settings?.get?.("language").catch(() => "auto")) || "auto");
     return {
-      intervalMs: Math.max(3, Math.min(120, interval)) * 1000,
+      intervalMs: Math.max(8, Math.min(120, interval)) * 1000,
       showStandalone,
       soloBotsInLounge,
+      hideStaleIdleHours: Math.max(0, Math.min(168, hideStaleIdleHours)),
       language,
     };
   }
@@ -76,21 +80,31 @@ export default function activate(orca) {
     return "local.bot-office";
   }
 
-  async function refresh(broadcast = true) {
+  async function refresh(broadcast = true, { forceItems = false } = {}) {
     if (refreshing) return refreshing;
     refreshing = (async () => {
       try {
         const opts = await readOptions();
-        const snap = await collectOfficeSnapshot(orcaBin, { showStandalone: opts.showStandalone });
+        const snap = await collectOfficeSnapshot(orcaBin, {
+          showStandalone: opts.showStandalone,
+          forceItems,
+        });
         snap.settings = {
           soloBotsInLounge: opts.soloBotsInLounge,
           showStandalone: opts.showStandalone,
+          hideStaleIdleHours: opts.hideStaleIdleHours,
           language: opts.language,
         };
+        const hash = computeSnapshotHash(snap);
+        const changed = hash !== lastBroadcastHash;
         latestSnapshot = snap;
-        await orca.host.call("statusBar.update", formatStatusBar(snap.summary)).catch(() => {});
-        if (broadcast) {
-          orca.panels.post("office.snapshot", snap);
+
+        if (changed || forceItems) {
+          lastBroadcastHash = hash;
+          await orca.host.call("statusBar.update", formatStatusBar(snap.summary)).catch(() => {});
+          if (broadcast) {
+            orca.panels.post("office.snapshot", snap);
+          }
         }
         return snap;
       } catch (err) {
@@ -103,11 +117,11 @@ export default function activate(orca) {
     return refreshing;
   }
 
-  function scheduleRefresh(delayMs = 450) {
+  function scheduleRefresh(delayMs = 650, forceItems = false) {
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
-      void refresh(true);
+      void refresh(true, { forceItems });
     }, delayMs);
   }
 
@@ -115,15 +129,15 @@ export default function activate(orca) {
     if (pollTimer) clearInterval(pollTimer);
     const { intervalMs } = await readOptions();
     pollTimer = setInterval(() => {
-      void refresh(true);
+      void refresh(true, { forceItems: false });
     }, intervalMs);
   }
 
   orca.panels.handle("office.getSnapshot", async (input = {}) => {
-    if (!input.force && latestSnapshot && Date.now() - latestSnapshot.updatedAt < 2500) {
+    if (!input.force && latestSnapshot && Date.now() - latestSnapshot.updatedAt < 5000) {
       return latestSnapshot;
     }
-    return await refresh(false);
+    return await refresh(false, { forceItems: Boolean(input.force) });
   });
 
   orca.panels.handle("office.getAvatars", async () => {
@@ -167,7 +181,7 @@ export default function activate(orca) {
   });
 
   orca.commands.register("bot-office.refresh", async () => {
-    await refresh(true);
+    await refresh(true, { forceItems: true });
   });
 
   const eventNames = [
@@ -177,15 +191,15 @@ export default function activate(orca) {
     "workspace.changed",
   ];
   for (const ev of eventNames) {
-    orca.events?.on?.(ev, () => scheduleRefresh(350));
+    orca.events?.on?.(ev, () => scheduleRefresh(650, ev === "agent.status.changed"));
   }
 
   orca.settings?.onDidChange?.(() => {
     void resetPollTimer();
-    scheduleRefresh(150);
+    scheduleRefresh(200, true);
   });
 
-  void refresh(true);
+  void refresh(true, { forceItems: true });
   void resetPollTimer();
 }
 
