@@ -7,160 +7,153 @@
   <style>
     * { box-sizing: border-box; }
     :root {
-      --bg: #0b0e14;
-      --surface: #121824;
-      --card: #151d2d;
-      --border: rgba(255, 255, 255, 0.1);
-      --fg: #eef2f7;
-      --muted: #94a3b8;
+      --bg: #090c12;
+      --surface: #111622;
+      --card: #141b29;
+      --border: rgba(255, 255, 255, 0.09);
+      --border-hi: rgba(255, 255, 255, 0.16);
+      --fg: #eef2f8;
+      --muted: #8e9db5;
       --cyan: #38bdf8;
-      --blue: #60a5fa;
       --green: #4ade80;
       --amber: #fbbf24;
       --red: #ef4444;
       --purple: #c084fc;
     }
     html.light {
-      --bg: #e2e8f0;
+      --bg: #e5ebf3;
       --surface: #f8fafc;
       --card: #ffffff;
-      --border: rgba(15, 23, 42, 0.12);
+      --border: rgba(15, 23, 42, 0.11);
+      --border-hi: rgba(15, 23, 42, 0.2);
       --fg: #0f172a;
       --muted: #64748b;
     }
     body {
       margin: 0;
-      padding: 6px 8px 18px;
+      padding: 7px 8px 18px;
       background: var(--bg);
       color: var(--fg);
       font-family: var(--orca-font-sans, -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif);
       font-size: 12px;
+      -webkit-font-smoothing: antialiased;
       user-select: none;
     }
 
-    /* Magpie-inspired Clean Two-Row Sticky Header */
+    /* Sleek Two-Row Glass Header */
     .topbar {
       position: sticky;
       top: 0;
       z-index: 70;
-      margin-bottom: 7px;
-      padding: 7px 10px;
-      background: rgba(17, 23, 35, 0.94);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 11px;
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38);
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: linear-gradient(180deg, rgba(22, 29, 44, 0.96), rgba(15, 20, 32, 0.94));
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 7px;
     }
-    .topbar-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
+    .topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .brand { display: flex; align-items: center; gap: 7px; min-width: 0; }
-    .brand-title { font-weight: 800; font-size: 13px; color: #f8fafc; white-space: nowrap; }
+    .brand-icon {
+      width: 20px; height: 20px; border-radius: 6px;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35); flex-shrink: 0;
+    }
+    .brand-title { font-weight: 800; font-size: 13px; color: #f8fafc; letter-spacing: -0.01em; white-space: nowrap; }
     .live-pill {
       display: inline-flex; align-items: center; gap: 4px;
-      padding: 1px 7px; border-radius: 999px;
-      font-size: 10px; font-weight: 700;
-      background: rgba(74, 222, 128, 0.14);
-      border: 1px solid rgba(74, 222, 128, 0.35);
+      padding: 1.5px 7px; border-radius: 999px;
+      font-size: 9.5px; font-weight: 700;
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.3);
       color: #86efac;
     }
     .live-dot {
-      width: 6px; height: 6px; border-radius: 50%;
+      width: 5.5px; height: 5.5px; border-radius: 50%;
       background: #4ade80; box-shadow: 0 0 6px #4ade80;
       animation: pulse 2s infinite;
     }
 
-    /* Right 3-Bucket Status Counters (Magpie style) */
-    .counters { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    /* 3-Bucket Status Counters */
+    .counters { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
     .cnt {
       display: inline-flex; align-items: center; gap: 4px;
-      font-size: 11px; color: #cbd5e1; padding: 2px 6px; border-radius: 6px;
-      background: rgba(255, 255, 255, 0.04); border: 1px solid transparent;
+      font-size: 11px; color: #94a3b8; padding: 2px 7px; border-radius: 7px;
+      background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.15s;
     }
-    .cnt b { color: #f8fafc; font-weight: 800; }
-    .cnt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .cnt b { color: #f1f5f9; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .cnt-dot { width: 6.5px; height: 6.5px; border-radius: 50%; flex-shrink: 0; }
     .cnt-dot.red { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
-    .cnt-dot.blue { background: #38bdf8; }
+    .cnt-dot.blue { background: #38bdf8; box-shadow: 0 0 5px rgba(56, 189, 248, 0.55); }
     .cnt-dot.gray { background: #64748b; }
     .cnt.clickable { cursor: pointer; }
     .cnt.has-need {
-      background: rgba(239, 68, 68, 0.18);
-      border-color: rgba(239, 68, 68, 0.65);
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.24), rgba(185, 28, 28, 0.22));
+      border-color: rgba(248, 113, 113, 0.65);
       color: #fecaca;
       animation: attnGlow 1.9s ease-in-out infinite;
     }
-    .cnt.has-need:hover { background: rgba(239, 68, 68, 0.3); color: #fff; }
+    .cnt.has-need:hover { background: rgba(239, 68, 68, 0.34); color: #fff; }
 
-    /* Segmented View Switcher (Office | List) */
+    /* Segmented View Switcher */
     .seg {
-      display: inline-flex;
-      padding: 2px;
-      border-radius: 8px;
-      background: rgba(9, 13, 23, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      display: inline-flex; padding: 2px; border-radius: 8px;
+      background: rgba(8, 12, 20, 0.85); border: 1px solid rgba(148, 163, 184, 0.16);
     }
     .seg-btn {
-      border: none;
-      background: transparent;
-      color: #94a3b8;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 6px;
-      cursor: pointer;
+      border: none; background: transparent; color: #8e9db5;
+      font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 6px;
+      cursor: pointer; transition: all 0.15s;
     }
     .seg-btn.active {
-      background: #f8fafc;
+      background: linear-gradient(180deg, #f8fafc, #e2e8f0);
       color: #0f172a;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.38);
     }
     .seg-btn:not(.active):hover { color: #e2e8f0; }
 
     .ctrl-right { display: flex; align-items: center; gap: 5px; }
     .btn {
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      background: rgba(15, 23, 42, 0.65);
-      color: #cbd5e1;
-      border-radius: 6px;
-      padding: 3px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #cbd5e1;
+      border-radius: 7px; padding: 3.5px 9px; font-size: 11px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: all 0.14s;
     }
-    .btn:hover, .btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(56, 189, 248, 0.14); }
+    .btn:hover, .btn.active {
+      border-color: rgba(56, 189, 248, 0.65); color: #7dd3fc;
+      background: rgba(56, 189, 248, 0.14);
+    }
 
-    /* Cutaway HQ Building Shell */
+    /* Architectural Cutaway Building Shell */
     .building {
-      display: flex;
-      flex-direction: column;
-      border: 2.5px solid #263044;
-      border-radius: 11px;
+      display: flex; flex-direction: column;
+      border: 2px solid #283348;
+      border-radius: 13px;
       overflow: hidden;
-      background: #141923;
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
+      background: #121722;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
     }
     .floor-story {
-      position: relative;
-      width: 100%;
-      border-bottom: 7px solid #1c2434;
-      overflow: hidden;
-      background: #181c24;
+      position: relative; width: 100%;
+      border-bottom: 7px solid #192030;
+      overflow: hidden; background: #161b26;
     }
     .floor-story:last-child { border-bottom: none; }
     .floor-story::before {
-      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
-      background: rgba(255, 255, 255, 0.08); z-index: 35; pointer-events: none;
+      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.5px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+      z-index: 35; pointer-events: none;
     }
     .floor-story::after {
-      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-      background: linear-gradient(90deg, #0d111a, #37435c, #0d111a); z-index: 35; pointer-events: none;
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2.5px;
+      background: linear-gradient(90deg, #0b0f18, #384662, #0b0f18);
+      z-index: 35; pointer-events: none;
     }
 
     .floor-bg-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 10; }
@@ -168,64 +161,75 @@
     .floor-fg-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 24; pointer-events: none; }
     .floor-labels { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
 
-    /* Architectural Floor Sign */
+    /* Refined Brushed-Glass Floor Plaque */
     .floor-sign {
-      position: absolute; top: 6px; left: 8px; z-index: 36;
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 2px 8px 2px 5px; border-radius: 6px;
-      background: rgba(10, 14, 24, 0.82); border: 1px solid rgba(255, 255, 255, 0.14);
-      backdrop-filter: blur(4px); pointer-events: none;
+      position: absolute; top: 6px; left: 9px; z-index: 36;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 2.5px 9px 2.5px 5px; border-radius: 7px;
+      background: rgba(9, 13, 22, 0.76);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
     }
     .f-num {
-      font-size: 9.5px; font-weight: 800; font-family: ui-monospace, monospace;
-      color: #fbbf24; background: rgba(251, 191, 36, 0.16); padding: 0 4px; border-radius: 3px;
+      font-size: 9.5px; font-weight: 800; font-family: ui-monospace, SFMono-Regular, monospace;
+      color: #fde68a; background: rgba(251, 191, 36, 0.18);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      padding: 0 4.5px; border-radius: 4px;
     }
-    .f-name { font-size: 10.5px; font-weight: 700; color: #f1f5f9; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .f-name {
+      font-size: 10.5px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.01em;
+      max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
     .f-badge {
-      position: absolute; top: 6px; right: 8px; z-index: 36;
-      font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-      background: rgba(10, 14, 24, 0.82); border: 1px solid rgba(148, 163, 184, 0.26);
-      color: #94a3b8; pointer-events: none;
+      position: absolute; top: 6px; right: 9px; z-index: 36;
+      font-size: 9.5px; font-weight: 700; padding: 2.5px 8.5px; border-radius: 999px;
+      background: rgba(9, 13, 22, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      color: #94a3b8; backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      pointer-events: none;
     }
-    .f-badge.hot { color: #86efac; border-color: rgba(74, 222, 128, 0.48); background: rgba(6, 78, 59, 0.72); }
-    .f-badge.attn { color: #fecaca; border-color: rgba(239, 68, 68, 0.75); background: rgba(127, 29, 29, 0.84); }
+    .f-badge.hot { color: #86efac; border-color: rgba(74, 222, 128, 0.45); background: rgba(6, 78, 59, 0.72); }
+    .f-badge.attn { color: #fecaca; border-color: rgba(248, 113, 113, 0.75); background: rgba(127, 29, 29, 0.86); }
 
-    /* Seated Characters (Behind wooden desks) */
+    /* Seated Characters */
     .actor {
       position: absolute; transform: translate(-50%, -100%);
       display: flex; flex-direction: column; align-items: center;
       pointer-events: auto; cursor: pointer;
     }
-    .actor:hover .actor-head { transform: scale(1.1); }
+    .actor:hover .actor-head { transform: scale(1.1) translateY(-1px); }
     .actor-body { position: relative; display: flex; flex-direction: column; align-items: center; }
-    .actor.is-working .actor-body { animation: typingBob 1.15s ease-in-out infinite; }
+    .actor.is-working .actor-body { animation: typingBob 1.2s ease-in-out infinite; }
     .actor.is-attn .actor-body { animation: alertHop 1.5s ease-in-out infinite; }
-    .actor.is-idle .actor-body { animation: chillBreathe 3.2s ease-in-out infinite; }
+    .actor.is-idle .actor-body { animation: chillBreathe 3.4s ease-in-out infinite; }
 
     .actor-head {
-      width: 34px; height: 34px; border-radius: 11px; overflow: hidden;
-      border: 2px solid rgba(255, 255, 255, 0.28); background: #1e293b;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
-      transition: transform 0.15s, box-shadow 0.2s;
+      position: relative;
+      width: 35px; height: 35px; border-radius: 12px; overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.26); background: #1e293b;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.52);
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
       display: flex; align-items: center; justify-content: center;
       color: #fff; font-weight: 800; font-size: 14px; z-index: 2;
     }
     .actor-head img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .actor.is-working .actor-head {
       border-color: #38bdf8;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.72), 0 3px 8px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.7), 0 4px 10px rgba(0, 0, 0, 0.55);
     }
     .actor.is-attn .actor-head {
-      border-color: #ef4444;
-      box-shadow: 0 0 14px rgba(239, 68, 68, 0.85), 0 3px 8px rgba(0, 0, 0, 0.5);
+      border-color: #f87171;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.85), 0 4px 10px rgba(0, 0, 0, 0.55);
     }
-    .actor.is-idle .actor-head { width: 31px; height: 31px; border-radius: 10px; filter: brightness(0.9) saturate(0.88); }
-
+    .actor.is-idle .actor-head { width: 32px; height: 32px; border-radius: 10px; filter: brightness(0.9) saturate(0.88); }
     .actor.is-worker .actor-head {
-      width: 36px; height: 44px; border-radius: 0;
+      width: 38px; height: 46px; border-radius: 0;
       background: transparent; border: none; box-shadow: none; overflow: visible;
     }
-    .actor.is-worker.is-attn .actor-head { filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.9)); }
+    .actor.is-worker.is-attn .actor-head { filter: drop-shadow(0 0 7px rgba(239, 68, 68, 0.92)); }
 
     .actor-torso {
       width: 32px; height: 18px; margin-top: -4px;
@@ -236,70 +240,84 @@
     }
     .actor-torso::after {
       content: ""; position: absolute; top: 1px; left: 50%; transform: translateX(-50%);
-      width: 6px; height: 8px; border-radius: 0 0 3px 3px; background: rgba(255, 255, 255, 0.25);
+      width: 6px; height: 8px; border-radius: 0 0 3px 3px; background: rgba(255, 255, 255, 0.28);
     }
     .actor.is-working .actor-torso { background: linear-gradient(180deg, #0284c7, #1e3a5f); }
     .actor.is-attn .actor-torso { background: linear-gradient(180deg, #dc2626, #7f1d1d); }
     .actor.is-worker .actor-torso { display: none; }
 
-    /* Pulsing Red Decision Dot on Head (STRICTLY for Needs-You decision items & approval blockers!) */
+    /* Pulsing Red Decision Dot (Clicking jumps STRAIGHT to that Bot/Worker!) */
     .head-red-dot {
       position: absolute; transform: translate(-50%, -50%);
-      min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
-      background: #ef4444; border: 2px solid #ffffff; color: #ffffff;
-      font-size: 9px; font-weight: 900; line-height: 1;
+      min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+      background: linear-gradient(180deg, #f87171, #dc2626);
+      border: 2px solid #ffffff; color: #ffffff;
+      font-size: 9.5px; font-weight: 900; line-height: 1;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 10px rgba(239, 68, 68, 0.95), 0 2px 5px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.95), 0 2px 6px rgba(0, 0, 0, 0.6);
       pointer-events: auto; cursor: pointer; z-index: 38;
+      transition: transform 0.14s;
     }
+    .head-red-dot:hover { transform: translate(-50%, -50%) scale(1.18); }
     .head-red-dot::before {
       content: ""; position: absolute; inset: -4px; border-radius: 999px;
-      border: 2px solid rgba(239, 68, 68, 0.8);
-      animation: redPing 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+      border: 2px solid rgba(239, 68, 68, 0.82);
+      animation: redPing 1.45s cubic-bezier(0, 0, 0.2, 1) infinite;
       pointer-events: none;
     }
 
-    /* Magpie-style Crisp Floating Pill Labels (zero ugly flying wires!) */
+    /* Refined Frosted Dark-Glass Floating Status Pills */
     .pill-bubble {
       position: absolute; transform: translate(-50%, -100%);
-      max-width: 148px;
-      padding: 2px 8px;
+      max-width: 146px;
+      padding: 2.5px 8.5px;
       border-radius: 999px;
-      font-size: 9.5px; font-weight: 700; line-height: 1.3;
+      font-size: 9.5px; font-weight: 600; line-height: 1.3;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       display: inline-flex; align-items: center; gap: 5px;
-      background: rgba(248, 250, 252, 0.95);
-      color: #0f172a;
-      border: 1.5px solid rgba(56, 189, 248, 0.7);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      background: rgba(11, 17, 30, 0.88);
+      color: #e2f2ff;
+      border: 1px solid rgba(56, 189, 248, 0.58);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
       pointer-events: auto; cursor: pointer;
+      transition: transform 0.14s, border-color 0.14s;
     }
-    .pill-bubble:hover { transform: translate(-50%, -104%); }
-    .pill-bubble.worker { border-color: rgba(74, 222, 128, 0.85); max-width: 132px; }
+    .pill-bubble:hover { transform: translate(-50%, -108%); border-color: #7dd3fc; }
+    .pill-bubble.worker {
+      border-color: rgba(74, 222, 128, 0.65);
+      background: rgba(6, 36, 28, 0.9);
+      color: #dcfce7;
+      max-width: 132px;
+    }
     .pill-bubble.attn {
-      background: #fef2f2;
-      color: #991b1b;
-      border-color: #ef4444;
-      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.42);
+      background: linear-gradient(180deg, rgba(153, 27, 27, 0.95), rgba(110, 18, 18, 0.95));
+      color: #fef2f2;
+      border-color: #f87171;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      font-weight: 700;
     }
-    .pb-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: #38bdf8; }
-    .pill-bubble.worker .pb-dot { background: #22c55e; }
-    .pill-bubble.attn .pb-dot { background: #ef4444; }
+    .pb-dot { width: 5.5px; height: 5.5px; border-radius: 50%; flex-shrink: 0; background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
+    .pill-bubble.worker .pb-dot { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .pill-bubble.attn .pb-dot { background: #ffffff; box-shadow: 0 0 6px #ffffff; }
     .pb-txt { overflow: hidden; text-overflow: ellipsis; }
 
-    /* Desk Front Nameplate */
+    /* Anodized Desk Front Nameplate */
     .nameplate {
       position: absolute; transform: translate(-50%, 0);
-      padding: 1px 6px; border-radius: 4px;
-      background: rgba(12, 16, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.16);
-      color: #f8fafc; font-size: 9px; font-weight: 700;
+      padding: 1.5px 7px; border-radius: 5px;
+      background: rgba(11, 15, 25, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f8fafc; font-size: 9px; font-weight: 700; letter-spacing: 0.01em;
       white-space: nowrap; max-width: 108px; overflow: hidden; text-overflow: ellipsis;
       pointer-events: auto; cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.48);
+      transition: transform 0.12s, border-color 0.12s;
     }
-    .nameplate.worker-hot { border-color: rgba(74, 222, 128, 0.65); color: #86efac; background: rgba(6, 38, 30, 0.92); }
-    .nameplate.boss-hot { border-color: rgba(56, 189, 248, 0.6); color: #e0f2fe; }
-    .nameplate.attn { border-color: rgba(239, 68, 68, 0.85); color: #fecaca; background: rgba(127, 29, 29, 0.92); }
+    .nameplate:hover { transform: translate(-50%, -1px); border-color: rgba(255, 255, 255, 0.35); }
+    .nameplate.worker-hot { border-color: rgba(74, 222, 128, 0.62); color: #86efac; background: rgba(6, 38, 30, 0.92); }
+    .nameplate.boss-hot { border-color: rgba(56, 189, 248, 0.58); color: #e0f2fe; }
+    .nameplate.attn { border-color: rgba(248, 113, 113, 0.85); color: #fecaca; background: rgba(127, 29, 29, 0.92); }
     .nameplate.idle { color: #cbd5e1; opacity: 0.92; }
 
     .fx-z {
@@ -309,210 +327,188 @@
       animation: floatZ 2.4s ease-in-out infinite; pointer-events: none;
     }
 
-    /* Magpie-style Grouped Workbench List View */
+    /* Grouped Workbench List View */
     .workbench { display: flex; flex-direction: column; gap: 8px; }
     .wb-group {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      overflow: hidden;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
     }
-    .wb-group.attn { border-color: rgba(239, 68, 68, 0.48); }
+    .wb-group.attn { border-color: rgba(248, 113, 113, 0.48); }
     .wb-g-head {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 11px;
-      background: rgba(255, 255, 255, 0.03);
+      padding: 7px 12px; background: rgba(255, 255, 255, 0.028);
       border-bottom: 1px solid var(--border);
       font-size: 11px; font-weight: 800; color: var(--fg);
     }
     .wb-g-head .left { display: flex; align-items: center; gap: 6px; }
     .wb-row {
-      display: flex; align-items: center; gap: 9px;
-      padding: 8px 11px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      cursor: pointer;
-      transition: background 0.12s;
+      display: flex; align-items: center; gap: 10px; padding: 8.5px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+      cursor: pointer; transition: background 0.12s;
     }
     .wb-row:last-child { border-bottom: none; }
     .wb-row:hover { background: rgba(56, 189, 248, 0.08); }
-    .wb-row.attn { background: rgba(239, 68, 68, 0.08); }
+    .wb-row.attn { background: rgba(239, 68, 68, 0.07); }
     .wb-row.attn:hover { background: rgba(239, 68, 68, 0.14); }
     .wb-av {
-      position: relative; width: 32px; height: 32px; border-radius: 9px;
+      position: relative; width: 34px; height: 34px; border-radius: 10px;
       background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.14);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .wb-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+    .wb-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
     .wb-av-dot {
-      position: absolute; top: -4px; right: -4px; min-width: 13px; height: 13px;
-      border-radius: 999px; background: #ef4444; border: 1.5px solid #151d2d;
-      color: #fff; font-size: 8px; font-weight: 900; display: flex; align-items: center; justify-content: center;
+      position: absolute; top: -4px; right: -4px; min-width: 14px; height: 14px;
+      border-radius: 999px; background: #ef4444; border: 1.5px solid #141b29;
+      color: #fff; font-size: 8.5px; font-weight: 900; display: flex; align-items: center; justify-content: center;
     }
     .wb-body { min-width: 0; flex: 1; }
     .wb-top { display: flex; align-items: center; gap: 6px; }
     .wb-name { font-weight: 700; font-size: 12px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .wb-tag { font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: rgba(148, 163, 184, 0.14); color: var(--muted); white-space: nowrap; }
+    .wb-tag { font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: rgba(148, 163, 184, 0.12); color: var(--muted); white-space: nowrap; }
     .wb-tag.eng { background: rgba(56, 189, 248, 0.14); color: #7dd3fc; }
-    .wb-tag.need { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
     .wb-sub { margin-top: 2px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .wb-act { font-size: 11px; font-weight: 700; color: var(--cyan); white-space: nowrap; flex-shrink: 0; }
-    .wb-row.attn .wb-act { color: #fca5a5; }
+    .wb-go-btn {
+      padding: 4px 9px; border-radius: 7px; font-size: 10.5px; font-weight: 700;
+      border: 1px solid rgba(248, 113, 113, 0.6); background: rgba(239, 68, 68, 0.2);
+      color: #fecaca; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .wb-go-btn:hover { background: rgba(239, 68, 68, 0.36); color: #fff; }
+    .wb-time { font-size: 10.5px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
 
-    /* Bottom Legend Strip (Magpie style) */
+    /* Bottom Status + Engine Legend */
     .legend {
-      margin-top: 7px;
-      padding: 5px 9px;
-      border-radius: 8px;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      margin-top: 7px; padding: 6px 10px; border-radius: 9px;
+      background: var(--surface); border: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
       font-size: 10px; color: var(--muted);
     }
-    .legend-grp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
-    .lg-item { display: inline-flex; align-items: center; gap: 4px; }
+    .legend-grp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .lg-item { display: inline-flex; align-items: center; gap: 4.5px; }
     .lg-dot { width: 6px; height: 6px; border-radius: 50%; }
 
     /* Guest Bar */
     .guest-bar {
-      margin-top: 7px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 9px; padding: 6px 10px;
+      margin-top: 7px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 7px 11px;
     }
     .guest-head {
       display: flex; align-items: center; justify-content: space-between;
       font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer;
     }
-    .guest-list { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .guest-list { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 5px; }
     .guest-chip {
-      padding: 3px 8px; border-radius: 6px; font-size: 10.5px;
-      background: rgba(148, 163, 184, 0.1); border: 1px solid var(--border);
+      padding: 3.5px 8.5px; border-radius: 7px; font-size: 10.5px;
+      background: rgba(148, 163, 184, 0.09); border: 1px solid var(--border);
       color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
     }
     .guest-chip:hover { border-color: var(--cyan); color: var(--cyan); }
     .guest-chip.attn { border-color: rgba(239, 68, 68, 0.65); color: #fecaca; background: rgba(239, 68, 68, 0.14); }
 
-    /* Popover Inspector & Decision Card */
+    /* Sleek Preview & Jump Card (Zero fake checkboxes / zero copy-paste!) */
     .card-backdrop {
       position: fixed; inset: 0; z-index: 120;
-      background: rgba(5, 8, 15, 0.64); backdrop-filter: blur(4px);
+      background: rgba(4, 7, 14, 0.66); backdrop-filter: blur(6px);
       display: flex; align-items: center; justify-content: center;
-      padding: 12px; animation: fadeIn 0.14s ease-out;
+      padding: 14px; animation: fadeIn 0.14s ease-out;
     }
     .inspector-card {
-      width: 100%; max-width: 420px; max-height: calc(100vh - 28px);
+      width: 100%; max-width: 404px; max-height: calc(100vh - 30px);
       overflow-y: auto;
-      background: #141c2c; color: #f1f5f9;
-      border: 1px solid rgba(148, 163, 184, 0.28);
-      border-radius: 14px;
-      box-shadow: 0 22px 56px rgba(0, 0, 0, 0.68);
-      padding: 14px;
+      background: linear-gradient(180deg, #182133, #121927);
+      color: #f1f5f9;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 15px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      padding: 15px;
       animation: popIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .inspector-card.is-attn {
-      border-color: rgba(239, 68, 68, 0.72);
-      box-shadow: 0 22px 56px rgba(0, 0, 0, 0.72), 0 0 28px rgba(239, 68, 68, 0.22);
+      border-color: rgba(248, 113, 113, 0.68);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.76), 0 0 32px rgba(239, 68, 68, 0.2);
     }
-    .ic-head { display: flex; align-items: center; gap: 10px; }
+    .ic-head { display: flex; align-items: center; gap: 11px; }
     .ic-av {
-      position: relative; width: 42px; height: 42px; border-radius: 12px;
+      position: relative; width: 44px; height: 44px; border-radius: 13px;
       background: #1e293b; border: 1.5px solid rgba(255, 255, 255, 0.18);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .ic-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
+    .ic-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; display: block; }
     .ic-av-dot {
       position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; border-radius: 50%;
-      background: #ef4444; border: 2px solid #141c2c; box-shadow: 0 0 8px #ef4444;
+      background: #ef4444; border: 2px solid #161f30; box-shadow: 0 0 8px #ef4444;
     }
     .ic-title-wrap { min-width: 0; flex: 1; }
-    .ic-name { font-size: 14px; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ic-meta { margin-top: 2px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 10.5px; color: #94a3b8; }
-    .ic-pill { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(148, 163, 184, 0.14); color: #cbd5e1; }
+    .ic-name { font-size: 14.5px; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ic-meta { margin-top: 3px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 10.5px; color: #94a3b8; }
+    .ic-pill { padding: 1.5px 6.5px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(148, 163, 184, 0.14); color: #cbd5e1; }
     .ic-pill.eng { background: rgba(56, 189, 248, 0.16); color: #7dd3fc; }
     .ic-close {
-      width: 26px; height: 26px; border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.24); background: rgba(15, 23, 42, 0.6);
+      width: 27px; height: 27px; border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(15, 23, 42, 0.65);
       color: #cbd5e1; font-size: 15px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .ic-close:hover { background: rgba(148, 163, 184, 0.2); color: #fff; }
+    .ic-close:hover { background: rgba(148, 163, 184, 0.22); color: #fff; }
 
     .ic-status-bar {
-      margin-top: 10px; padding: 7px 10px; border-radius: 9px;
+      margin-top: 11px; padding: 7.5px 11px; border-radius: 10px;
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11.5px; font-weight: 700;
-      background: rgba(30, 41, 59, 0.72); border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(30, 41, 59, 0.72); border: 1px solid rgba(148, 163, 184, 0.16);
     }
-    .ic-status-bar.attn { background: rgba(127, 29, 29, 0.48); border-color: rgba(239, 68, 68, 0.55); color: #fecaca; }
-    .ic-status-bar.working { background: rgba(6, 78, 59, 0.42); border-color: rgba(74, 222, 128, 0.42); color: #bbf7d0; }
+    .ic-status-bar.attn { background: rgba(127, 29, 29, 0.5); border-color: rgba(248, 113, 113, 0.52); color: #fecaca; }
+    .ic-status-bar.working { background: rgba(6, 78, 59, 0.44); border-color: rgba(74, 222, 128, 0.4); color: #bbf7d0; }
     .ic-time { font-size: 10.5px; font-weight: 500; opacity: 0.85; white-space: nowrap; }
 
-    /* Interactive Native Needs-You Decision Panel inside Card */
+    /* Clean Read-Only Native Needs-You Decision Summary */
     .ic-decision-box {
       margin-top: 10px;
       background: rgba(127, 29, 29, 0.16);
-      border: 1px solid rgba(239, 68, 68, 0.45);
-      border-radius: 10px;
-      padding: 10px;
+      border: 1px solid rgba(248, 113, 113, 0.42);
+      border-radius: 11px;
+      padding: 10px 11px;
     }
     .ic-dec-title {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 800; color: #fee2e2;
+      display: flex; align-items: flex-start; gap: 6px;
+      font-size: 12px; font-weight: 800; color: #fee2e2; line-height: 1.4;
     }
     .ic-dec-num {
       font-family: ui-monospace, monospace; font-size: 10px;
-      padding: 1px 5px; border-radius: 4px;
-      background: rgba(239, 68, 68, 0.3); color: #fecaca;
+      padding: 1px 5.5px; border-radius: 4px;
+      background: rgba(239, 68, 68, 0.32); color: #fecaca; flex-shrink: 0; margin-top: 1px;
     }
     .ic-dec-ctx {
-      margin-top: 6px;
-      padding: 7px 8px; border-radius: 7px;
-      background: rgba(9, 13, 23, 0.6);
-      font-size: 11px; line-height: 1.5; color: #e2e8f0;
-      white-space: pre-wrap; max-height: 110px; overflow-y: auto;
-      user-select: text;
+      margin-top: 7px; padding: 7px 9px; border-radius: 8px;
+      background: rgba(9, 13, 23, 0.62);
+      font-size: 11px; line-height: 1.5; color: #dbe5f3;
+      white-space: pre-wrap; max-height: 105px; overflow-y: auto; user-select: text;
     }
-    .ic-q { margin-top: 9px; }
-    .ic-q-prompt { font-size: 11.5px; font-weight: 700; color: #f8fafc; margin-bottom: 5px; }
-    .ic-opts { display: flex; flex-direction: column; gap: 4px; }
-    .ic-opt {
-      text-align: left;
-      padding: 6px 9px; border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      background: rgba(15, 23, 42, 0.72);
-      color: #e2e8f0; font-size: 11px; cursor: pointer;
-      display: flex; align-items: center; justify-content: space-between; gap: 6px;
-      transition: border-color 0.12s, background 0.12s;
+    .ic-q-list { margin-top: 8px; display: flex; flex-direction: column; gap: 7px; }
+    .ic-q-item {
+      padding: 7px 9px; border-radius: 8px;
+      background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(148, 163, 184, 0.16);
     }
-    .ic-opt:hover { border-color: rgba(56, 189, 248, 0.65); background: rgba(30, 41, 59, 0.85); }
-    .ic-opt.chosen {
-      border-color: #4ade80;
-      background: rgba(6, 78, 59, 0.55);
-      color: #dcfce7;
-      font-weight: 700;
+    .ic-q-prompt { font-size: 11.5px; font-weight: 700; color: #f8fafc; line-height: 1.4; }
+    .ic-q-opts { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .ic-q-chip {
+      font-size: 10px; padding: 2px 7px; border-radius: 999px;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.18);
     }
-    .ic-opt-rec {
-      font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 999px;
-      background: rgba(251, 191, 36, 0.2); color: #fde68a; white-space: nowrap; flex-shrink: 0;
+    .ic-q-chip.rec {
+      background: rgba(251, 191, 36, 0.16); color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.45); font-weight: 700;
     }
-    .ic-note-input {
-      width: 100%; margin-top: 7px;
-      padding: 6px 9px; border-radius: 7px;
-      border: 1px solid rgba(148, 163, 184, 0.26);
-      background: rgba(9, 13, 23, 0.75); color: #f8fafc;
-      font-size: 11px; font-family: inherit; outline: none;
-    }
-    .ic-note-input:focus { border-color: var(--cyan); }
-    .ic-dec-hint { margin-top: 6px; font-size: 10px; color: #94a3b8; line-height: 1.4; }
-    .ic-dec-actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 
     .ic-section-title {
-      margin: 11px 0 5px;
-      font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
-      color: #94a3b8;
+      margin: 12px 0 5px;
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+      color: #8e9db5;
     }
     .ic-task-box {
-      background: rgba(9, 13, 23, 0.72); border: 1px solid rgba(148, 163, 184, 0.16);
-      border-radius: 9px; padding: 8px 10px;
+      background: rgba(9, 13, 23, 0.7); border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 10px; padding: 9px 11px;
       font-size: 11.5px; line-height: 1.5; color: #e2e8f0;
       word-break: break-word; user-select: text;
     }
@@ -523,13 +519,12 @@
 
     .ic-workers { display: flex; flex-direction: column; gap: 5px; max-height: 150px; overflow-y: auto; }
     .ic-worker-row {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 8px; border-radius: 8px;
-      background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(148, 163, 184, 0.16);
-      cursor: pointer;
+      display: flex; align-items: center; gap: 8px; padding: 6.5px 9px; border-radius: 9px;
+      background: rgba(15, 23, 42, 0.72); border: 1px solid rgba(148, 163, 184, 0.14);
+      cursor: pointer; transition: all 0.12s;
     }
     .ic-worker-row:hover { border-color: rgba(56, 189, 248, 0.55); background: rgba(30, 41, 59, 0.85); }
-    .ic-worker-row.attn { border-color: rgba(239, 68, 68, 0.55); background: rgba(127, 29, 29, 0.25); }
+    .ic-worker-row.attn { border-color: rgba(248, 113, 113, 0.55); background: rgba(127, 29, 29, 0.25); }
     .ic-w-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #64748b; }
     .ic-w-dot.working { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
     .ic-w-dot.attn { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
@@ -538,51 +533,42 @@
     .ic-w-act { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ic-w-go { font-size: 10.5px; color: #7dd3fc; font-weight: 700; flex-shrink: 0; }
 
-    .ic-actions { margin-top: 12px; display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+    .ic-actions { margin-top: 13px; display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
     .ic-btn {
-      border-radius: 8px; padding: 6px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+      border-radius: 9px; padding: 7px 13px; font-size: 11.5px; font-weight: 700; cursor: pointer;
       border: 1px solid rgba(56, 189, 248, 0.55); background: rgba(56, 189, 248, 0.2); color: #e0f2fe;
+      transition: all 0.14s;
     }
     .ic-btn:hover { background: rgba(56, 189, 248, 0.34); }
     .ic-btn.primary-attn {
       border-color: #f87171; background: linear-gradient(180deg, #ef4444, #dc2626); color: #ffffff;
-      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.42);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
     }
     .ic-btn.primary-attn:hover { filter: brightness(1.08); }
-    .ic-btn.secondary { border-color: rgba(148, 163, 184, 0.28); background: rgba(30, 41, 59, 0.7); color: #cbd5e1; }
-    .ic-btn.secondary:hover { border-color: rgba(148, 163, 184, 0.55); color: #fff; }
+    .ic-btn.secondary { border-color: rgba(148, 163, 184, 0.24); background: rgba(30, 41, 59, 0.72); color: #cbd5e1; }
+    .ic-btn.secondary:hover { border-color: rgba(148, 163, 184, 0.52); color: #fff; }
 
-    /* In-Panel Toast Notification (Magpie-style bottom-right alert) */
-    .toast-wrap {
-      position: fixed; right: 12px; bottom: 12px; z-index: 150;
-      display: flex; flex-direction: column; gap: 6px; max-width: 300px;
-    }
+    /* Bottom-right Toast Alert */
+    .toast-wrap { position: fixed; right: 12px; bottom: 12px; z-index: 150; display: flex; flex-direction: column; gap: 6px; max-width: 300px; }
     .toast {
-      background: rgba(15, 23, 42, 0.96);
-      border: 1px solid rgba(56, 189, 248, 0.55);
-      border-radius: 10px;
-      padding: 8px 11px;
-      color: #f8fafc;
-      font-size: 11px;
-      line-height: 1.4;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
-      cursor: pointer;
-      animation: popIn 0.16s ease-out;
+      background: rgba(15, 23, 42, 0.96); border: 1px solid rgba(56, 189, 248, 0.55);
+      border-radius: 10px; padding: 8px 12px; color: #f8fafc; font-size: 11px; line-height: 1.4;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55); cursor: pointer; animation: popIn 0.16s ease-out;
     }
-    .toast.attn { border-color: rgba(239, 68, 68, 0.75); background: rgba(69, 10, 10, 0.96); color: #fee2e2; }
+    .toast.attn { border-color: rgba(248, 113, 113, 0.78); background: rgba(69, 10, 10, 0.96); color: #fee2e2; }
 
     .empty-note {
       position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); z-index: 35;
-      background: rgba(12, 17, 29, 0.88); border: 1px solid rgba(148, 163, 184, 0.28);
-      border-radius: 10px; padding: 10px 16px; text-align: center;
-      backdrop-filter: blur(6px); max-width: 82%;
+      background: rgba(11, 16, 28, 0.9); border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 11px; padding: 11px 18px; text-align: center;
+      backdrop-filter: blur(8px); max-width: 82%;
     }
     .empty-note-title { font-size: 12.5px; font-weight: 800; color: #f8fafc; margin-bottom: 3px; }
     .empty-note-sub { font-size: 11px; color: #94a3b8; }
 
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
-    @keyframes attnGlow { 0%, 100% { box-shadow: 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 12px rgba(239,68,68,0.55); } }
-    @keyframes redPing { 0% { transform: scale(0.95); opacity: 0.9; } 100% { transform: scale(1.75); opacity: 0; } }
+    @keyframes attnGlow { 0%, 100% { box-shadow: 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 14px rgba(239,68,68,0.52); } }
+    @keyframes redPing { 0% { transform: scale(0.95); opacity: 0.9; } 100% { transform: scale(1.8); opacity: 0; } }
     @keyframes typingBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
     @keyframes alertHop { 0%, 75%, 100% { transform: translateY(0); } 82% { transform: translateY(-4px); } 90% { transform: translateY(0); } }
     @keyframes chillBreathe { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
@@ -595,7 +581,8 @@
   <div class="topbar">
     <div class="topbar-row">
       <div class="brand">
-        <span class="brand-title" id="brandTitle">🏢 Bot Office</span>
+        <span class="brand-icon">🏢</span>
+        <span class="brand-title" id="brandTitle">Bot Office</span>
         <span class="live-pill"><span class="live-dot"></span><span id="liveLabel">Live</span></span>
       </div>
       <div class="counters">
@@ -629,15 +616,13 @@
     const orcaApi = window.orca;
     let snapshot = null;
     let avatars = {};
-    let viewMode = "office"; // "office" | "list"
+    let viewMode = "office";
     let activeOnly = false;
     let guestExpanded = false;
     let openCard = null;
     let decisionCursor = 0;
     let seenDecisionKeys = new Set();
     let hasLoadedOnce = false;
-    // Per-item draft answers inside the popup card: { "<itemNumber>": { picks: { qIdx: Set<label> }, note: "" } }
-    const draftDecisions = new Map();
 
     const W = 680;
     const BASE_H = 196;
@@ -645,7 +630,7 @@
 
     const I18N = {
       zh: {
-        title: "🏢 Bot 办公室",
+        title: "Bot 办公室",
         live: "实时",
         loading: "正在布置办公室楼层…",
         needLbl: "需要你",
@@ -680,28 +665,27 @@
         secActivity: "当前正在做什么",
         secWorkers: (ww, tw) => `带领的 Worker（${ww} 干活 / 共 ${tw}）`,
         noActivity: "当前没有正在执行的任务，随时可唤醒。",
-        recBadge: "推荐",
-        notePlaceholder: "补充说明或自定义决定（可选）…",
-        btnCopyAndGo: "📋 复制决策并前往提交 ↗",
-        btnOpenTasks: "打开事件列表",
-        btnHandleWorker: "🔴 去审批 Worker ↗",
+        recPrefix: "★ ",
+        btnGoDecide: "🔴 前往该 Bot 决策 ↗",
+        btnGoWorker: "🔴 去审批 Worker ↗",
+        btnOpenTasks: "事件列表",
         btnOpenWs: "进入工作区 ↗",
         btnClose: "关闭",
-        decHint: "提示：Orca 暂未对插件开放直接代签 Bot 事件的接口。点上方按钮会自动复制你选好的决策并打开该 Bot 页面，粘贴或点一下即可完成原生事件流转。",
-        toastCopied: "已复制你的决策并为你打开 Bot 页面，直接提交即可。",
-        toastNewDecision: (name, title) => `🔴 ${name} 需要你决策：${title}`,
+        listGoDecide: "去决策 ↗",
+        toastNewDecision: (name, title) => `🔴 ${name} 需要你决策：${title}（点击直达）`,
         justNow: "刚刚",
         minsAgo: (m) => `${m} 分钟前`,
         hrsAgo: (h) => `${h} 小时前`,
         daysAgo: (d) => `${d} 天前`,
         loadErr: "加载失败：",
-        tipClick: "单击查看详情/决策 · 双击直达",
+        tipClick: "单击看详情 · 双击直达",
+        tipRedDot: "点击直达该 Bot 处理决策",
         legendNeed: "需要你决策",
         legendWork: "工作中",
         legendIdle: "待命",
       },
       en: {
-        title: "🏢 Bot Office",
+        title: "Bot Office",
         live: "Live",
         loading: "Setting up office floors…",
         needLbl: "Need You",
@@ -736,22 +720,21 @@
         secActivity: "What they are doing",
         secWorkers: (ww, tw) => `Team Workers (${ww} active / ${tw} total)`,
         noActivity: "No active task right now — ready whenever you need.",
-        recBadge: "Recommended",
-        notePlaceholder: "Add a custom decision or note (optional)…",
-        btnCopyAndGo: "📋 Copy Decision & Open Bot ↗",
-        btnOpenTasks: "Open Items",
-        btnHandleWorker: "🔴 Approve Worker ↗",
+        recPrefix: "★ ",
+        btnGoDecide: "🔴 Go to Bot & Decide ↗",
+        btnGoWorker: "🔴 Approve Worker ↗",
+        btnOpenTasks: "Items",
         btnOpenWs: "Open Workspace ↗",
         btnClose: "Close",
-        decHint: "Note: Orca plugins cannot directly submit owner item answers yet. Clicking above copies your formatted decision and jumps straight to the Bot so you can confirm natively.",
-        toastCopied: "Decision copied & Bot opened — paste or click to confirm.",
-        toastNewDecision: (name, title) => `🔴 ${name} needs your decision: ${title}`,
+        listGoDecide: "Decide ↗",
+        toastNewDecision: (name, title) => `🔴 ${name} needs your decision: ${title} (click to jump)`,
         justNow: "just now",
         minsAgo: (m) => `${m}m ago`,
         hrsAgo: (h) => `${h}h ago`,
         daysAgo: (d) => `${d}d ago`,
         loadErr: "Failed to load: ",
-        tipClick: "Click to inspect / decide · Double-click to open",
+        tipClick: "Click to inspect · Double-click to open",
+        tipRedDot: "Click to jump straight to Bot & decide",
         legendNeed: "Needs Decision",
         legendWork: "Working",
         legendIdle: "Idle",
@@ -767,12 +750,12 @@
     function t() { return I18N[getLang()] || I18N.en; }
 
     const STUDIO_THEMES = [
-      { wallTop: "#202c40", wallBot: "#182132", accent: "#38bdf8", decor: "wave" },
-      { wallTop: "#2d223d", wallBot: "#20182e", accent: "#e879f9", decor: "shelf" },
-      { wallTop: "#1a2f2c", wallBot: "#132220", accent: "#34d399", decor: "server" },
-      { wallTop: "#2e251c", wallBot: "#201a14", accent: "#fbbf24", decor: "vault" },
-      { wallTop: "#1e2742", wallBot: "#151c31", accent: "#818cf8", decor: "code" },
-      { wallTop: "#301e2b", wallBot: "#22151f", accent: "#fb7185", decor: "blueprint" },
+      { wallTop: "#1f2b40", wallBot: "#151e2e", accent: "#38bdf8", rug: "#0c4a6e", decor: "wave" },
+      { wallTop: "#2c203e", wallBot: "#1d152c", accent: "#e879f9", rug: "#581c87", decor: "shelf" },
+      { wallTop: "#172d2b", wallBot: "#101f1e", accent: "#34d399", rug: "#064e3b", decor: "server" },
+      { wallTop: "#2e241a", wallBot: "#1e1812", accent: "#fbbf24", rug: "#78350f", decor: "vault" },
+      { wallTop: "#1c2542", wallBot: "#13192f", accent: "#818cf8", rug: "#312e81", decor: "code" },
+      { wallTop: "#301d2b", wallBot: "#1f131d", accent: "#fb7185", rug: "#881337", decor: "blueprint" },
     ];
 
     function hashString(str) {
@@ -810,10 +793,9 @@
       const el = document.createElement("div");
       el.className = `toast ${isAttn ? "attn" : ""}`;
       el.textContent = msg;
-      if (onClick) el.addEventListener("click", () => { onClick(); el.remove(); });
-      else el.addEventListener("click", () => el.remove());
+      el.addEventListener("click", () => { if (onClick) onClick(); el.remove(); });
       wrap.appendChild(el);
-      setTimeout(() => el.remove(), 5500);
+      setTimeout(() => el.remove(), 6000);
     }
 
     function classifyBot(b) {
@@ -844,26 +826,28 @@
       return { mode: "idle", hot: false, label: tr.stateIdle, reason: tr.stateIdle, bubble: "" };
     }
 
-    function commonRoomBgSvg(idSuffix, H, wallTop, wallBot, isHot, showWhiteboard = true) {
+    // Enhanced Architectural Room Shell (richer lighting, recessed ceiling track, glass window reflections, bookshelf/plant depth)
+    function commonRoomBgSvg(idSuffix, H, wallTop, wallBot, isHot, accent = "#38bdf8", showWhiteboard = true) {
       let planks = "";
-      for (let py = 144; py < H; py += 12) {
-        planks += `<line x1="0" y1="${py}" x2="${W}" y2="${py}" stroke="rgba(16,10,6,0.48)" stroke-width="1"/>`;
-        for (let px = (py % 24 === 0 ? 48 : 96); px < W; px += 108) {
-          planks += `<line x1="${px}" y1="${py - 12}" x2="${px}" y2="${py}" stroke="rgba(16,10,6,0.34)" stroke-width="1"/>`;
+      for (let py = 143; py < H; py += 12) {
+        planks += `<line x1="0" y1="${py}" x2="${W}" y2="${py}" stroke="rgba(14,8,4,0.46)" stroke-width="1"/>`;
+        for (let px = (py % 24 === 0 ? 44 : 98); px < W; px += 112) {
+          planks += `<line x1="${px}" y1="${py - 12}" x2="${px}" y2="${py}" stroke="rgba(14,8,4,0.3)" stroke-width="1"/>`;
         }
       }
       const whiteboard = showWhiteboard ? `
         <g>
-          <rect x="242" y="34" width="122" height="58" rx="4" fill="#e2e8f0" fill-opacity="0.1" stroke="#64748b" stroke-width="1.4"/>
-          <rect x="247" y="42" width="16" height="14" rx="1.5" fill="#fde047" opacity="0.82"/>
-          <rect x="267" y="42" width="16" height="14" rx="1.5" fill="#67e8f9" opacity="0.8"/>
-          <rect x="287" y="42" width="16" height="14" rx="1.5" fill="#f9a8d4" opacity="0.8"/>
-          <rect x="247" y="60" width="16" height="14" rx="1.5" fill="#86efac" opacity="0.8"/>
-          <line x1="312" y1="46" x2="354" y2="46" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          <line x1="312" y1="54" x2="346" y2="54" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-          <line x1="312" y1="62" x2="352" y2="62" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          <line x1="312" y1="70" x2="338" y2="70" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
-          <rect x="260" y="92" width="84" height="3.5" rx="1.5" fill="#475569"/>
+          <rect x="244" y="34" width="124" height="58" rx="5" fill="#0f172a" fill-opacity="0.45" stroke="#64748b" stroke-width="1.4"/>
+          <rect x="247" y="37" width="118" height="52" rx="3" fill="#e2e8f0" fill-opacity="0.06"/>
+          <rect x="251" y="43" width="16" height="14" rx="2" fill="#fde047" opacity="0.88"/>
+          <rect x="271" y="43" width="16" height="14" rx="2" fill="#67e8f9" opacity="0.84"/>
+          <rect x="291" y="43" width="16" height="14" rx="2" fill="#f9a8d4" opacity="0.84"/>
+          <rect x="251" y="61" width="16" height="14" rx="2" fill="#86efac" opacity="0.84"/>
+          <line x1="316" y1="47" x2="357" y2="47" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="316" y1="55" x2="349" y2="55" stroke="${accent}" stroke-width="2" stroke-linecap="round"/>
+          <line x1="316" y1="63" x2="355" y2="63" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="316" y1="71" x2="341" y2="71" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
+          <rect x="262" y="92" width="86" height="3.5" rx="1.5" fill="#475569"/>
         </g>` : "";
 
       return `
@@ -873,88 +857,125 @@
             <stop offset="100%" stop-color="${wallBot}"/>
           </linearGradient>
           <linearGradient id="wood_${idSuffix}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#523d2c"/>
-            <stop offset="50%" stop-color="#402e21"/>
-            <stop offset="100%" stop-color="#2b1e15"/>
+            <stop offset="0%" stop-color="#5a4330"/>
+            <stop offset="48%" stop-color="#433022"/>
+            <stop offset="100%" stop-color="#2a1d14"/>
           </linearGradient>
           <linearGradient id="sky_${idSuffix}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#0b132b"/>
-            <stop offset="100%" stop-color="#1e2d5a"/>
+            <stop offset="0%" stop-color="#081026"/>
+            <stop offset="65%" stop-color="#15234a"/>
+            <stop offset="100%" stop-color="#243566"/>
           </linearGradient>
-          <radialGradient id="lampCone_${idSuffix}" cx="50%" cy="0%" r="90%">
-            <stop offset="0%" stop-color="#fde68a" stop-opacity="${isHot ? '0.24' : '0.07'}"/>
+          <radialGradient id="lampCone_${idSuffix}" cx="50%" cy="0%" r="92%">
+            <stop offset="0%" stop-color="#fef08a" stop-opacity="${isHot ? '0.24' : '0.07'}"/>
+            <stop offset="60%" stop-color="#fde68a" stop-opacity="${isHot ? '0.08' : '0.02'}"/>
             <stop offset="100%" stop-color="#fde68a" stop-opacity="0"/>
           </radialGradient>
+          <radialGradient id="ambientWall_${idSuffix}" cx="50%" cy="18%" r="70%">
+            <stop offset="0%" stop-color="${accent}" stop-opacity="${isHot ? '0.11' : '0.03'}"/>
+            <stop offset="100%" stop-color="${accent}" stop-opacity="0"/>
+          </radialGradient>
         </defs>
+
+        <!-- Back Wall + Subtle Architectural Vignette -->
         <rect x="0" y="0" width="${W}" height="128" fill="url(#wall_${idSuffix})"/>
-        <g opacity="0.24">
-          ${[12,20,28,36,44,52,60,68,76,84].map(x => `<rect x="${x}" y="26" width="4" height="100" fill="#9c6f4b"/>`).join("")}
+        <rect x="0" y="0" width="${W}" height="128" fill="url(#ambientWall_${idSuffix})"/>
+        <!-- Recessed Ceiling Lighting Track -->
+        <rect x="0" y="0" width="${W}" height="5" fill="#0d121d"/>
+        <!-- Acoustic Wood Slat Feature Wall (Left) -->
+        <g opacity="0.28">
+          ${[12,20,28,36,44,52,60,68,76,84].map(x => `<rect x="${x}" y="25" width="4" height="101" fill="#a87952"/>`).join("")}
         </g>
-        <rect x="0" y="125" width="${W}" height="6" fill="#231912"/>
+        <!-- Warm Baseboard Trim -->
+        <rect x="0" y="124" width="${W}" height="7" fill="#221710"/>
+        <line x1="0" y1="124" x2="${W}" y2="124" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
+
+        <!-- Hardwood Walnut Floor -->
         <rect x="0" y="131" width="${W}" height="${H - 131}" fill="url(#wood_${idSuffix})"/>
         ${planks}
-        <rect x="0" y="131" width="${W}" height="7" fill="rgba(0,0,0,0.3)"/>
-        ${[112, 326, 520].map(lx => `
-          <line x1="${lx}" y1="0" x2="${lx}" y2="14" stroke="#64748b" stroke-width="1.6"/>
-          <path d="M${lx-12} 22 Q${lx} 11 ${lx+12} 22 Z" fill="#2d3748" stroke="#64748b" stroke-width="0.9"/>
-          <ellipse cx="${lx}" cy="22" rx="8" ry="2.2" fill="${isHot ? '#fef08a' : '#475569'}"/>
-          <polygon points="${lx-10},23 ${lx+10},23 ${lx+68},140 ${lx-68},140" fill="url(#lampCone_${idSuffix})"/>
+        <rect x="0" y="131" width="${W}" height="9" fill="rgba(0,0,0,0.34)"/>
+
+        <!-- Hanging Matte-Black & Brass Industrial Pendant Lamps -->
+        ${[114, 326, 520].map(lx => `
+          <line x1="${lx}" y1="4" x2="${lx}" y2="14" stroke="#64748b" stroke-width="1.6"/>
+          <rect x="${lx-3}" y="11" width="6" height="4" rx="1" fill="#d97706"/>
+          <path d="M${lx-13} 23 Q${lx} 11 ${lx+13} 23 Z" fill="#1e293b" stroke="#64748b" stroke-width="0.9"/>
+          <ellipse cx="${lx}" cy="23" rx="8.5" ry="2.3" fill="${isHot ? '#fef08a' : '#475569'}"/>
+          <polygon points="${lx-10},24 ${lx+10},24 ${lx+74},146 ${lx-74},146" fill="url(#lampCone_${idSuffix})"/>
         `).join("")}
+
         ${whiteboard}
+
+        <!-- Panoramic Night-City Window with Glass Sheen -->
         <g>
-          <rect x="424" y="28" width="178" height="72" rx="4" fill="url(#sky_${idSuffix})" stroke="#334155" stroke-width="2.8"/>
-          <rect x="436" y="66" width="22" height="32" fill="#131c36"/>
-          <rect x="464" y="54" width="26" height="44" fill="#172342"/>
-          <rect x="498" y="70" width="20" height="28" fill="#131c36"/>
-          <rect x="524" y="50" width="28" height="48" fill="#192647"/>
-          <rect x="560" y="64" width="24" height="34" fill="#131c36"/>
-          <rect x="470" y="62" width="4" height="4" fill="#fde68a" opacity="0.78"/>
-          <rect x="480" y="70" width="4" height="4" fill="#fde68a" opacity="0.62"/>
-          <rect x="532" y="58" width="4" height="4" fill="#7dd3fc" opacity="0.75"/>
-          <rect x="542" y="68" width="4" height="4" fill="#fde68a" opacity="0.65"/>
-          <rect x="568" y="74" width="4" height="4" fill="#f5d0fe" opacity="0.68"/>
-          <circle cx="448" cy="42" r="4.5" fill="#fef08a" opacity="0.88"/>
-          <circle cx="512" cy="40" r="1.4" fill="#e0f2fe"/>
-          <circle cx="572" cy="39" r="1.3" fill="#e0f2fe"/>
+          <rect x="424" y="28" width="178" height="72" rx="5" fill="url(#sky_${idSuffix})" stroke="#334155" stroke-width="2.6"/>
+          <!-- City Skyline Silhouette -->
+          <rect x="434" y="66" width="22" height="32" fill="#101830"/>
+          <rect x="462" y="52" width="28" height="46" fill="#162244"/>
+          <rect x="496" y="70" width="20" height="28" fill="#101830"/>
+          <rect x="522" y="48" width="30" height="50" fill="#18254a"/>
+          <rect x="558" y="62" width="26" height="36" fill="#111a36"/>
+          <!-- Warm City Lights -->
+          <rect x="469" y="60" width="4" height="4" rx="0.6" fill="#fde68a" opacity="0.85"/>
+          <rect x="479" y="68" width="4" height="4" rx="0.6" fill="#fde68a" opacity="0.68"/>
+          <rect x="469" y="76" width="4" height="4" rx="0.6" fill="#7dd3fc" opacity="0.6"/>
+          <rect x="530" y="56" width="4" height="4" rx="0.6" fill="#7dd3fc" opacity="0.82"/>
+          <rect x="540" y="66" width="4" height="4" rx="0.6" fill="#fde68a" opacity="0.72"/>
+          <rect x="566" y="72" width="4" height="4" rx="0.6" fill="#f5d0fe" opacity="0.75"/>
+          <!-- Crescent Moon & Stars -->
+          <circle cx="446" cy="42" r="4.8" fill="#fef08a" opacity="0.9"/>
+          <circle cx="448.5" cy="40.5" r="3.8" fill="#0d1736"/>
+          <circle cx="508" cy="39" r="1.4" fill="#e0f2fe"/>
+          <circle cx="574" cy="38" r="1.3" fill="#e0f2fe"/>
+          <circle cx="546" cy="42" r="1" fill="#fde68a"/>
+          <!-- Subtle Glass Reflection Streaks -->
+          <polygon points="434,29 452,29 428,98 424,98" fill="rgba(255,255,255,0.045)"/>
+          <polygon points="528,29 544,29 520,98 514,98" fill="rgba(255,255,255,0.04)"/>
+          <!-- Window Mullions & Oak Sill -->
           <line x1="513" y1="28" x2="513" y2="100" stroke="#334155" stroke-width="2.2"/>
           <line x1="424" y1="64" x2="602" y2="64" stroke="#334155" stroke-width="1.8"/>
-          <rect x="418" y="99" width="190" height="5" rx="2" fill="#634834"/>
+          <rect x="418" y="99" width="190" height="5.5" rx="2" fill="#75553d"/>
         </g>
+
+        <!-- Potted Monstera Plant on Mid-Century Wooden Stand -->
         <g>
-          <ellipse cx="648" cy="152" rx="17" ry="5.5" fill="rgba(0,0,0,0.38)"/>
-          <polygon points="637,126 659,126 655,151 641,151" fill="#a25f3e" stroke="#5c3320" stroke-width="1"/>
-          <ellipse cx="648" cy="126" rx="11" ry="3.5" fill="#c27853"/>
-          <path d="M648 126 C627 108 625 88 642 100 Z" fill="#15803d"/>
-          <path d="M648 126 C669 108 671 88 654 100 Z" fill="#22c55e"/>
-          <path d="M648 126 C638 86 658 86 648 110 Z" fill="#4ade80"/>
+          <ellipse cx="648" cy="155" rx="17" ry="5.5" fill="rgba(0,0,0,0.4)"/>
+          <line x1="638" y1="146" x2="635" y2="155" stroke="#7c5538" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="658" y1="146" x2="661" y2="155" stroke="#7c5538" stroke-width="2.2" stroke-linecap="round"/>
+          <polygon points="636,125 660,125 656,148 640,148" fill="#b86b44" stroke="#6b3a22" stroke-width="1"/>
+          <ellipse cx="648" cy="125" rx="12" ry="3.5" fill="#d4845a"/>
+          <path d="M648 125 C625 107 623 86 641 98 Z" fill="#15803d"/>
+          <path d="M648 125 C671 107 673 86 655 98 Z" fill="#22c55e"/>
+          <path d="M648 125 C637 84 659 84 648 109 Z" fill="#4ade80"/>
+          <path d="M648 125 C632 104 636 90 647 104 Z" fill="#16a34a" opacity="0.8"/>
         </g>`;
     }
 
     function roomDecorSvg(decor, accent) {
       if (decor === "wave") {
-        return `<rect x="92" y="34" width="96" height="44" rx="4" fill="#0d1424" stroke="${accent}" stroke-width="1.4" opacity="0.92"/>
-          <polyline points="100,56 112,56 119,44 128,68 137,40 147,65 156,50 165,58 180,56" fill="none" stroke="${accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+        return `<rect x="92" y="34" width="96" height="44" rx="5" fill="#0b1222" stroke="${accent}" stroke-width="1.4" opacity="0.94"/>
+          <polyline points="100,56 112,56 119,44 128,68 137,40 147,65 156,50 165,58 180,56" fill="none" stroke="${accent}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>`;
       }
       if (decor === "shelf") {
-        return `<rect x="92" y="54" width="96" height="5" rx="2" fill="#825d42"/>
+        return `<rect x="92" y="54" width="96" height="5" rx="2" fill="#8d6546"/>
           <circle cx="112" cy="45" r="8" fill="#fb923c"/><circle cx="106" cy="38" r="3" fill="#fb923c"/><circle cx="118" cy="38" r="3" fill="#fb923c"/>
           <rect x="132" y="38" width="14" height="16" rx="4" fill="#c084fc"/><circle cx="164" cy="45" r="7.5" fill="#38bdf8"/>
-          <rect x="92" y="80" width="96" height="5" rx="2" fill="#825d42"/>
+          <rect x="92" y="80" width="96" height="5" rx="2" fill="#8d6546"/>
           <rect x="104" y="67" width="9" height="13" rx="2" fill="#f472b6"/><rect x="116" y="69" width="9" height="11" rx="2" fill="#fbbf24"/><rect x="128" y="65" width="9" height="15" rx="2" fill="#38bdf8"/>`;
       }
       if (decor === "server" || decor === "vault") {
-        return `<rect x="14" y="38" width="42" height="90" rx="4" fill="#101827" stroke="${accent}" stroke-width="1.4"/>
-          ${[46,60,74,88,102,116].map((y, i) => `<rect x="19" y="${y}" width="32" height="9" rx="2" fill="#1e293b"/><circle cx="45" cy="${y + 4.5}" r="1.8" fill="${i % 2 === 0 ? accent : '#4ade80'}"/>`).join("")}`;
+        return `<rect x="14" y="38" width="42" height="90" rx="4" fill="#0e1626" stroke="${accent}" stroke-width="1.4"/>
+          ${[46,60,74,88,102,116].map((y, i) => `<rect x="19" y="${y}" width="32" height="9" rx="2" fill="#1e293b"/><circle cx="45" cy="${y + 4.5}" r="1.9" fill="${i % 2 === 0 ? accent : '#4ade80'}"/>`).join("")}`;
       }
       if (decor === "code") {
-        return `<rect x="90" y="34" width="98" height="48" rx="4" fill="#0d1424" stroke="${accent}" stroke-width="1.4"/>
+        return `<rect x="90" y="34" width="98" height="48" rx="5" fill="#0b1222" stroke="${accent}" stroke-width="1.4"/>
           <rect x="98" y="42" width="34" height="3.5" rx="1.5" fill="${accent}"/>
-          <rect x="98" y="50" width="64" height="3.5" rx="1.5" fill="#4ade80" opacity="0.85"/>
+          <rect x="98" y="50" width="64" height="3.5" rx="1.5" fill="#4ade80" opacity="0.88"/>
           <rect x="106" y="58" width="50" height="3.5" rx="1.5" fill="#94a3b8"/>
-          <rect x="98" y="66" width="44" height="3.5" rx="1.5" fill="#f472b6" opacity="0.85"/>`;
+          <rect x="98" y="66" width="44" height="3.5" rx="1.5" fill="#f472b6" opacity="0.88"/>`;
       }
       if (decor === "blueprint") {
-        return `<rect x="90" y="34" width="98" height="48" rx="4" fill="#172554" stroke="${accent}" stroke-width="1.4"/>
+        return `<rect x="90" y="34" width="98" height="48" rx="5" fill="#172554" stroke="${accent}" stroke-width="1.4"/>
           <rect x="100" y="42" width="24" height="14" rx="2" fill="none" stroke="#93c5fd" stroke-width="1.2"/>
           <rect x="150" y="42" width="26" height="14" rx="2" fill="none" stroke="${accent}" stroke-width="1.2"/>
           <rect x="124" y="64" width="30" height="11" rx="2" fill="none" stroke="#93c5fd" stroke-width="1.2"/>
@@ -968,8 +989,8 @@
       const cw = isExecutive ? 44 : 36;
       const topY = (isExecutive ? 104 : 108) + rowOffsetY;
       return `<g>
-        <rect x="${cx - cw/2}" y="${topY}" width="${cw}" height="42" rx="11" fill="#1c2434" stroke="#475569" stroke-width="1.4"/>
-        <rect x="${cx - cw/2 + 5}" y="${topY + 6}" width="${cw - 10}" height="24" rx="6" fill="#273247" opacity="0.7"/>
+        <rect x="${cx - cw/2}" y="${topY}" width="${cw}" height="42" rx="11" fill="#1a2232" stroke="#475569" stroke-width="1.4"/>
+        <rect x="${cx - cw/2 + 5}" y="${topY + 6}" width="${cw - 10}" height="24" rx="6" fill="#273348" opacity="0.72"/>
         <rect x="${cx - cw/2 - 5}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
         <rect x="${cx + cw/2 - 1}" y="${134 + rowOffsetY}" width="6" height="14" rx="2" fill="#334155"/>
       </g>`;
@@ -982,25 +1003,31 @@
       const lapW = isExecutive ? 32 : 25;
       const lapH = isExecutive ? 20 : 16;
       return `<g>
-        <ellipse cx="${cx}" cy="${topY + 43}" rx="${w2 + 8}" ry="7.5" fill="rgba(0,0,0,0.46)"/>
-        <rect x="${cx - w2 + 5}" y="${topY + 12}" width="6" height="31" rx="2" fill="#1a2232"/>
-        <rect x="${cx + w2 - 11}" y="${topY + 12}" width="6" height="31" rx="2" fill="#1a2232"/>
-        <rect x="${cx - w2 + 11}" y="${topY + 16}" width="${width - 22}" height="14" fill="#151c2a" opacity="0.88"/>
-        <polygon points="${cx - w2},${topY} ${cx + w2},${topY} ${cx + w2 + 6},${topY + 11} ${cx - w2 - 6},${topY + 11}" fill="#9a6e48" stroke="#b5875e" stroke-width="0.9"/>
-        <rect x="${cx - w2 - 6}" y="${topY + 11}" width="${width + 12}" height="7" rx="2" fill="#634329"/>
-        ${isLit ? `<ellipse cx="${cx + 4}" cy="${topY + 5}" rx="${width * 0.34}" ry="5" fill="${glowCol}" opacity="0.34"/>` : ""}
-        <polygon points="${cx - 18},${topY + 3} ${cx + 12},${topY + 3} ${cx + 14},${topY + 8} ${cx - 20},${topY + 8}" fill="#1e293b" stroke="${isLit ? glowCol : '#475569'}" stroke-width="0.8"/>
+        ${isLit ? `<ellipse cx="${cx}" cy="${topY + 42}" rx="${w2 + 12}" ry="9" fill="${glowCol}" opacity="0.1"/>` : ""}
+        <ellipse cx="${cx}" cy="${topY + 43}" rx="${w2 + 8}" ry="7.5" fill="rgba(0,0,0,0.48)"/>
+        <rect x="${cx - w2 + 5}" y="${topY + 12}" width="6" height="31" rx="2" fill="#182030"/>
+        <rect x="${cx + w2 - 11}" y="${topY + 12}" width="6" height="31" rx="2" fill="#182030"/>
+        <rect x="${cx - w2 + 11}" y="${topY + 16}" width="${width - 22}" height="14" fill="#131a28" opacity="0.9"/>
+        <!-- Warm Walnut Desktop with Crisp Top Highlight -->
+        <polygon points="${cx - w2},${topY} ${cx + w2},${topY} ${cx + w2 + 6},${topY + 11} ${cx - w2 - 6},${topY + 11}" fill="#a1744c" stroke="#c29268" stroke-width="0.9"/>
+        <rect x="${cx - w2 - 6}" y="${topY + 11}" width="${width + 12}" height="7" rx="2" fill="#68472b"/>
+        ${isLit ? `<ellipse cx="${cx + 4}" cy="${topY + 5}" rx="${width * 0.36}" ry="5.5" fill="${glowCol}" opacity="0.34"/>` : ""}
+        <!-- Keyboard & Mousepad -->
+        <polygon points="${cx - 18},${topY + 3} ${cx + 10},${topY + 3} ${cx + 12},${topY + 8} ${cx - 20},${topY + 8}" fill="#1e293b" stroke="${isLit ? glowCol : '#475569'}" stroke-width="0.8"/>
+        <!-- Silver Laptop (3/4 rear angle) -->
         <g>
           <polygon points="${lapX - lapW/2},${topY - lapH + 4} ${lapX + lapW/2},${topY - lapH + 1} ${lapX + lapW/2 - 3},${topY + 5} ${lapX - lapW/2 - 2},${topY + 6}"
-                   fill="#cbd5e1" stroke="${isLit ? glowCol : '#64748b'}" stroke-width="1.2"/>
-          <circle cx="${lapX - 1}" cy="${topY - lapH/2 + 3}" r="2.6" fill="${isLit ? glowCol : '#64748b'}"/>
+                   fill="#dbe4ef" stroke="${isLit ? glowCol : '#64748b'}" stroke-width="1.2"/>
+          <circle cx="${lapX - 1}" cy="${topY - lapH/2 + 3}" r="2.7" fill="${isLit ? glowCol : '#64748b'}"/>
           <rect x="${lapX - lapW/2 - 4}" y="${topY + 5}" width="${lapW + 4}" height="3" rx="1" fill="#94a3b8"/>
         </g>
+        <!-- Architect Desk Lamp -->
         <g>
           <ellipse cx="${cx - w2 + 12}" cy="${topY + 7}" rx="6" ry="2.2" fill="#334155"/>
           <polyline points="${cx - w2 + 12},${topY + 6} ${cx - w2 + 6},${topY - 7} ${cx - w2 + 16},${topY - 12}" fill="none" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
           <path d="M${cx - w2 + 12},${topY - 14} L${cx - w2 + 23},${topY - 9} L${cx - w2 + 18},${topY - 5} Z" fill="${isLit ? '#fef08a' : '#475569'}"/>
         </g>
+        <!-- Ceramic Mug -->
         <g>
           <rect x="${cx - w2 + 25}" y="${topY - 1}" width="7" height="7" rx="1.5" fill="#f8fafc"/>
           <path d="M${cx - w2 + 32},${topY + 1} Q${cx - w2 + 35},${topY + 2.5} ${cx - w2 + 32},${topY + 4.5}" fill="none" stroke="#f8fafc" stroke-width="1.2"/>
@@ -1009,21 +1036,22 @@
       </g>`;
     }
 
-    function miniWorkerRobotSvg(w, size = 36) {
+    function miniWorkerRobotSvg(w, size = 38) {
       const run = w.state === "working";
       const attn = Boolean(w.needsDecision);
       const eng = w.agentType || "";
       const trim = attn ? "#ef4444" : (eng === "claude" ? "#f59e0b" : (eng === "antigravity" ? "#38bdf8" : (eng === "codex" ? "#a78bfa" : "#94a3b8")));
       const eye = attn ? "#f87171" : (run ? "#4ade80" : "#64748b");
-      const h = Math.round(size * 44 / 36);
+      const h = Math.round(size * 46 / 38);
       return `<svg viewBox="0 0 40 48" width="${size}" height="${h}">
         <line x1="20" y1="2" x2="20" y2="8" stroke="${trim}" stroke-width="2.2" stroke-linecap="round"/>
-        <circle cx="20" cy="2.5" r="2.8" fill="${attn ? '#ef4444' : (run ? '#4ade80' : trim)}"/>
-        <rect x="6" y="8" width="28" height="21" rx="7.5" fill="#f8fafc" stroke="${trim}" stroke-width="2.2"/>
-        <rect x="10" y="12" width="20" height="12" rx="4" fill="#0f172a"/>
+        <circle cx="20" cy="2.5" r="2.9" fill="${attn ? '#ef4444' : (run ? '#4ade80' : trim)}"/>
+        <rect x="6" y="8" width="28" height="21" rx="8" fill="#f8fafc" stroke="${trim}" stroke-width="2.2"/>
+        <rect x="10" y="10" width="12" height="2.2" rx="1" fill="#ffffff" opacity="0.9"/>
+        <rect x="10" y="12.5" width="20" height="12" rx="4.2" fill="#0f172a"/>
         ${run || attn
-          ? `<rect x="14" y="15" width="3.8" height="5.5" rx="1.9" fill="${eye}"/><rect x="22.2" y="15" width="3.8" height="5.5" rx="1.9" fill="${eye}"/>`
-          : `<line x1="13" y1="18" x2="17.5" y2="18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/><line x1="22.5" y1="18" x2="27" y2="18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>`}
+          ? `<rect x="14" y="15.5" width="3.8" height="5.5" rx="1.9" fill="${eye}"/><rect x="22.2" y="15.5" width="3.8" height="5.5" rx="1.9" fill="${eye}"/>`
+          : `<path d="M13 18.5 Q15.3 20.5 17.6 18.5" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round"/><path d="M22.4 18.5 Q24.7 20.5 27 18.5" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round"/>`}
         <rect x="9" y="30" width="22" height="16" rx="6" fill="#e2e8f0" stroke="${trim}" stroke-width="1.8"/>
         <circle cx="20" cy="37" r="3" fill="${attn ? '#ef4444' : (run ? '#4ade80' : '#94a3b8')}"/>
         <path d="M9 34 Q4 38 7 45" fill="none" stroke="#cbd5e1" stroke-width="3.5" stroke-linecap="round"/>
@@ -1054,7 +1082,20 @@
       }
     }
 
-    // Team Studio Floor — CLEAN architecture with ZERO messy flying dashed wires!
+    function jumpToBotDecision(bot) {
+      if (bot.selfNeedsDecision && bot.worktreeId) {
+        void openWorkspace(bot.worktreeId, true);
+        return;
+      }
+      const blockedW = (bot.workers || []).find((w) => w.needsDecision);
+      if (blockedW?.worktreeId) {
+        void openWorkspace(blockedW.worktreeId, true);
+        return;
+      }
+      if (bot.worktreeId) void openWorkspace(bot.worktreeId, true);
+      else void openTasksView();
+    }
+
     function renderTeamFloor(bot, floorNum) {
       const tr = t();
       const st = classifyBot(bot);
@@ -1068,29 +1109,30 @@
       const isHot = st.hot || bot.workingWorkerCount > 0;
       const leadX = 114;
 
-      let bgDesks = officeChairBgSvg(leadX, 0, true);
-      let fgDesks = foregroundDeskSvg(leadX, 126, 0, st.hot, st.mode === "attn" ? "#ef4444" : theme.accent, true, true);
-
-      // Subtle Architectural Frosted Glass Partition separating Boss Private Office & Team Bay
-      bgDesks += `
+      // Executive Rug under Boss Private Office Desk + Chair + Glass Partition
+      let bgDesks = `
+        <ellipse cx="${leadX}" cy="182" rx="76" ry="13" fill="${theme.rug}" opacity="0.42" stroke="${theme.accent}" stroke-opacity="0.24" stroke-width="1"/>
+        ${officeChairBgSvg(leadX, 0, true)}
         <g>
-          <rect x="206" y="26" width="12" height="106" fill="rgba(186,230,253,0.1)"/>
-          <line x1="206" y1="26" x2="206" y2="132" stroke="#64748b" stroke-width="2.2"/>
-          <line x1="218" y1="26" x2="218" y2="132" stroke="#475569" stroke-width="1.6"/>
-          <line x1="206" y1="26" x2="218" y2="26" stroke="#64748b" stroke-width="2"/>
-          <line x1="208" y1="44" x2="216" y2="34" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
-          <line x1="208" y1="68" x2="216" y2="58" stroke="rgba(255,255,255,0.16)" stroke-width="1.2"/>
-          <rect x="214" y="84" width="2" height="12" rx="1" fill="#94a3b8"/>
+          <rect x="206" y="24" width="12" height="108" fill="rgba(186,230,253,0.1)"/>
+          <line x1="206" y1="24" x2="206" y2="132" stroke="#64748b" stroke-width="2.2"/>
+          <line x1="218" y1="24" x2="218" y2="132" stroke="#475569" stroke-width="1.6"/>
+          <line x1="206" y1="24" x2="218" y2="24" stroke="#94a3b8" stroke-width="2.2"/>
+          <line x1="208" y1="42" x2="216" y2="32" stroke="rgba(255,255,255,0.25)" stroke-width="1.3"/>
+          <line x1="208" y1="68" x2="216" y2="58" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>
+          <rect x="214" y="84" width="2.2" height="13" rx="1" fill="#cbd5e1"/>
         </g>`;
+
+      let fgDesks = foregroundDeskSvg(leadX, 126, 0, st.hot, st.mode === "attn" ? "#ef4444" : theme.accent, true, true);
 
       if (rowCount >= 2) {
         const ly = 248;
         bgDesks += `
-          <g opacity="0.9">
-            <ellipse cx="110" cy="${ly + 14}" rx="64" ry="16" fill="${theme.accent}" opacity="0.14" stroke="${theme.accent}" stroke-opacity="0.28" stroke-width="1"/>
-            <ellipse cx="110" cy="${ly + 14}" rx="30" ry="8" fill="rgba(0,0,0,0.35)"/>
+          <g opacity="0.92">
+            <ellipse cx="110" cy="${ly + 14}" rx="64" ry="16" fill="${theme.rug}" opacity="0.34" stroke="${theme.accent}" stroke-opacity="0.26" stroke-width="1"/>
+            <ellipse cx="110" cy="${ly + 14}" rx="30" ry="8" fill="rgba(0,0,0,0.38)"/>
             <rect x="106" y="${ly + 2}" width="8" height="12" fill="#3c2a1e"/>
-            <ellipse cx="110" cy="${ly + 1}" rx="34" ry="9" fill="#8f6642" stroke="#b5875e" stroke-width="0.9"/>
+            <ellipse cx="110" cy="${ly + 1}" rx="34" ry="9" fill="#9a6e48" stroke="#be8f65" stroke-width="0.9"/>
             <rect x="96" y="${ly - 5}" width="6" height="6" rx="1.2" fill="#f8fafc"/>
             <rect x="118" y="${ly - 4}" width="6" height="6" rx="1.2" fill="#fde68a"/>
           </g>`;
@@ -1116,7 +1158,7 @@
 
       labelsHtml += `
         ${st.bubble ? `<div class="pill-bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(leadX)};top:${pxY(96)}" data-card-bot="${esc(bot.id)}"><span class="pb-dot"></span><span class="pb-txt">${esc(st.bubble)}</span></div>` : ""}
-        ${bot.needsDecision ? `<div class="head-red-dot" style="left:${pxX(leadX + 16)};top:${pxY(107)}" data-card-bot="${esc(bot.id)}" title="${esc(st.reason)}">${bot.decisionCount > 1 ? bot.decisionCount : "!"}</div>` : ""}
+        ${bot.needsDecision ? `<div class="head-red-dot" style="left:${pxX(leadX + 16)};top:${pxY(107)}" data-jump-bot="${esc(bot.id)}" title="${esc(tr.tipRedDot)}">${bot.decisionCount > 1 ? bot.decisionCount : "!"}</div>` : ""}
         <div class="nameplate ${st.mode === "attn" ? "attn" : (st.hot ? "boss-hot" : "idle")}"
              style="left:${pxX(leadX)};top:${pxY(161)}"
              data-card-bot="${esc(bot.id)}" data-dblopen="${esc(bot.worktreeId || "")}">${esc(bot.name)}</div>`;
@@ -1152,7 +1194,7 @@
 
             labelsHtml += `
               ${ws.bubble ? `<div class="pill-bubble ${ws.mode === "attn" ? "attn" : "worker"}" style="left:${pxX(wx)};top:${pxY(98 + offY)}" data-card-worker="${esc(w.worktreeId)}"><span class="pb-dot"></span><span class="pb-txt">${esc(ws.bubble)}</span></div>` : ""}
-              ${w.needsDecision ? `<div class="head-red-dot" style="left:${pxX(wx + 14)};top:${pxY(112 + offY)}" data-card-worker="${esc(w.worktreeId)}" title="${esc(ws.reason)}">!</div>` : ""}
+              ${w.needsDecision ? `<div class="head-red-dot" style="left:${pxX(wx + 14)};top:${pxY(112 + offY)}" data-jump-ws="${esc(w.worktreeId)}" title="${esc(tr.tipRedDot)}">!</div>` : ""}
               <div class="nameplate ${ws.mode === "attn" ? "attn" : (ws.hot ? "worker-hot" : "idle")}"
                    style="left:${pxX(wx)};top:${pxY(161 + offY)}"
                    data-card-worker="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}">${esc(w.displayName)}</div>`;
@@ -1161,7 +1203,7 @@
       }
 
       const bgSvg = `
-        ${commonRoomBgSvg(`team_${floorNum}`, H, theme.wallTop, theme.wallBot, isHot, true)}
+        ${commonRoomBgSvg(`team_${floorNum}`, H, theme.wallTop, theme.wallBot, isHot, theme.accent, true)}
         ${roomDecorSvg(theme.decor, theme.accent)}
         ${bgDesks}`;
 
@@ -1212,11 +1254,14 @@
       for (let r = 0; r < sofaRows; r++) {
         const offY = r * ROW_STEP;
         bgFurn += `
-          <ellipse cx="424" cy="${176 + offY}" rx="122" ry="18" fill="#3b2654" opacity="0.68" stroke="rgba(192,132,252,0.34)" stroke-width="1.2"/>
-          ${r === 0 ? `<path d="M300,164 L300,82 Q300,66 320,70" fill="none" stroke="#94a3b8" stroke-width="2.4"/><path d="M312,70 L330,70 L326,81 L316,81 Z" fill="#fbbf24"/><ellipse cx="321" cy="122" rx="44" ry="44" fill="#fbbf24" opacity="0.09"/>` : ""}
+          <ellipse cx="424" cy="${176 + offY}" rx="124" ry="18" fill="#3b2654" opacity="0.68" stroke="rgba(192,132,252,0.34)" stroke-width="1.2"/>
+          ${r === 0 ? `<path d="M300,164 L300,82 Q300,66 320,70" fill="none" stroke="#94a3b8" stroke-width="2.4"/><path d="M312,70 L330,70 L326,81 L316,81 Z" fill="#fbbf24"/><ellipse cx="321" cy="122" rx="46" ry="44" fill="#fbbf24" opacity="0.1"/>` : ""}
           <g>
-            <ellipse cx="424" cy="${172 + offY}" rx="98" ry="9" fill="rgba(0,0,0,0.4)"/>
-            <rect x="332" y="${108 + offY}" width="184" height="40" rx="12" fill="#4c1d95" stroke="#7c3aed" stroke-width="1.2"/>
+            <ellipse cx="424" cy="${172 + offY}" rx="98" ry="9" fill="rgba(0,0,0,0.42)"/>
+            <rect x="332" y="${108 + offY}" width="184" height="40" rx="12" fill="#4c1d95" stroke="#8b5cf6" stroke-width="1.2"/>
+            <!-- Cozy Throw Pillows -->
+            <rect x="342" y="${122 + offY}" width="16" height="14" rx="4" fill="#f472b6" opacity="0.72" transform="rotate(-8 350 ${129 + offY})"/>
+            <rect x="490" y="${122 + offY}" width="16" height="14" rx="4" fill="#fbbf24" opacity="0.72" transform="rotate(8 498 ${129 + offY})"/>
             <rect x="338" y="${138 + offY}" width="56" height="20" rx="7" fill="#6d28d9" stroke="#8b5cf6" stroke-width="0.9"/>
             <rect x="396" y="${138 + offY}" width="56" height="20" rx="7" fill="#6d28d9" stroke="#8b5cf6" stroke-width="0.9"/>
             <rect x="454" y="${138 + offY}" width="56" height="20" rx="7" fill="#6d28d9" stroke="#8b5cf6" stroke-width="0.9"/>
@@ -1229,22 +1274,27 @@
           <g>
             <ellipse cx="424" cy="${187 + offY}" rx="44" ry="7" fill="rgba(0,0,0,0.44)"/>
             <rect x="420" y="${172 + offY}" width="8" height="14" fill="#3c2a1e"/>
-            <ellipse cx="424" cy="${171 + offY}" rx="46" ry="9.5" fill="#9a6e48" stroke="#b5875e" stroke-width="1"/>
+            <ellipse cx="424" cy="${171 + offY}" rx="46" ry="9.5" fill="#a1744c" stroke="#c29268" stroke-width="1"/>
             <rect x="404" y="${163 + offY}" width="7" height="7" rx="1.5" fill="#f8fafc"/>
             <rect x="435" y="${164 + offY}" width="7" height="7" rx="1.5" fill="#fde68a"/>
           </g>`;
       }
 
+      // Warm Espresso Bar + Subtle Neon Coffee Plaque on Right
       bgFurn += `
         <g>
+          <rect x="556" y="64" width="52" height="16" rx="4" fill="#1e132c" stroke="#fbbf24" stroke-opacity="0.6" stroke-width="1"/>
+          <text x="582" y="75" text-anchor="middle" fill="#fde68a" font-size="7.5" font-weight="800" font-family="ui-monospace, monospace">CAFÉ</text>
           <rect x="548" y="124" width="66" height="44" rx="4" fill="#5c4028" stroke="#7c5a3c" stroke-width="1"/>
-          <rect x="544" y="120" width="74" height="7" rx="2" fill="#8a6240"/>
+          <rect x="544" y="120" width="74" height="7" rx="2" fill="#9a6e48"/>
           <rect x="564" y="94" width="32" height="26" rx="4" fill="#334155" stroke="#64748b" stroke-width="1"/>
           <rect x="570" y="105" width="20" height="11" rx="2" fill="#0f172a"/>
           <circle cx="590" cy="100" r="2.2" fill="#fbbf24"/>
+          <path d="M578,91 Q576,86 580,82" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.1" stroke-linecap="round"/>
+          <path d="M584,91 Q582,85 586,81" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.1" stroke-linecap="round"/>
         </g>`;
 
-      const bgSvg = `${commonRoomBgSvg("lounge_1f", H, "#231d36", "#181527", isHot, false)}${bgFurn}`;
+      const bgSvg = `${commonRoomBgSvg("lounge_1f", H, "#231c38", "#171326", isHot, "#c084fc", false)}${bgFurn}`;
       let actorsHtml = "";
       let labelsHtml = "";
 
@@ -1263,7 +1313,7 @@
           </div>`;
         labelsHtml += `
           ${st.bubble ? `<div class="pill-bubble ${st.mode === "attn" ? "attn" : ""}" style="left:${pxX(x)};top:${pxY(96 + offY)}" data-card-bot="${esc(b.id)}"><span class="pb-dot"></span><span class="pb-txt">${esc(st.bubble)}</span></div>` : ""}
-          ${b.needsDecision ? `<div class="head-red-dot" style="left:${pxX(x + 15)};top:${pxY(107 + offY)}" data-card-bot="${esc(b.id)}" title="${esc(st.reason)}">${b.decisionCount > 1 ? b.decisionCount : "!"}</div>` : ""}
+          ${b.needsDecision ? `<div class="head-red-dot" style="left:${pxX(x + 15)};top:${pxY(107 + offY)}" data-jump-bot="${esc(b.id)}" title="${esc(tr.tipRedDot)}">${b.decisionCount > 1 ? b.decisionCount : "!"}</div>` : ""}
           <div class="nameplate ${st.mode === "attn" ? "attn" : "boss-hot"}" style="left:${pxX(x)};top:${pxY(161 + offY)}"
                data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}">${esc(b.name)}</div>`;
       });
@@ -1300,7 +1350,7 @@
     function renderEmptyOffice() {
       const tr = t();
       const H = BASE_H;
-      const bg = commonRoomBgSvg("empty_1f", H, "#202c40", "#182132", true, true)
+      const bg = commonRoomBgSvg("empty_1f", H, "#1f2b40", "#151e2e", true, "#38bdf8", true)
         + officeChairBgSvg(180, 0, false) + officeChairBgSvg(460, 0, false);
       const fg = foregroundDeskSvg(180, 110, 0, true, "#38bdf8", false, false)
         + foregroundDeskSvg(460, 110, 0, false, "#4ade80", false, false);
@@ -1316,26 +1366,19 @@
         </div>`;
     }
 
-    // Magpie-inspired Grouped Workbench List View (Needs You -> Working -> Idle)
     function renderWorkbenchList(bots) {
       const tr = t();
-      const needRows = [];
-      const workRows = [];
-      const idleRows = [];
+      const needRows = [], workRows = [], idleRows = [];
 
       for (const b of bots) {
         const av = avatars[b.id] || avatars[b.name];
         const avHtml = av ? `<img src="${av}" alt=""/>` : `<span style="font-weight:800;font-size:13px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
         const bRow = {
-          kind: "bot",
           attr: `data-card-bot="${esc(b.id)}" data-dblopen="${esc(b.worktreeId || "")}"`,
-          avHtml,
-          name: b.name,
-          role: tr.roleBot,
-          eng: shortEng(b.agent),
+          jumpAttr: `data-jump-bot="${esc(b.id)}"`,
+          avHtml, name: b.name, role: tr.roleBot, eng: shortEng(b.agent),
           sub: b.needsYouItems?.length ? `#${b.needsYouItems[0].number} ${b.needsYouItems[0].title}` : (b.activity || tr.stateIdle),
-          attnCount: b.decisionCount || 0,
-          needs: b.needsDecision,
+          attnCount: b.decisionCount || 0, needs: b.needsDecision,
           working: b.state === "working" || b.workingWorkerCount > 0,
           time: relTime(b.lastActivityAt),
         };
@@ -1345,17 +1388,13 @@
 
         for (const w of (b.workers || [])) {
           const wRow = {
-            kind: "worker",
             attr: `data-card-worker="${esc(w.worktreeId)}" data-dblopen="${esc(w.worktreeId)}"`,
-            avHtml: miniWorkerRobotSvg(w, 24),
-            name: w.displayName,
-            role: tr.roleWorker(b.name),
-            eng: shortEng(w.agentType),
+            jumpAttr: `data-jump-ws="${esc(w.worktreeId)}"`,
+            avHtml: miniWorkerRobotSvg(w, 25),
+            name: w.displayName, role: tr.roleWorker(b.name), eng: shortEng(w.agentType),
             sub: w.activity || tr.stateIdle,
-            attnCount: w.needsDecision ? 1 : 0,
-            needs: w.needsDecision,
-            working: w.state === "working",
-            time: relTime(w.lastActivityAt),
+            attnCount: w.needsDecision ? 1 : 0, needs: w.needsDecision,
+            working: w.state === "working", time: relTime(w.lastActivityAt),
           };
           if (wRow.needs) needRows.push(wRow);
           else if (wRow.working) workRows.push(wRow);
@@ -1382,7 +1421,9 @@
                   </div>
                   <div class="wb-sub">${esc(r.sub)}</div>
                 </div>
-                <span class="wb-act">${r.needs ? "🔴 ↗" : (r.time || "↗")}</span>
+                ${r.needs
+                  ? `<button class="wb-go-btn" ${r.jumpAttr}>${esc(tr.listGoDecide)}</button>`
+                  : `<span class="wb-time">${esc(r.time || "↗")}</span>`}
               </div>`).join("")}
           </div>`;
       };
@@ -1391,43 +1432,7 @@
         renderGroup(tr.grpNeed, "red", needRows, true) +
         renderGroup(tr.grpWork, "blue", workRows, false) +
         renderGroup(tr.grpIdle, "gray", idleRows, false);
-
       return `<div class="workbench">${content || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyBuilding)}</div>`}</div>`;
-    }
-
-    function getDraft(item) {
-      const key = String(item.number);
-      let d = draftDecisions.get(key);
-      if (!d) {
-        d = { picks: {}, note: "" };
-        (item.ask?.questions || []).forEach((q, qi) => {
-          const recIdx = typeof q.recommended === "number" ? q.recommended : 0;
-          if (q.options && q.options[recIdx]) {
-            d.picks[qi] = [q.options[recIdx].label];
-          } else {
-            d.picks[qi] = [];
-          }
-        });
-        draftDecisions.set(key, d);
-      }
-      return d;
-    }
-
-    function buildDecisionText(item) {
-      const d = getDraft(item);
-      const qs = item.ask?.questions || [];
-      const lines = [];
-      qs.forEach((q, qi) => {
-        const picked = (d.picks[qi] || []).join(" / ");
-        if (picked) lines.push(`${q.prompt} → ${picked}`);
-      });
-      if (d.note && d.note.trim()) {
-        lines.push(d.note.trim());
-      }
-      if (!lines.length) {
-        lines.push(`#${item.number} ${item.title}`);
-      }
-      return lines.join("\n");
     }
 
     function findCardTarget() {
@@ -1461,6 +1466,7 @@
       let statusCls = "idle", statusText = "", needsDec = false, lastAt = null;
       let details = [], avatarHtml = "", primaryWsId = null, attnWorkerWsId = null;
       let workersHtml = "", decisionsHtml = "";
+      let hasItems = false;
 
       if (target.kind === "bot") {
         const b = target.bot;
@@ -1480,40 +1486,26 @@
         const av = avatars[b.id] || avatars[b.name];
         avatarHtml = av ? `<img src="${av}" alt="${esc(b.name)}"/>` : `<span style="font-weight:800;font-size:16px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
 
-        // Render Native Needs-You Decision Panel (with interactive option selection!)
+        // Pure Read-Only Decision Summary (zero fake checkboxes, zero copy-paste!)
         const items = b.needsYouItems || [];
-        if (items.length > 0) {
+        hasItems = items.length > 0;
+        if (hasItems) {
           decisionsHtml = `
             <div class="ic-section-title">${esc(tr.secDecisions)}</div>
             ${items.map((it) => {
-              const draft = getDraft(it);
               const qs = it.ask?.questions || [];
               return `
-                <div class="ic-decision-box" data-dec-item="${it.number}">
+                <div class="ic-decision-box">
                   <div class="ic-dec-title"><span class="ic-dec-num">#${it.number}</span><span>${esc(it.title)}</span></div>
                   ${it.ask?.context ? `<div class="ic-dec-ctx">${esc(it.ask.context)}</div>` : ""}
-                  ${qs.map((q, qi) => `
-                    <div class="ic-q">
+                  ${qs.length ? `<div class="ic-q-list">${qs.map((q, qi) => `
+                    <div class="ic-q-item">
                       <div class="ic-q-prompt">${qi + 1}. ${esc(q.prompt)}</div>
-                      <div class="ic-opts">
-                        ${(q.options || []).map((opt, oi) => {
-                          const chosen = (draft.picks[qi] || []).includes(opt.label);
-                          const isRec = q.recommended === oi;
-                          return `
-                            <button class="ic-opt ${chosen ? "chosen" : ""}"
-                                    data-pick-item="${it.number}" data-pick-q="${qi}" data-pick-multi="${q.multi ? "1" : "0"}" data-pick-val="${esc(opt.label)}">
-                              <span>${chosen ? "✓ " : ""}${esc(opt.label)}${opt.detail ? ` — ${esc(opt.detail)}` : ""}</span>
-                              ${isRec ? `<span class="ic-opt-rec">${esc(tr.recBadge)}</span>` : ""}
-                            </button>`;
-                        }).join("")}
-                      </div>
-                    </div>`).join("")}
-                  <input class="ic-note-input" data-dec-note="${it.number}" value="${esc(draft.note || "")}" placeholder="${esc(tr.notePlaceholder)}" />
-                  <div class="ic-dec-actions">
-                    <button class="ic-btn primary-attn" data-copy-go="${it.number}">${esc(tr.btnCopyAndGo)}</button>
-                    <button class="ic-btn secondary" id="icTasksBtn">${esc(tr.btnOpenTasks)}</button>
-                  </div>
-                  <div class="ic-dec-hint">${esc(tr.decHint)}</div>
+                      ${(q.options || []).length ? `<div class="ic-q-opts">${q.options.map((opt, oi) => {
+                        const isRec = q.recommended === oi;
+                        return `<span class="ic-q-chip ${isRec ? "rec" : ""}">${isRec ? esc(tr.recPrefix) : ""}${esc(opt.label)}</span>`;
+                      }).join("")}</div>` : ""}
+                    </div>`).join("")}</div>` : ""}
                 </div>`;
             }).join("")}`;
         }
@@ -1557,11 +1549,17 @@
         ? details.map((line) => `<div class="ic-task-line">${esc(line)}</div>`).join("")
         : `<div class="ic-task-line" style="color:#94a3b8">${esc(tr.noActivity)}</div>`;
 
+      const primaryLabel = needsDec && !attnWorkerWsId
+        ? (target.kind === "bot" ? tr.btnGoDecide : tr.btnGoWorker)
+        : tr.btnOpenWs;
       const primaryBtn = primaryWsId
-        ? `<button class="ic-btn ${needsDec && !decisionsHtml && !attnWorkerWsId ? "primary-attn" : ""}" id="icOpenBtn">${esc(tr.btnOpenWs)}</button>`
+        ? `<button class="ic-btn ${needsDec && !attnWorkerWsId ? "primary-attn" : ""}" id="icOpenBtn">${esc(primaryLabel)}</button>`
         : "";
       const jumpAttnWorkerBtn = attnWorkerWsId
-        ? `<button class="ic-btn primary-attn" id="icJumpAttnWorkerBtn">${esc(tr.btnHandleWorker)}</button>`
+        ? `<button class="ic-btn primary-attn" id="icJumpAttnWorkerBtn">${esc(tr.btnGoWorker)}</button>`
+        : "";
+      const tasksBtn = hasItems
+        ? `<button class="ic-btn secondary" id="icTasksBtn">${esc(tr.btnOpenTasks)}</button>`
         : "";
 
       root.innerHTML = `
@@ -1590,6 +1588,7 @@
             ${workersHtml}
             <div class="ic-actions">
               <button class="ic-btn secondary" id="icDismissBtn">${esc(tr.btnClose)}</button>
+              ${tasksBtn}
               ${jumpAttnWorkerBtn}
               ${primaryBtn}
             </div>
@@ -1614,53 +1613,6 @@
         void openTasksView();
         close();
       });
-
-      // Option selection inside the Decision Card
-      document.querySelectorAll("[data-pick-item]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const itemNum = btn.getAttribute("data-pick-item");
-          const qi = Number(btn.getAttribute("data-pick-q"));
-          const multi = btn.getAttribute("data-pick-multi") === "1";
-          const val = btn.getAttribute("data-pick-val");
-          const d = draftDecisions.get(itemNum) || { picks: {}, note: "" };
-          const cur = Array.isArray(d.picks[qi]) ? [...d.picks[qi]] : [];
-          if (multi) {
-            const idx = cur.indexOf(val);
-            if (idx >= 0) cur.splice(idx, 1);
-            else cur.push(val);
-            d.picks[qi] = cur;
-          } else {
-            d.picks[qi] = [val];
-          }
-          draftDecisions.set(itemNum, d);
-          renderModal();
-        });
-      });
-
-      document.querySelectorAll("[data-dec-note]").forEach((inp) => {
-        inp.addEventListener("input", () => {
-          const itemNum = inp.getAttribute("data-dec-note");
-          const d = draftDecisions.get(itemNum) || { picks: {}, note: "" };
-          d.note = inp.value;
-          draftDecisions.set(itemNum, d);
-        });
-      });
-
-      document.querySelectorAll("[data-copy-go]").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const itemNum = Number(btn.getAttribute("data-copy-go"));
-          const item = (target.bot?.needsYouItems || []).find((x) => x.number === itemNum);
-          if (item) {
-            const text = buildDecisionText(item);
-            try { await navigator.clipboard.writeText(text); } catch {}
-          }
-          if (primaryWsId) void openWorkspace(primaryWsId, true);
-          else void openTasksView();
-          showToast(tr.toastCopied, false);
-          close();
-        });
-      });
-
       document.querySelectorAll("[data-modal-switch-worker]").forEach((el) => {
         el.addEventListener("click", () => {
           openCard = { kind: "worker", worktreeId: el.getAttribute("data-modal-switch-worker") };
@@ -1686,10 +1638,13 @@
         currentKeys.add(key);
         if (hasLoadedOnce && !seenDecisionKeys.has(key)) {
           showToast(tr.toastNewDecision(item.name, item.title || tr.stateNeed), true, () => {
-            openCard = item.kind === "bot"
-              ? { kind: "bot", id: item.id }
-              : { kind: "worker", worktreeId: item.worktreeId };
-            renderModal();
+            if (item.worktreeId) void openWorkspace(item.worktreeId, true);
+            else {
+              openCard = item.kind === "bot"
+                ? { kind: "bot", id: item.id }
+                : { kind: "worker", worktreeId: item.worktreeId };
+              renderModal();
+            }
           });
         }
       }
@@ -1757,7 +1712,6 @@
         main.innerHTML = `<div class="building">${html || `<div style="text-align:center;color:var(--muted);padding:32px">${esc(tr.emptyBuilding)}</div>`}</div>`;
       }
 
-      // Bottom Status + Engine Legend (Magpie style)
       document.getElementById("legendBar").innerHTML = `
         <div class="legend-grp">
           <span class="lg-item"><span class="lg-dot" style="background:#ef4444"></span>${esc(tr.legendNeed)}</span>
@@ -1771,7 +1725,6 @@
           <span class="lg-item"><span class="lg-dot" style="background:#94a3b8"></span>Pi</span>
         </div>`;
 
-      // B1 Standalone Workspaces Bar
       const standalone = snapshot.standalone || [];
       const guestBar = document.getElementById("guestBar");
       if (!standalone.length) {
@@ -1796,6 +1749,23 @@
         });
       }
 
+      // Clicking a Red Dot jumps IMMEDIATELY to that Bot / Worker!
+      document.querySelectorAll("[data-jump-bot]").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const bot = (snapshot?.bots || []).find((b) => b.id === el.getAttribute("data-jump-bot"));
+          if (bot) jumpToBotDecision(bot);
+        });
+      });
+      document.querySelectorAll("[data-jump-ws]").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const wid = el.getAttribute("data-jump-ws");
+          if (wid) void openWorkspace(wid, true);
+        });
+      });
+
+      // Clicking a Character / Pill / Row opens the clean Preview Card; double-click jumps immediately
       document.querySelectorAll("[data-card-bot]").forEach((el) => {
         el.addEventListener("click", (e) => {
           e.stopPropagation();
