@@ -1,0 +1,94 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stablyai/orca/main/docs/schemas/plugins/orca-plugin.v2.schema.json",
+  "manifestVersion": 2,
+  "execution": "trusted-worker",
+  "id": "bot-office",
+  "name": "Bot Office",
+  "version": "0.1.0",
+  "description": "Live architectural office view in Orca's right sidebar: see every Bot, their Workers, what they are doing, and who needs your attention with one-click jump.",
+  "license": "MIT",
+  "icon": "assets/icon.png",
+  "screenshots": [
+    {
+      "path": "assets/screenshot.png",
+      "alt": "Bot Office cutaway headquarters showing team studio floors, seated Bot leads, Worker robots, live activity bubbles, and an inspector card",
+      "caption": "Every Bot team gets its own studio floor; click anyone to inspect and jump right in"
+    }
+  ],
+  "engines": {
+    "orca": ">=1.4.248"
+  },
+  "pluginApi": 1,
+  "main": "worker/main.mjs",
+  "contributes": {
+    "panels": [
+      {
+        "id": "office",
+        "title": "Bot Office",
+        "icon": "bot",
+        "ui": "html",
+        "entry": "panel/index.html"
+      }
+    ],
+    "commands": [
+      {
+        "id": "bot-office.show",
+        "title": "Bot Office: Open Office View"
+      },
+      {
+        "id": "bot-office.refresh",
+        "title": "Bot Office: Refresh Status"
+      }
+    ],
+    "statusBarItems": [
+      {
+        "id": "bot-office-status",
+        "icon": "bot",
+        "text": "Bot Office",
+        "tooltip": "Open Bot Office in the right sidebar",
+        "command": "bot-office.show"
+      }
+    ],
+    "events": [
+      { "on": "agent.status.changed" },
+      { "on": "workspace.created" },
+      { "on": "workspace.removed" },
+      { "on": "workspace.changed" }
+    ],
+    "settings": [
+      {
+        "key": "refreshIntervalSeconds",
+        "title": "Background Refresh Interval (seconds)",
+        "type": "integer",
+        "default": 8,
+        "minimum": 3,
+        "maximum": 120
+      },
+      {
+        "key": "soloBotsInLounge",
+        "title": "Group solo Bots (0 Workers) on 1F Open Floor & Lounge",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "showStandaloneWorkspaces",
+        "title": "Show standalone workspaces in B1 Hot-Desk Bar",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "language",
+        "title": "UI Language",
+        "type": "string",
+        "enum": ["auto", "en", "zh"],
+        "default": "auto"
+      }
+    ]
+  },
+  "capabilities": [
+    { "kind": "workspace:read" },
+    { "kind": "workspace:write" },
+    { "kind": "agent:read" },
+    { "kind": "settings:own" }
+  ]
+}
