@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { collectOfficeAnalytics } from "./orca-analytics.mjs";
 import {
   buildExecEnv,
   collectBotAvatars,
@@ -142,6 +143,14 @@ export default function activate(orca) {
 
   orca.panels.handle("office.getAvatars", async () => {
     return await collectBotAvatars();
+  });
+
+  orca.panels.handle("office.getAnalytics", async (input = {}) => {
+    const snap = latestSnapshot || (await refresh(false, { forceItems: false }));
+    return await collectOfficeAnalytics(orcaBin, orca.host, snap, {
+      force: Boolean(input.force),
+      log: (msg) => orca.log?.(msg),
+    });
   });
 
   orca.panels.handle("office.openWorkspace", async (input = {}) => {

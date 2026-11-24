@@ -1,5 +1,7 @@
 const orcaApi = window.orca;
 let snapshot = null;
+let analytics = null;
+let analyticsLoading = false;
 let avatars = {};
 let viewMode = "office";
 let activeOnly = false;
@@ -621,12 +623,14 @@ function render() {
   document.getElementById("cntWorkLbl").textContent = tr.workLbl;
   document.getElementById("cntIdleLbl").textContent = tr.idleLbl;
   document.getElementById("viewOfficeBtn").textContent = tr.tabOffice;
+  document.getElementById("viewDashBtn").textContent = tr.tabDash;
   document.getElementById("viewListBtn").textContent = tr.tabList;
   document.getElementById("searchInput").placeholder = tr.searchPh;
   document.getElementById("engFilter").options[0].textContent = tr.allEng;
   document.getElementById("activeOnlyBtn").textContent = tr.activeOnly;
   document.getElementById("refreshBtn").textContent = tr.refresh;
   document.getElementById("viewOfficeBtn").classList.toggle("active", viewMode === "office");
+  document.getElementById("viewDashBtn").classList.toggle("active", viewMode === "dashboard");
   document.getElementById("viewListBtn").classList.toggle("active", viewMode === "list");
 
   if (!snapshot) return;
@@ -642,16 +646,30 @@ function render() {
 
   const bots = filterBots(snapshot.bots || []);
   const officeWrap = document.getElementById("officeView");
+  const dashWrap = document.getElementById("dashView");
   const listWrap = document.getElementById("listView");
+  const legendEl = document.getElementById("legendBar");
 
-  if (viewMode === "list") {
+  if (viewMode === "dashboard") {
     officeWrap.style.display = "none";
+    listWrap.style.display = "none";
+    dashWrap.style.display = "block";
+    legendEl.style.display = "none";
+    towerMgr.pause();
+    dashWrap.innerHTML = window.OfficeDashboard.renderDashboardHtml(analytics, avatars, engPillHtml, tr);
+    bindDomClickHandlers(dashWrap);
+  } else if (viewMode === "list") {
+    officeWrap.style.display = "none";
+    dashWrap.style.display = "none";
     listWrap.style.display = "block";
+    legendEl.style.display = "flex";
     towerMgr.pause();
     renderListView(bots);
   } else {
     officeWrap.style.display = "block";
+    dashWrap.style.display = "none";
     listWrap.style.display = "none";
+    legendEl.style.display = "flex";
     renderTower(bots);
   }
 
@@ -709,9 +727,31 @@ async function loadAll(force = false) {
   }
 }
 
+async function loadAnalytics(force = false) {
+  if (!orcaApi?.plugin?.request || analyticsLoading) return;
+  analyticsLoading = true;
+  try {
+    const data = await orcaApi.plugin.request("office.getAnalytics", { force });
+    if (data) analytics = data;
+    if (viewMode === "dashboard") render();
+  } catch (err) {
+    console.error("loadAnalytics failed:", err);
+  } finally {
+    analyticsLoading = false;
+  }
+}
+
 document.getElementById("viewOfficeBtn").addEventListener("click", () => { viewMode = "office"; render(); });
+document.getElementById("viewDashBtn").addEventListener("click", () => {
+  viewMode = "dashboard";
+  render();
+  void loadAnalytics(!analytics);
+});
 document.getElementById("viewListBtn").addEventListener("click", () => { viewMode = "list"; render(); });
-document.getElementById("refreshBtn").addEventListener("click", () => void loadAll(true));
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  void loadAll(true);
+  if (viewMode === "dashboard") void loadAnalytics(true);
+});
 document.getElementById("activeOnlyBtn").addEventListener("click", (e) => {
   activeOnly = !activeOnly;
   e.currentTarget.classList.toggle("active", activeOnly);
@@ -744,9 +784,10 @@ if (orcaApi?.plugin?.on) {
 }
 if (orcaApi?.on) { orcaApi.on("theme", () => render()); }
 
-window.__botOfficeInjectMock = (mockSnap, mockAvatars = {}) => {
+window.__botOfficeInjectMock = (mockSnap, mockAvatars = {}, mockAnalytics = null) => {
   snapshot = mockSnap;
   avatars = mockAvatars;
+  if (mockAnalytics) analytics = mockAnalytics;
   towerMgr.setAvatars(mockAvatars);
   render();
 };

@@ -345,7 +345,7 @@
     }
 
     _drawLoungeDynamic(ctx) {
-      const { W, wallH } = this;
+      const { W, H, wallH } = this;
       const active = this.spec.activeSolos || [];
       const idle = this.spec.idleSolos || [];
       const lang = this.spec.lang;

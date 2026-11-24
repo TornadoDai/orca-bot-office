@@ -12,7 +12,8 @@ An ultra-lightweight **2.5D Side-Scrolling Stacked Office Tower & Grouped Workbe
 - **Clean Decision & Report Queue (`TOP`)**: Any Bot or teammate synced with Orca's native `Needs you` items (or approval blockers) queues neatly across the top reception hallway holding a report clipboard — click its soft-rose badge to jump straight to that Bot in Orca.
 - **Human-Styled Teammates & Agent Engine Identity**: Expressive human-styled colleagues (unique hairstyles, glasses/headphones, 3D-shaded outfits) and Lead Bots display color-coded engine badges (`✦ Claude`, `◈ agy`, `⬡ Codex`, `π Pi`) everywhere at a glance.
 - **Sleek Luminous Message Streams**: Minimalist glowing paper-dart packets with fading light trails glide smoothly between Lead Bots and active Workers — clean, airy, and readable.
-- **Ultra-Lightweight Architecture**: Zero `backdrop-filter` blur passes, zero infinite CSS animations, offscreen static floor background cache, 0 FPS on idle floors / ≤6 FPS only on active floors (auto-pauses when hidden), and hash-diffed event-driven worker updates.
+- **Team Workload & Token Analytics Dashboard (`Floors | Dashboard | List`)**: Pure-SVG right-sidebar data panel with KPI cards, per-team stacked delivery bar chart, 7-day created-vs-done delivery pace, agent engine mix donut, Worker dispatch volume & turnaround averages, and CLI session Token/message rankings (`history:read`, Claude/Codex/Pi).
+- **Ultra-Lightweight Architecture**: Zero `backdrop-filter` blur passes, zero external chart libraries, zero infinite CSS animations, offscreen static floor background cache, 0 FPS on idle floors / ≤3.5 FPS only on active floors (auto-pauses when hidden), and hash-diffed event-driven worker updates.
 
 ## Install
 
@@ -42,7 +43,8 @@ Or in Orca: **Settings → Plugins → Install from Git** with `https://github.c
 - **纯净顶层「决策汇报区」排队**：去掉多余办公桌，凡是有原生 `Needs you` 待决策事件或终端等待审批的 Bot / Worker 自动上楼横向整齐排队汇报，楼下工位同步标示 `▲ 排队汇报中`；点柔和红标直达原生界面决策。
 - **拟人化团队成员 & 代理一眼分辨**：Worker 升级为带不同发型、眼镜/耳机与立体光影穿搭的研发同事形象，搭配高辨识度配色代理徽章（`✦ Claude` 琥珀、`◈ agy` 天蓝、`⬡ Codex` 紫罗兰、`π Pi` 翠绿）。
 - **轻量流光消息传递 & 柔和提醒**：用极简流光纸箭 + 渐隐光点轨迹替代厚重信封；全界面改用柔和珊瑚粉/玫瑰红提醒，醒目不刺眼。
-- **极度轻量低占用**：零 `backdrop-filter`、零 60 FPS CSS 动画、静态背景离屏缓存 + 静止楼层 0 FPS / 活跃楼层 ≤6 FPS + 后台哈希去重。
+- **团队工作量与 Token 数据仪表盘（楼层 | 仪表盘 | 列表）**：零第三方图表库的纯 SVG 数据面板——顶部 KPI 总览、各团队工作量堆叠柱图、近 7 天新建/完成节奏趋势、代理占比环形图、Worker 派发次数与平均耗时、以及基于 `history:read` 的 CLI Token / 消息轮次排行（明示不含 Antigravity 对话）。
+- **极度轻量低占用**：零 `backdrop-filter`、零 60 FPS CSS 动画、静态底图离屏缓存 + 静止楼层 0 FPS / 活跃楼层 ~3.5 FPS + 仪表盘按需 60s 缓存。
 
 ### 安装方式
 

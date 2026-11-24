@@ -4,19 +4,19 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.6.0",
-  "description": "Ultra-lightweight illustrated 2.5D modern office tower & Decision Report Queue in Orca: queueing Bots, human-styled teammates, engine badges & low CPU.",
+  "version": "0.7.0",
+  "description": "Ultra-lightweight illustrated 2.5D modern office tower, Decision Report Queue & team workload SVG analytics dashboard in Orca's right sidebar.",
   "license": "MIT",
   "icon": "assets/icon.png",
   "screenshots": [
     {
       "path": "assets/screenshot.png",
-      "alt": "Bot Office illustrated 2.5D modern office building with top Decision Report Queue, warm studio floors, human-styled teammates, engine badges & preview card",
-      "caption": "Illustrated 2.5D office building with Decision Report Queue, human teammates, Claude/agy/Codex/Pi badges & low CPU"
+      "alt": "Bot Office illustrated 2.5D modern office floors alongside a team workload analytics dashboard with stacked bars, 7-day trend, engine donut and token usage",
+      "caption": "2.5D illustrated office tower + lightweight SVG team workload & token analytics dashboard"
     }
   ],
   "engines": {
-    "orca": ">=1.4.248"
+    "orca": ">=1.4.259"
   },
   "pluginApi": 1,
   "main": "worker/main.mjs",
@@ -97,6 +97,7 @@
     { "kind": "workspace:read" },
     { "kind": "workspace:write" },
     { "kind": "agent:read" },
+    { "kind": "history:read" },
     { "kind": "settings:own" }
   ]
 }
