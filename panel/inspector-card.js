@@ -192,10 +192,10 @@
       ? `<details class="ic-collapse"><summary class="ic-collapse-sum">${esc(tr.secTimeline)} (${timeline.length})</summary><div class="ic-timeline">${timelineRows}</div></details>`
       : `<div class="ic-section-title">${esc(tr.secTimeline)}</div><div class="ic-timeline">${timelineRows}</div>`;
 
-    const primaryLabel = needsDec && !attnWorkerWsId ? (target.kind === "bot" ? tr.btnGoDecide : tr.btnGoWorker) : tr.btnOpenWs;
+    const primaryLabel = target.kind === "bot" ? tr.btnGoDecide : (needsDec ? tr.btnGoWorker : tr.btnOpenWs);
     const primaryBtn = primaryWsId ? `<button class="ic-btn ${needsDec && !attnWorkerWsId && !hasItems ? "primary-attn" : ""}" id="icOpenBtn">${esc(primaryLabel)}</button>` : "";
     const jumpAttnWorkerBtn = attnWorkerWsId ? `<button class="ic-btn primary-attn" id="icJumpAttnWorkerBtn">${esc(tr.btnGoWorker)}</button>` : "";
-    const tasksBtn = hasItems ? `<button class="ic-btn secondary" id="icTasksBtn">${esc(tr.btnOpenTasks)}</button>` : "";
+    const tasksBtn = "";
 
     root.innerHTML = `
       <div class="card-backdrop" id="cardBackdrop">

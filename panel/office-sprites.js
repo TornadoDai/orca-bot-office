@@ -452,7 +452,7 @@
   }
 
   function drawStandingQueueActor(ctx, opts) {
-    const { cx, footY, isBot, eng, avatarImg, name, seedKey, snippet, count, phase, hovered } = opts;
+    const { cx, footY, isBot, eng, avatarImg, name, seedKey, snippet, count, phase, hovered, branchCount = 0, branchActive = false } = opts;
     const es = engStyle(eng);
     const seed = hashStr(seedKey || name || "q");
     const skin = SKIN_PALETTES[(seed >> 2) % SKIN_PALETTES.length];
@@ -495,8 +495,9 @@
     ctx.fillRect(-4, -4.5, 8, 1.6); ctx.fillRect(-4, -1, 6.5, 1.6); ctx.fillRect(-4, 2.5, 5.5, 1.6);
     ctx.restore();
 
-    // Soft rose clickable alert badge
+    // Soft rose clickable alert badge (top-right) & calm teal branch badge (top-left, zero overlap!)
     const dotHit = drawSoftRoseDot(ctx, cx + 15.5, headY - 12, count, phase);
+    if (isBot && branchCount > 0) drawBranchBadge(ctx, cx - 17, headY - 10, branchCount, branchActive);
 
     // Clean report speech bubble above head
     if (snippet) {

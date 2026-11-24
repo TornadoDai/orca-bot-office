@@ -235,6 +235,8 @@
           count: entry.count || 1,
           phase: this.phase + i * 0.7,
           hovered: this.hoveredId === nodeId,
+          branchCount: isBot ? (entry.bot.branchChatCount || 0) : 0,
+          branchActive: isBot ? (entry.bot.activeBranchCount || 0) > 0 : false,
         });
 
         this.hitNodes.push({

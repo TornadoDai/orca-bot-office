@@ -263,7 +263,7 @@ async function fetchItemEventsForQuestion(orcaBin, itemNumber, targetEventId) {
   let itemMeta = null;
   for (let page = 0; page < 6; page++) {
     const args = ["bot", "item", "show", String(itemNumber)];
-    if (cursor) args.push("--cursor", cursor);
+    if (cursor) args.push("--after", cursor);
     const detail = await runOrcaJson(orcaBin, args, 6500);
     if (!itemMeta && detail?.item) itemMeta = detail.item;
     const evs = Array.isArray(detail?.events) ? detail.events : [];
