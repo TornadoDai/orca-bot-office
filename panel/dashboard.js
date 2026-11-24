@@ -10,8 +10,17 @@
     antigravity: { color: "#38bdf8", short: "agy", sym: "◈" },
     codex: { color: "#a78bfa", short: "Codex", sym: "⬡" },
     pi: { color: "#34d399", short: "Pi", sym: "π" },
+    gemini: { color: "#60a5fa", short: "Gemini", sym: "✧" },
+    cursor: { color: "#2dd4bf", short: "Cursor", sym: "⌘" },
+    copilot: { color: "#818cf8", short: "Copilot", sym: "◎" },
+    opencode: { color: "#fb923c", short: "OpenCode", sym: "◇" },
     other: { color: "#94a3b8", short: "Agent", sym: "•" },
   };
+  function engColorMeta(k) {
+    const key = String(k || "").toLowerCase();
+    if (ENG_COLORS[key]) return ENG_COLORS[key];
+    return key && key !== "other" ? { color: "#94a3b8", short: key.slice(0, 10), sym: "•" } : ENG_COLORS.other;
+  }
 
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -244,7 +253,7 @@
     let offset = 0;
 
     const slices = engineMix.map((e) => {
-      const meta = ENG_COLORS[e.key] || ENG_COLORS.other;
+      const meta = engColorMeta(e.key);
       const len = total > 0 ? (e.count / total) * C : 0;
       const seg = `<circle cx="48" cy="48" r="${R}" fill="none" stroke="${meta.color}" stroke-width="12" stroke-dasharray="${Math.max(1.5, len - 1.5).toFixed(1)} ${C.toFixed(1)}" stroke-dashoffset="${(-offset).toFixed(1)}" transform="rotate(-90 48 48)"/>`;
       offset += len;
@@ -252,7 +261,7 @@
     });
 
     const legend = engineMix.map((e) => {
-      const meta = ENG_COLORS[e.key] || ENG_COLORS.other;
+      const meta = engColorMeta(e.key);
       const pct = total > 0 ? Math.round((e.count / total) * 100) : 0;
       return `
         <div class="db-donut-row">

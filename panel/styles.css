@@ -678,6 +678,30 @@ html:not(.light) .btn.hire-btn { color: #5eead4; }
 .btn.hire-btn:hover { border-color: #14b8a6; opacity: 0.95; }
 
 .om-card { max-width: 460px; }
+.om-card.om-wide { max-width: 488px; }
+.om-zero-tip {
+  padding: 8px 10px; border-radius: 8px; font-size: 11px; line-height: 1.45;
+  background: var(--eng-claude-bg); border: 1px solid var(--eng-claude-bd); color: var(--eng-claude-fg);
+}
+.om-preset-grid {
+  margin-top: 11px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px;
+}
+@media (max-width: 440px) { .om-preset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.om-preset-card {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 4px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--modal-sub); color: var(--fg);
+}
+.om-preset-card:hover { border-color: var(--cyan); }
+.om-preset-card.active { background: var(--eng-agy-bg); border-color: var(--eng-agy-bd); box-shadow: 0 0 0 1px var(--eng-agy-bd); }
+.om-p-thumb {
+  width: 44px; height: 44px; border-radius: 9px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--btn-bg); border: 1px solid var(--border);
+}
+.om-p-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.om-p-plus { font-size: 20px; }
+.om-p-lbl { font-size: 9.5px; font-weight: 700; color: var(--fg-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .om-av { font-size: 20px; }
 .om-form { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
 .om-field { display: flex; flex-direction: column; gap: 3.5px; }

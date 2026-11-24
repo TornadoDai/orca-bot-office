@@ -92,7 +92,7 @@ export default function activate(orca) {
     } catch {
       // Fallback below
     }
-    return "local.bot-office";
+    return "tornadodai.bot-office";
   }
 
   async function refresh(broadcast = true, { forceItems = false } = {}) {
@@ -168,8 +168,13 @@ export default function activate(orca) {
     return avs;
   });
 
+  const VALID_OWNER_MODES = new Set([
+    "empty", "custom", "silhouette",
+    "preset:exec-m", "preset:exec-f", "preset:hoodie",
+    "preset:cat", "preset:shiba", "preset:astro", "preset:robot",
+  ]);
   orca.panels.handle("office.setOwnerAvatar", async (input = {}) => {
-    const mode = ["empty", "custom", "silhouette"].includes(input.mode) ? input.mode : "empty";
+    const mode = VALID_OWNER_MODES.has(input.mode) ? input.mode : "empty";
     await orca.settings?.set?.("ownerAvatarMode", mode);
     if (input.clearImage) {
       await orca.storage?.delete?.("ownerAvatarDataUrl").catch(() => {});
@@ -196,7 +201,7 @@ export default function activate(orca) {
 
     const lines = [];
     if (mode === "offer") {
-      lines.push(isZh ? "【老板在 Bot Office 发起了直接招新请求（直接出创建卡）】" : "[Owner requested a new Bot from Bot Office — Direct Create Card]");
+      lines.push(isZh ? "【Owner 在 Bot Office 发起了新 Bot 创建请求（直接出创建卡）】" : "[Owner requested a new Bot from Bot Office — Direct Create Card]");
       if (name) lines.push(`${isZh ? "名称" : "Name"}: ${name}`);
       if (purpose) lines.push(`${isZh ? "一句话职责" : "Purpose"}: ${purpose}`);
       if (template) lines.push(`${isZh ? "模板" : "Template"}: ${template}`);
@@ -207,11 +212,11 @@ export default function activate(orca) {
       lines.push("");
       lines.push(
         isZh
-          ? "请直接按以上信息执行 `orca bot create --offer` 弹出原生建 Bot 确认卡片（补全必要参数即可，无需用 orchestration reply 回复 Bot Office）。"
+          ? "请直接按以上信息执行 `orca bot create --offer` 弹出 Orca 原生建 Bot 确认卡片（补全必要参数即可，无需用 orchestration reply 回复 Bot Office）。"
           : "Please directly run `orca bot create --offer` with the details above to show the native Create Bot confirmation card (do not run orchestration reply back to Bot Office)."
       );
     } else {
-      lines.push(isZh ? "【老板在 Bot Office 想先和你沟通招新 Bot 需求】" : "[Owner wants to discuss hiring a new Bot from Bot Office]");
+      lines.push(isZh ? "【Owner 在 Bot Office 想先和你沟通新建 Bot 的需求】" : "[Owner wants to discuss creating a new Bot from Bot Office]");
       if (name) lines.push(`${isZh ? "暂定名称" : "Draft name"}: ${name}`);
       if (template) lines.push(`${isZh ? "意向类型" : "Template hint"}: ${template}`);
       if (purpose) lines.push(`${isZh ? "初步想法" : "Idea"}: ${purpose}`);
@@ -219,7 +224,7 @@ export default function activate(orca) {
       lines.push("");
       lines.push(
         isZh
-          ? "请先在本聊天里和老板对齐这个新 Bot 的职责边界、SOUL 和权限方案，对齐后再发 `orca bot create --offer` 卡片（无需用 orchestration reply 回复 Bot Office）。"
+          ? "请先在本聊天里和 Owner 对齐这个新 Bot 的职责边界、SOUL 和权限方案，对齐后再发 `orca bot create --offer` 卡片（无需用 orchestration reply 回复 Bot Office）。"
           : "Please align on scope, SOUL, and permissions with the owner in this chat first, then send the `orca bot create --offer` card once agreed (do not run orchestration reply back to Bot Office)."
       );
     }

@@ -686,7 +686,7 @@ async function toTinyAvatarDataUrl(imgPath, cacheKey, mtimeMs) {
 
   try {
     const raw = fs.readFileSync(imgPath);
-    if (raw.length > 140 * 1024) return null;
+    if (raw.length > 320 * 1024) return null;
     const ext = path.extname(imgPath).toLowerCase();
     const mime = ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : ext === ".webp" ? "image/webp" : "image/png";
     const dataUrl = `data:${mime};base64,${raw.toString("base64")}`;

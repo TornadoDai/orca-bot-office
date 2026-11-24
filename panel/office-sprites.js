@@ -522,57 +522,86 @@
   }
 
   function drawLoungeSofaGroup(ctx, sx, sy, sw, rowBots, shared, hoveredId, hitNodes) {
-    // Soft floor shadow
-    ctx.fillStyle = "rgba(0,0,0,0.42)";
-    ctx.beginPath(); ctx.ellipse(sx + sw / 2, sy + 15, sw * 0.52, 8.5, 0, 0, Math.PI * 2); ctx.fill();
+    // 1) Soft floor shadow & solid oak sofa legs
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.beginPath(); ctx.ellipse(sx + sw / 2, sy + 17, sw * 0.52, 8.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#4a2c18";
+    ctx.fillRect(sx + 6, sy + 12, 5, 6);
+    ctx.fillRect(sx + sw - 11, sy + 12, 5, 6);
 
-    // Dimensional tufted caramel leather backrest
-    const backG = ctx.createLinearGradient(0, sy - 28, 0, sy);
+    // 2) Dimensional tufted caramel leather backrest (behind Bots)
+    const backG = ctx.createLinearGradient(0, sy - 30, 0, sy);
     backG.addColorStop(0, "#a85a32"); backG.addColorStop(1, "#6b3319");
-    roundRect(ctx, sx, sy - 28, sw, 30, 9);
+    roundRect(ctx, sx + 2, sy - 30, sw - 4, 30, 9);
     ctx.fillStyle = backG; ctx.fill();
     ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
-    ctx.fillStyle = "rgba(255, 224, 185, 0.18)";
-    roundRect(ctx, sx + 4, sy - 26, sw - 8, 5, 3); ctx.fill();
+    ctx.fillStyle = "rgba(255, 224, 185, 0.16)";
+    roundRect(ctx, sx + 6, sy - 27, sw - 12, 5, 3); ctx.fill();
 
-    // Bots lounging on the sofa
-    const step = sw / Math.max(rowBots.length, 1);
+    // 3) Plush sofa seat cushions & lower front base (DRAWN BEFORE BOTS so Bots sit ON the sofa, not behind it!)
+    const baseG = ctx.createLinearGradient(0, sy + 4, 0, sy + 15);
+    baseG.addColorStop(0, "#8c4322"); baseG.addColorStop(1, "#5c2913");
+    roundRect(ctx, sx + 4, sy + 3, sw - 8, 12, 4);
+    ctx.fillStyle = baseG; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+
+    const seatG = ctx.createLinearGradient(0, sy - 5, 0, sy + 7);
+    seatG.addColorStop(0, "#cf7a48"); seatG.addColorStop(1, "#9c4e28");
+    const cushionCnt = Math.max(2, rowBots.length);
+    const innerW = sw - 16;
+    const cw = innerW / cushionCnt;
+    for (let i = 0; i < cushionCnt; i++) {
+      roundRect(ctx, sx + 8 + i * cw + 1, sy - 5, cw - 2, 11.5, 4);
+      ctx.fillStyle = seatG; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.stroke();
+    }
+
+    // 4) Rounded leather armrests on left & right ends
+    roundRect(ctx, sx - 2, sy - 16, 12, 29, 4.5);
+    ctx.fillStyle = backG; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+    roundRect(ctx, sx + sw - 10, sy - 16, 12, 29, 4.5);
+    ctx.fill(); ctx.stroke();
+
+    // 5) Bots sitting comfortably ON TOP of the sofa cushions (with seated legs & sneakers!)
+    const step = innerW / Math.max(rowBots.length, 1);
     rowBots.forEach((b, ci) => {
-      const bx = sx + step * ci + step / 2;
+      const bx = sx + 8 + step * ci + step / 2;
       const es = engStyle(b.agent);
       const skin = SKIN_PALETTES[hashStr(b.id || b.name) % SKIN_PALETTES.length];
       const nodeId = `lounge:idle:${b.id}`;
       const hov = hoveredId === nodeId;
-      const hy = drawShadedTorso(ctx, bx, sy + 2, es, skin, false, 0, false);
+
+      // Subtle seat shadow under character on cushion
+      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      ctx.beginPath(); ctx.ellipse(bx, sy + 2, 15, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+      // Seated trousers & little sneakers resting in front of sofa edge
+      ctx.fillStyle = "#334155"; ctx.strokeStyle = INK; ctx.lineWidth = 1.2;
+      roundRect(ctx, bx - 9, sy + 1, 7.2, 10.5, 2.8); ctx.fill(); ctx.stroke();
+      roundRect(ctx, bx + 1.8, sy + 1, 7.2, 10.5, 2.8); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#1e293b";
+      roundRect(ctx, bx - 10.5, sy + 9.5, 8.8, 4.2, 2); ctx.fill(); ctx.stroke();
+      roundRect(ctx, bx + 1.7, sy + 9.5, 8.8, 4.2, 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(bx - 9.5, sy + 12.2, 6.8, 1.1);
+      ctx.fillRect(bx + 2.7, sy + 12.2, 6.8, 1.1);
+
+      // Torso & Lead Avatar sitting cleanly above seat cushion
+      const hy = drawShadedTorso(ctx, bx, sy + 3, es, skin, false, 0, false);
       drawLeadAvatarHead(ctx, bx, hy, 14.5, shared.getAvatarImg(b.id, b.name), b.name, hov ? "#7dd3fc" : es.color);
       if ((b.branchChatCount || 0) > 0) drawBranchBadge(ctx, bx - 16, hy - 10, b.branchChatCount, (b.activeBranchCount || 0) > 0);
-      // Warm ceramic mug next to bot
+
+      // Warm ceramic coffee mug held/resting beside the bot
       ctx.fillStyle = "#fff7ed"; ctx.strokeStyle = INK; ctx.lineWidth = 0.9;
-      roundRect(ctx, bx + 15, sy - 3, 5.5, 5.5, 1.5); ctx.fill(); ctx.stroke();
+      roundRect(ctx, bx + 13.5, sy - 5, 5.5, 5.5, 1.5); ctx.fill(); ctx.stroke();
 
       hitNodes.push({
         id: nodeId, kind: "bot", bot: b, dotHit: null,
-        box: { x: bx - 42, y: sy - 56, w: 84, h: 100 },
+        box: { x: bx - 42, y: sy - 56, w: 84, h: 102 },
       });
     });
 
-    // Shaded sofa seat cushions & rounded armrests + wooden legs
-    const seatG = ctx.createLinearGradient(0, sy - 3, 0, sy + 14);
-    seatG.addColorStop(0, "#c26c3f"); seatG.addColorStop(1, "#7d3d1f");
-    roundRect(ctx, sx + 6, sy - 3, sw - 12, 15, 5.5);
-    ctx.fillStyle = seatG; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
-    roundRect(ctx, sx - 2, sy - 16, 12, 28, 4.5);
-    ctx.fillStyle = backG; ctx.fill(); ctx.stroke();
-    roundRect(ctx, sx + sw - 10, sy - 16, 12, 28, 4.5);
-    ctx.fill(); ctx.stroke();
-    // Solid oak sofa legs
-    ctx.fillStyle = "#4a2c18";
-    ctx.fillRect(sx + 6, sy + 12, 5, 5);
-    ctx.fillRect(sx + sw - 11, sy + 12, 5, 5);
-
     rowBots.forEach((b, ci) => {
-      const bx = sx + step * ci + step / 2;
-      drawNameAndEngine(ctx, bx, sy + 15, b.name, b.agent, "", false, 90);
+      const bx = sx + 8 + step * ci + step / 2;
+      drawNameAndEngine(ctx, bx, sy + 17, b.name, b.agent, "", false, 90);
     });
   }
 
@@ -600,8 +629,8 @@
     ctx.strokeStyle = "rgba(255,255,255,0.07)"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(cx - 15, ty - 26); ctx.lineTo(cx + 15, ty - 26); ctx.stroke();
 
-    // Optional figure: default "empty" (invisible/empty chair), or "custom" avatar, or "silhouette"
-    if (mode === "custom" || mode === "silhouette") {
+    // Optional figure: default "empty", built-in illustrated preset ("preset:*"), "custom" image, or "silhouette"
+    if (mode !== "empty") {
       const bob = Math.sin(phase * 0.85) * 0.5;
       if (mode === "custom" && avatarImg && avatarImg.complete && avatarImg.naturalWidth > 0) {
         const coatG = ctx.createLinearGradient(cx, ty - 19 + bob, cx, ty + 3 + bob);
@@ -609,14 +638,8 @@
         roundRect(ctx, cx - 17, ty - 19 + bob, 34, 22, 9);
         ctx.fillStyle = coatG; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
         drawLeadAvatarHead(ctx, cx, ty - 33 + bob, 14.5, avatarImg, "", "rgba(251, 191, 36, 0.72)");
-      } else {
-        // Subtle frosted minimalist silhouette
-        ctx.save();
-        ctx.globalAlpha = 0.52;
-        ctx.fillStyle = "#64748b";
-        roundRect(ctx, cx - 15, ty - 18 + bob, 30, 20, 9); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, ty - 31 + bob, 10.5, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
+      } else if (window.OfficePresets) {
+        window.OfficePresets.drawPresetFigure(ctx, cx, ty + 2, mode === "custom" ? "silhouette" : mode, phase);
       }
     }
 

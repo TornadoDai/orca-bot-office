@@ -133,14 +133,19 @@ const towerMgr = new window.OfficeTowerEngine({
       renderModal();
       return;
     }
+    if (node.kind === "hireDesk") {
+      openCard = { kind: "hire" };
+      renderModal();
+      return;
+    }
     openCard = node.kind === "bot"
       ? { kind: "bot", id: node.bot.id }
       : { kind: "worker", worktreeId: node.worker.worktreeId };
     renderModal();
   },
   onActorDblClick(node) {
-    if (node.kind === "ownerDesk") {
-      openCard = { kind: "ownerDesk" };
+    if (node.kind === "ownerDesk" || node.kind === "hireDesk") {
+      openCard = { kind: node.kind === "hireDesk" ? "hire" : "ownerDesk" };
       renderModal();
       return;
     }
@@ -593,7 +598,20 @@ function render() {
   document.getElementById("viewDashBtn").textContent = tr.tabDash;
   document.getElementById("viewListBtn").textContent = tr.tabList;
   document.getElementById("searchInput").placeholder = tr.searchPh;
-  document.getElementById("engFilter").options[0].textContent = tr.allEng;
+  const engSel = document.getElementById("engFilter");
+  engSel.options[0].textContent = tr.allEng;
+  if (snapshot) {
+    const seen = new Set([...engSel.options].map((o) => o.value));
+    for (const b of snapshot.bots || []) {
+      for (const raw of [b.agent, ...(b.workers || []).map((w) => w.agentType)]) {
+        const k = String(raw || "").trim().toLowerCase();
+        if (k && k !== "unknown" && !seen.has(k)) {
+          seen.add(k);
+          engSel.appendChild(Object.assign(document.createElement("option"), { value: k, textContent: engMeta(k).short }));
+        }
+      }
+    }
+  }
   document.getElementById("hireBotBtn").textContent = tr.hireBtnTop;
   document.getElementById("activeOnlyBtn").textContent = tr.activeOnly;
   document.getElementById("refreshBtn").textContent = tr.refresh;

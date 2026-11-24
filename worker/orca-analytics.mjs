@@ -472,8 +472,8 @@ export async function collectOfficeAnalytics(
 
   const engineCounts = new Map();
   const addEng = (raw) => {
-    const k = String(raw || "").toLowerCase();
-    const norm = ["claude", "antigravity", "codex", "pi"].includes(k) ? k : "other";
+    const k = String(raw || "").trim().toLowerCase();
+    const norm = k && k !== "unknown" ? k : "other";
     engineCounts.set(norm, (engineCounts.get(norm) || 0) + 1);
   };
 
@@ -579,9 +579,10 @@ export async function collectOfficeAnalytics(
       b.totalWorkers - a.totalWorkers
   );
 
-  const engineMix = ["claude", "antigravity", "codex", "pi", "other"]
-    .map((key) => ({ key, count: engineCounts.get(key) || 0 }))
-    .filter((x) => x.count > 0);
+  const engineMix = [...engineCounts.entries()]
+    .map(([key, count]) => ({ key, count }))
+    .filter((x) => x.count > 0)
+    .sort((a, b) => b.count - a.count);
 
   const avgDispatchMins =
     totalDispatchWithDur > 0 ? Math.max(1, Math.round(totalDispatchDurMs / totalDispatchWithDur / 60000)) : null;

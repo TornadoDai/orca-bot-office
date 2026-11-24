@@ -191,6 +191,19 @@
       // Live real-time analog wall clock synced to local system time
       drawLiveWallClock(ctx, W, wallH);
 
+      // Always-visible Recruiting Front Desk on upper-left of TOP floor (clickable -> Hire / Create Bot!)
+      if (window.OfficePresets && W >= 400) {
+        const rx = 98;
+        const ry = wallH + 26;
+        window.OfficePresets.drawRecruitingFrontDesk(ctx, rx, ry, lang, this.hoveredId === "hire:desk");
+        this.hitNodes.push({
+          id: "hire:desk",
+          kind: "hireDesk",
+          dotHit: null,
+          box: { x: rx - 44, y: ry - 48, w: 88, h: 58 },
+        });
+      }
+
       // Center unlabeled executive workstation beneath the wall clock (clickable to customize avatar!)
       const deskX = Math.round(W / 2);
       const deskY = wallH + 26;

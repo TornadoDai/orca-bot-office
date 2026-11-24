@@ -1,7 +1,7 @@
 /**
  * In-Panel Modals for:
- * 1. Hiring / Creating a New Bot (supports BOTH "Direct Offer Card" and "Discuss with HR First")
- * 2. Customizing the TOP Floor Executive Chair Appearance (Empty / Silhouette / Local Image Upload)
+ * 1. Universal Bot Hiring / Creation (works with ANY existing Bot — no dedicated HR Bot required! Includes 0-Bot copy-command fallback)
+ * 2. TOP Floor Executive Chair Customizer (7 Built-In Illustrated Presets + Empty + Silhouette + Local Image Upload)
  */
 (function () {
   function esc(s) {
@@ -15,17 +15,17 @@
     { id: "support", zh: "问题排障", en: "Support" },
   ];
 
-  function detectDefaultHrBot(bots, configuredName) {
+  function detectDefaultCreatorBot(bots, configuredName) {
     const list = Array.isArray(bots) ? bots : [];
     if (!list.length) return null;
     if (configuredName) {
       const exact = list.find((b) => b.name.toLowerCase() === configuredName.toLowerCase());
       if (exact) return exact;
     }
-    const hrMatch = list.find((b) =>
+    const creatorMatch = list.find((b) =>
       /creator|hr|recruit|人力|招聘|创建/i.test(`${b.name || ""} ${b.specialty || ""}`)
     );
-    return hrMatch || list[0];
+    return creatorMatch || list.find((b) => b.state === "working") || list[0];
   }
 
   function compressImageToDataUrl(file) {
@@ -53,11 +53,24 @@
     });
   }
 
+  function buildCliOfferCommand({ name, purpose, template, worktree, watches, doesText, reports }) {
+    const q = (s) => JSON.stringify(String(s || "").trim());
+    const parts = ["orca bot create --offer"];
+    if (name) parts.push(`--name ${q(name)}`);
+    if (purpose) parts.push(`--purpose ${q(purpose)}`);
+    if (template) parts.push(`--template ${q(template)}`);
+    if (worktree) parts.push(`--worktree ${q(worktree)}`);
+    if (watches) parts.push(`--watches ${q(watches)}`);
+    if (doesText) parts.push(`--does ${q(doesText)}`);
+    if (reports) parts.push(`--reports ${q(reports)}`);
+    return parts.join(" ");
+  }
+
   function renderHireModal(ctx) {
     const { snapshot, tr, hireBot, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     const bots = snapshot?.bots || [];
-    const defaultHr = detectDefaultHrBot(bots, snapshot?.settings?.hrBotName || "");
+    const defaultBot = detectDefaultCreatorBot(bots, snapshot?.settings?.hrBotName || "");
     const lang = tr.title === "AI 总部大楼" ? "zh" : "en";
 
     const worktreeOpts = [];
@@ -70,9 +83,14 @@
       }
     }
 
-    const botOptionsHtml = bots.length
-      ? bots.map((b) => `<option value="${esc(b.name)}" data-wid="${esc(b.worktreeId || "")}" ${defaultHr && b.id === defaultHr.id ? "selected" : ""}>${esc(b.name)}${b.specialty ? ` — ${esc(b.specialty.slice(0, 26))}` : ""}</option>`).join("")
-      : `<option value="">${esc(tr.hireNoBot)}</option>`;
+    const botSelectSection = bots.length
+      ? `<div class="om-field">
+           <label class="om-lbl">${esc(tr.hireHrLbl)}</label>
+           <select class="om-input" id="hireHrSelect">
+             ${bots.map((b) => `<option value="${esc(b.name)}" data-wid="${esc(b.worktreeId || "")}" ${defaultBot && b.id === defaultBot.id ? "selected" : ""}>${esc(b.name)}${b.specialty ? ` — ${esc(b.specialty.slice(0, 26))}` : ""}</option>`).join("")}
+           </select>
+         </div>`
+      : `<div class="om-zero-tip">${esc(tr.hireNoBot)}</div>`;
 
     root.innerHTML = `
       <div class="card-backdrop" id="cardBackdrop">
@@ -87,10 +105,7 @@
           </div>
 
           <div class="om-form">
-            <div class="om-field">
-              <label class="om-lbl">${esc(tr.hireHrLbl)}</label>
-              <select class="om-input" id="hireHrSelect">${botOptionsHtml}</select>
-            </div>
+            ${botSelectSection}
 
             <div class="om-field">
               <label class="om-lbl">${esc(tr.hireTplLbl)}</label>
@@ -138,8 +153,10 @@
 
           <div class="ic-actions om-actions">
             <button type="button" class="ic-btn secondary" id="icDismissBtn">${esc(tr.btnClose)}</button>
-            <button type="button" class="ic-btn secondary" id="hireDiscussBtn" ${!bots.length ? "disabled" : ""}>💬 ${esc(tr.hireBtnDiscuss)}</button>
-            <button type="button" class="ic-btn om-primary" id="hireOfferBtn" ${!bots.length ? "disabled" : ""}>✨ ${esc(tr.hireBtnOffer)}</button>
+            ${bots.length
+              ? `<button type="button" class="ic-btn secondary" id="hireDiscussBtn">💬 ${esc(tr.hireBtnDiscuss)}</button>
+                 <button type="button" class="ic-btn om-primary" id="hireOfferBtn">✨ ${esc(tr.hireBtnOffer)}</button>`
+              : `<button type="button" class="ic-btn om-primary" id="hireCopyCmdBtn">📋 ${esc(tr.hireCopyCmd)}</button>`}
           </div>
         </div>
       </div>`;
@@ -156,24 +173,40 @@
       });
     });
 
+    const readForm = () => ({
+      name: String(document.getElementById("hireNameInput")?.value || "").trim(),
+      purpose: String(document.getElementById("hirePurposeInput")?.value || "").trim(),
+      template: selectedTpl,
+      worktree: String(document.getElementById("hireWtSelect")?.value || "").trim(),
+      watches: String(document.getElementById("hireWatchesInput")?.value || "").trim(),
+      doesText: String(document.getElementById("hireDoesInput")?.value || "").trim(),
+      reports: String(document.getElementById("hireReportsInput")?.value || "").trim(),
+    });
+
+    document.getElementById("hireCopyCmdBtn")?.addEventListener("click", async () => {
+      const f = readForm();
+      const cmd = buildCliOfferCommand(f);
+      try {
+        await navigator.clipboard.writeText(cmd);
+        showToast(tr.hireCopiedCmd, false);
+      } catch {
+        showToast(cmd, false);
+      }
+    });
+
     const submitHire = async (mode) => {
       const sel = document.getElementById("hireHrSelect");
       const hrBotName = sel?.value || "";
       const hrWorktreeId = sel?.selectedOptions?.[0]?.getAttribute("data-wid") || "";
-      const name = String(document.getElementById("hireNameInput")?.value || "").trim();
-      const purpose = String(document.getElementById("hirePurposeInput")?.value || "").trim();
-      const worktree = String(document.getElementById("hireWtSelect")?.value || "").trim();
-      const watches = String(document.getElementById("hireWatchesInput")?.value || "").trim();
-      const doesText = String(document.getElementById("hireDoesInput")?.value || "").trim();
-      const reports = String(document.getElementById("hireReportsInput")?.value || "").trim();
+      const f = readForm();
 
       if (!hrBotName) { showToast(tr.hireNoBot, true); return; }
-      if (mode === "offer" && !name && !selectedTpl) {
+      if (mode === "offer" && !f.name && !f.template) {
         showToast(tr.hireNeedName, true);
         document.getElementById("hireNameInput")?.focus();
         return;
       }
-      if (!purpose && !selectedTpl) {
+      if (!f.purpose && !f.template) {
         showToast(tr.hireNeedPurpose, true);
         document.getElementById("hirePurposeInput")?.focus();
         return;
@@ -185,7 +218,7 @@
       if (discBtn) discBtn.disabled = true;
 
       try {
-        await hireBot({ hrBotName, hrWorktreeId, mode, name, purpose, template: selectedTpl, worktree, watches, doesText, reports, lang });
+        await hireBot({ hrBotName, hrWorktreeId, mode, ...f, lang });
         showToast(tr.hireSentToast(hrBotName, mode === "offer"), false);
         onClose();
       } catch (err) {
@@ -200,29 +233,32 @@
     document.getElementById("hireNameInput")?.focus();
   }
 
+  const thumbCache = new Map();
+  function getThumb(presetId) {
+    if (thumbCache.has(presetId)) return thumbCache.get(presetId);
+    const url = window.OfficePresets ? window.OfficePresets.renderPresetThumbDataUrl(presetId) : "";
+    thumbCache.set(presetId, url);
+    return url;
+  }
+
   function renderOwnerAvatarModal(ctx) {
     const { snapshot, avatars, tr, saveOwnerAvatar, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
+    const lang = tr.title === "AI 总部大楼" ? "zh" : "en";
     let currentMode = snapshot?.settings?.ownerAvatarMode || "empty";
     let previewUrl = avatars?.__owner__ || "";
 
     const drawCard = () => {
-      const modes = [
-        { id: "empty", icon: "🪑", label: tr.ownerModeEmpty, desc: tr.ownerModeEmptyDesc },
-        { id: "silhouette", icon: "👤", label: tr.ownerModeSil, desc: tr.ownerModeSilDesc },
-        { id: "custom", icon: "🖼️", label: tr.ownerModeCustom, desc: tr.ownerModeCustomDesc },
-      ];
-      const previewEl = currentMode === "custom" && previewUrl
+      const presets = window.OfficePresets ? window.OfficePresets.PRESET_LIST : [];
+      const headPreview = currentMode === "custom" && previewUrl
         ? `<img src="${previewUrl}" alt="" />`
-        : currentMode === "silhouette"
-          ? `<span style="font-size:22px;opacity:0.7">👤</span>`
-          : `<span style="font-size:22px">🪑</span>`;
+        : `<img src="${getThumb(currentMode === "custom" ? "empty" : currentMode)}" alt="" />`;
 
       root.innerHTML = `
         <div class="card-backdrop" id="cardBackdrop">
-          <div class="inspector-card om-card">
+          <div class="inspector-card om-card om-wide">
             <div class="ic-head">
-              <div class="ic-av om-av">${previewEl}</div>
+              <div class="ic-av om-av">${headPreview}</div>
               <div class="ic-title-wrap">
                 <div class="ic-name">${esc(tr.ownerModalTitle)}</div>
                 <div class="ic-meta"><span class="ic-pill">${esc(tr.ownerModalSub)}</span></div>
@@ -230,13 +266,18 @@
               <button class="ic-close" id="icCloseBtn">×</button>
             </div>
 
-            <div class="om-mode-grid">
-              ${modes.map((m) => `
-                <button type="button" class="om-mode-card ${currentMode === m.id ? "active" : ""}" data-owner-mode="${m.id}">
-                  <span class="om-mode-ico">${m.icon}</span>
-                  <span class="om-mode-lbl">${esc(m.label)}</span>
-                  <span class="om-mode-desc">${esc(m.desc)}</span>
-                </button>`).join("")}
+            <div class="om-preset-grid">
+              ${presets.map((p) => {
+                const isCustom = p.id === "custom";
+                const thumb = isCustom
+                  ? (previewUrl ? `<img class="om-p-img" src="${previewUrl}" alt=""/>` : `<span class="om-p-plus">🖼️</span>`)
+                  : `<img class="om-p-img" src="${getThumb(p.id)}" alt=""/>`;
+                return `
+                  <button type="button" class="om-preset-card ${currentMode === p.id ? "active" : ""}" data-owner-mode="${esc(p.id)}">
+                    <span class="om-p-thumb">${thumb}</span>
+                    <span class="om-p-lbl">${esc(p[lang])}</span>
+                  </button>`;
+              }).join("")}
             </div>
 
             <div class="om-upload-box">

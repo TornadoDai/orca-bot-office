@@ -10,6 +10,10 @@
     antigravity: { key: "antigravity", label: "Antigravity", short: "agy", sym: "◈", color: "#38bdf8", light: "#e0f2fe", bg: "#0a2236", border: "rgba(56,189,248,0.72)", coatTop: "#0ea5e9", coatBot: "#0369a1", trim: "#7dd3fc" },
     codex: { key: "codex", label: "Codex", short: "Codex", sym: "⬡", color: "#a78bfa", light: "#ede9fe", bg: "#1e1536", border: "rgba(167,139,250,0.72)", coatTop: "#8b5cf6", coatBot: "#5b21b6", trim: "#c4b5fd" },
     pi: { key: "pi", label: "Pi", short: "Pi", sym: "π", color: "#34d399", light: "#d1fae5", bg: "#0a2921", border: "rgba(52,211,153,0.72)", coatTop: "#10b981", coatBot: "#047857", trim: "#6ee7b7" },
+    gemini: { key: "gemini", label: "Gemini", short: "Gemini", sym: "✧", color: "#60a5fa", light: "#dbeafe", bg: "#0c2040", border: "rgba(96,165,250,0.72)", coatTop: "#3b82f6", coatBot: "#1d4ed8", trim: "#93c5fd" },
+    cursor: { key: "cursor", label: "Cursor", short: "Cursor", sym: "⌘", color: "#2dd4bf", light: "#ccfbf1", bg: "#082b29", border: "rgba(45,212,191,0.72)", coatTop: "#14b8a6", coatBot: "#0f766e", trim: "#5eead4" },
+    copilot: { key: "copilot", label: "Copilot", short: "Copilot", sym: "◎", color: "#818cf8", light: "#e0e7ff", bg: "#191c40", border: "rgba(129,140,248,0.72)", coatTop: "#6366f1", coatBot: "#4338ca", trim: "#a5b4fc" },
+    opencode: { key: "opencode", label: "OpenCode", short: "OpenCode", sym: "◇", color: "#fb923c", light: "#ffedd5", bg: "#2e1808", border: "rgba(251,146,60,0.72)", coatTop: "#f97316", coatBot: "#c2410c", trim: "#fdba74" },
     other: { key: "other", label: "Agent", short: "Agent", sym: "•", color: "#94a3b8", light: "#e2e8f0", bg: "#1e293b", border: "rgba(148,163,184,0.48)", coatTop: "#64748b", coatBot: "#334155", trim: "#cbd5e1" },
   };
 
@@ -34,7 +38,11 @@
 
   function engStyle(raw) {
     const k = String(raw || "").toLowerCase();
-    return ENG_STYLES[k] || ENG_STYLES.other;
+    if (ENG_STYLES[k]) return ENG_STYLES[k];
+    if (k && k !== "unknown" && k !== "other") {
+      return { ...ENG_STYLES.other, key: k, label: raw, short: String(raw).slice(0, 9) };
+    }
+    return ENG_STYLES.other;
   }
 
   function hashStr(s) {
@@ -187,10 +195,9 @@
     roundRect(ctx, rx + 5, ry + 4.5, rugW - 10, rugH - 9, 3.5);
     ctx.strokeStyle = "rgba(245, 208, 138, 0.32)"; ctx.lineWidth = 0.9; ctx.stroke();
 
-    // 3) Upper-left corner: tall indoor monstera plant + cozy waiting armchair & brass side table
+    // 3) Upper-left corner: tall indoor monstera plant (leaves room right next to it for the interactive Recruiting Front Desk!)
     if (W >= 420) {
-      // Ceramic planter & leafy indoor tree (far left)
-      const px = 30, py = wallH + 16;
+      const px = 28, py = wallH + 16;
       ctx.fillStyle = "rgba(0,0,0,0.32)";
       ctx.beginPath(); ctx.ellipse(px, py + 12, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
       const potG = ctx.createLinearGradient(px - 8, py - 2, px + 8, py + 12);
@@ -211,33 +218,6 @@
         ctx.fillStyle = col; ctx.strokeStyle = "#163b2a"; ctx.lineWidth = 0.9;
         ctx.beginPath(); ctx.ellipse(px + dx, py + dy, lr1, lr2, rot, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
-
-      // Cozy caramel-leather lounge waiting chair + mini brass side table
-      const ax = 76, ay = wallH + 18;
-      ctx.fillStyle = "rgba(0,0,0,0.3)";
-      ctx.beginPath(); ctx.ellipse(ax, ay + 12, 20, 5.5, 0, 0, Math.PI * 2); ctx.fill();
-      const chBack = ctx.createLinearGradient(0, ay - 14, 0, ay + 6);
-      chBack.addColorStop(0, "#b46238"); chBack.addColorStop(1, "#72361a");
-      roundRect(ctx, ax - 15, ay - 14, 30, 18, 6);
-      ctx.fillStyle = chBack; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
-      roundRect(ctx, ax - 13, ay + 1, 26, 9, 3.5);
-      ctx.fillStyle = "#c97445"; ctx.fill(); ctx.stroke();
-      roundRect(ctx, ax - 18, ay - 6, 6, 15, 2.5); ctx.fillStyle = chBack; ctx.fill(); ctx.stroke();
-      roundRect(ctx, ax + 12, ay - 6, 6, 15, 2.5); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#3b2314";
-      ctx.fillRect(ax - 14, ay + 9, 3, 4); ctx.fillRect(ax + 11, ay + 9, 3, 4);
-
-      // Small round walnut & brass coffee table with teacup
-      const tx = 114, ty = wallH + 22;
-      ctx.fillStyle = "rgba(0,0,0,0.26)";
-      ctx.beginPath(); ctx.ellipse(tx, ty + 7, 11, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#b58b4c"; ctx.fillRect(tx - 1.2, ty - 2, 2.4, 9);
-      ctx.beginPath(); ctx.ellipse(tx, ty - 3, 11, 4.5, 0, 0, Math.PI * 2);
-      ctx.fillStyle = "#8c5b34"; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
-      // White teacup on saucer
-      ctx.fillStyle = "#f8fafc";
-      roundRect(ctx, tx - 3, ty - 7.5, 5.5, 4.2, 1.2); ctx.fill();
-      ctx.strokeStyle = INK; ctx.lineWidth = 0.7; ctx.stroke();
     }
 
     // 4) Upper-right executive walnut credenza with glowing ambient lamp & brass trophy (left of elevator plant)
