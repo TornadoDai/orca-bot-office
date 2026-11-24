@@ -1,6 +1,6 @@
 # Bot Office — Orca Plugin
 
-An ultra-lightweight **2.5D Isometric AI HQ & Grouped Workbench** for Orca's right sidebar. Track every Bot team, their Worker robots, gliding mail dispatches, stall alerts, and native **Needs-You** decisions with near-zero GPU/CPU overhead.
+An ultra-lightweight **2.5D Side-Scrolling Stacked AI HQ & Grouped Workbench** for Orca's right sidebar. Bots needing your decision ride upstairs to queue in the **Penthouse Boss Office**, while every team gets its own spacious horizontal floor with unmistakable agent engine badges (`Claude`, `agy`, `Codex`, `Pi`), sleek luminous message streams, and near-zero GPU/CPU overhead.
 
 [中文说明](#中文说明)
 
@@ -8,11 +8,11 @@ An ultra-lightweight **2.5D Isometric AI HQ & Grouped Workbench** for Orca's rig
 
 ## Features
 
-- **True 2.5D Isometric `<canvas>` Office**: Architectural cutaway diorama with distinct glass-partitioned **Team Studio Pods**, executive desks, multi-row Worker bays (auto-expanding with zero truncation), panoramic night-city windows, and a cozy **Open Workspace & Coffee Lounge** (with velvet sofas, espresso bar, and an office cat).
-- **Live Mail Envelopes (`✉️`)**: Crisp miniature envelopes glide smoothly between Lead Bots and active Workers (and across teams during handoffs) to visualize real task dispatches and alerts — zero messy wires.
-- **Synced 1:1 with Orca Native `Needs you` Items**: Red dots strictly track real non-snoozed Bot `Needs you` decisions and Worker approval blockers. Click a **red dot** to jump straight to that Bot; click a character for a crisp preview card with `★` recommended options, PR/Issue links, and recent activity timeline.
-- **Built for Daily Speed**: Search & engine filters (`Claude`, `Antigravity`, `Codex`, `Pi`), running duration & **>10m no-progress stall alerts**, auto-collapse for stale `24h+` idle Workers, wheel zoom / drag pan, hover team highlighting, and an **Office | List** grouped workbench toggle.
-- **Ultra-Lightweight Architecture**: Zero `backdrop-filter` blur passes, zero infinite 60 FPS CSS animations, offscreen static canvas caching, adaptive 0–10 FPS tick (auto-pauses when hidden), and hash-diffed event-driven worker polling.
+- **2.5D Side-Scrolling Stacked Floors (`<canvas>`)**: Full-width oblique rooms (classic beat-'em-up / DNF depth perspective) with zero wasted corners — straight back walls, night-city skyline windows, elevator doors, perspective floors, glass-partitioned **Team Floors**, and a cozy **Open Workspace & Coffee Lounge** on `1F`.
+- **Penthouse Boss Office (`TOP`) with Decision Queue**: Any Bot or Worker synced with Orca's native `Needs you` items (or terminal approval blockers) leaves its desk and queues neatly in front of the Boss Desk holding a report clipboard. Click its soft-rose badge to jump straight to that Bot in Orca, or click the character for a clean preview card.
+- **Unmistakable Agent Engine Identity**: Every Bot and Worker displays a color-coded engine emblem badge (`✦ Claude`, `◈ agy`, `⬡ Codex`, `π Pi`) alongside matching uniform, desk trim, and robot visor accents.
+- **Sleek Luminous Message Streams**: Minimalist glowing paper-dart packets with fading light trails glide smoothly between Lead Bots and active Workers — clean, airy, and readable.
+- **Ultra-Lightweight Architecture**: Zero `backdrop-filter` blur passes, zero infinite CSS animations, offscreen static floor background cache, 0 FPS on idle floors / ≤6 FPS only on active floors (auto-pauses when hidden), and hash-diffed event-driven worker updates.
 
 ## Install
 
@@ -36,12 +36,13 @@ Or in Orca: **Settings → Plugins → Install from Git** with `https://github.c
 
 ## 中文说明
 
-挂在 Orca 右侧栏的**超轻量 2.5D 等距立体「AI 总部大楼」+ 分组工作台插件（Bot 工位）**。
+挂在 Orca 右侧栏的**超轻量 2.5D 横版平面分层「AI 总部大楼」+ 分组工作台插件（Bot 工位）**。
 
-- **真 2.5D 等距立体 `<canvas>` 办公室**：每个带 Worker 的 Bot 拥有独立配色与玻璃隔断的团队工区（支持 Worker 数量无上限自动扩排、超过 24 小时旧闲置自动折叠），单兵 Bot 自动入驻咖啡茶水间与开放工区（带沙发、咖啡吧台和办公室小猫）。
-- **信件传递可视化（✉️）**：主管与活跃 Worker 之间、或跨 Bot 交接时，小信封沿立体空间平滑飞递（蓝=派活 / 绿=回报 / 红=紧急审批），干净直观、无杂乱线条。
-- **红点严格对齐原生 `Needs you` 决策事件**：点红点一步直跳对应 Bot 原生界面直接选；单击角色看完整决策摘要、PR/Issue 链接、最近多条动态与运行耗时（超过 10 分钟无新进展自动标黄预警）。
-- **极度轻量**：零 `backdrop-filter` 模糊、零 60 FPS 死循环 CSS 动画、静态建筑离屏缓存 + 静止时 0 FPS / 活跃时 ≤10 FPS + 后台哈希去重与事件驱动刷新。
+- **横版 2.5D 平面分层（DNF 透视视角）**：告别拥挤的菱形等距斜角，每一层铺满侧栏宽度——直墙 + 夜景落地窗 + 右侧电梯间 + 纵深地板；每个带 Worker 的 Bot 独享一整层（多排自动扩展不挤压），单兵 Bot 入驻 1F 开放工区与咖啡茶水间。
+- **顶层「👑 老板房」排队汇报**：凡是有原生 `Needs you` 待决策事件或终端等待审批的 Bot / Worker，会自动离开工位上楼，在老板桌前的红毯上举着汇报板整齐排队；轻点柔和珊瑚红标一步直跳对应 Bot 原生界面决策，点击角色查看完整摘要与推荐项。
+- **底层代理一眼分辨**：所有 Bot、Worker 工位与列表均挂载高辨识度配色代理徽章（`✦ Claude` 琥珀、`◈ agy` 天蓝、`⬡ Codex` 紫罗兰、`π Pi` 翠绿），同步映射至服装、工位灯带与机器人面罩配色。
+- **轻量流光消息传递 & 柔和提醒**：用极简流光纸箭 + 渐隐光点轨迹替代厚重信封；全界面改用柔和珊瑚粉/玫瑰红提醒，醒目不刺眼。
+- **极度轻量低占用**：零 `backdrop-filter`、零 60 FPS CSS 动画、静态背景离屏缓存 + 静止楼层 0 FPS / 活跃楼层 ≤6 FPS + 后台哈希去重。
 
 ### 安装方式
 

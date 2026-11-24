@@ -4,15 +4,15 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.3.0",
-  "description": "Ultra-lightweight 2.5D isometric AI HQ & grouped workbench in Orca's right sidebar: watch Bot teams, Worker robots, live mail dispatches, and native Needs-You decisions with near-zero GPU/CPU overhead.",
+  "version": "0.4.0",
+  "description": "Ultra-lightweight 2.5D stacked AI HQ & Boss Office queue in Orca: watch Bots queue upstairs to report decisions, prominent engine badges, sleek message trails.",
   "license": "MIT",
   "icon": "assets/icon.png",
   "screenshots": [
     {
       "path": "assets/screenshot.png",
-      "alt": "Bot Office 2.5D isometric headquarters showing team pods, Lead Bots, Worker robots, gliding mail envelopes, and a Needs-You decision preview card",
-      "caption": "2.5D isometric team pods with live mail packets, stall alerts, and one-click jump to native Needs-You decisions"
+      "alt": "Bot Office 2.5D stacked headquarters with top Boss Office report queue, team floors, agent engine badges, message trails, and decision preview card",
+      "caption": "2.5D stacked floors with a top Boss Office queue, Claude/agy/Codex/Pi badges, and low GPU overhead"
     }
   ],
   "engines": {
