@@ -1,16 +1,17 @@
 /**
- * DNF-Style 2.5D Oblique Stacked Office Tower Engine
- * - Authentic multi-floor high-rise office cutaway (Decision & Report Queue, Team Studios, 1F Lounge)
- * - Static architectural background cached offscreen per floor
- * - 0 FPS on idle floors, ~3.5 FPS setInterval only on active floors (zero 60Hz rAF wakeups)
+ * DNF-Style 2.5D Illustrated Office Tower Engine
+ * - Clean Queue-Only Top Floor (决策汇报区 — NO unused desk, full width for queueing Bots/Colleagues!)
+ * - Painted 2-slice high-rise office plates cached once into offscreen bgCanvas
+ * - 0 FPS on idle floors, ~3.5 FPS setInterval only on active floors
  */
 (function () {
   const {
-    FLOOR_THEMES, engStyle, hashStr, roundRect, fmtDur, isStalled,
-    drawBuildingShell, drawBuildingColumns, drawCeilingLightBar, drawWoodSlats,
-    drawCurtainWallWindow, drawOfficeFloor, drawElevatorLobby, drawOfficeProp,
-    drawPottedPlant, drawNameAndEngine, drawBotHead, drawBotUpperBody,
-    drawSeatedDeskStation, drawStandingQueueActor, drawDecisionDesk, drawMessageStream,
+    TEAM_TINTS, hashStr, roundRect, fmtDur, isStalled,
+    drawTwoSliceBackdrop, drawGlassPartitionOverlay, drawFloorElevatorBadge,
+  } = window.OfficeArch;
+
+  const {
+    drawSeatedDeskStation, drawStandingQueueActor, drawLoungeSofaGroup, drawMessageStream,
   } = window.OfficeSprites;
 
   class FloorScene {
@@ -93,36 +94,37 @@
       const sp = this.spec;
 
       if (sp.kind === "decision") {
-        this.wallH = 72;
+        this.wallH = 104;
         const q = sp.queue || [];
         if (q.length === 0) {
-          this.H = 152;
+          this.H = 158;
           this.needsAnimation = false;
         } else {
-          const availW = Math.max(180, this.W - 216);
-          this.queuePerRow = Math.max(2, Math.min(4, Math.floor(availW / 112)));
+          const availW = Math.max(240, this.W - 76);
+          this.queuePerRow = Math.max(2, Math.min(5, Math.floor(availW / 124)));
           const rows = Math.ceil(q.length / this.queuePerRow);
-          this.H = 126 + rows * 102;
+          this.H = 128 + rows * 98;
           this.needsAnimation = true;
         }
       } else if (sp.kind === "team") {
-        this.wallH = 74;
+        this.wallH = 114;
         const workers = sp.visibleWorkers || [];
-        const bayW = Math.max(170, this.W - 232);
-        this.teamPerRow = Math.max(2, Math.min(3, Math.floor(bayW / 130)));
+        const bayStart = Math.round(this.W * 0.29);
+        const bayW = Math.max(170, this.W - bayStart - 20);
+        this.teamPerRow = Math.max(2, Math.min(3, Math.floor(bayW / 132)));
         const rows = Math.max(1, Math.ceil(workers.length / this.teamPerRow));
-        this.H = 112 + rows * 104;
+        this.H = 132 + rows * 102;
         this.needsAnimation =
           sp.bot.state === "working" ||
           workers.some((w) => w.state === "working" || w.needsDecision);
       } else {
-        this.wallH = 74;
+        this.wallH = 114;
         const active = sp.activeSolos || [];
         const idle = sp.idleSolos || [];
         const leftRows = Math.max(1, Math.ceil(active.length / 2));
         const rightRows = Math.max(1, Math.ceil(idle.length / 3));
         const rows = Math.max(leftRows, rightRows);
-        this.H = 112 + rows * 104;
+        this.H = 132 + rows * 102;
         this.needsAnimation = active.length > 0;
       }
 
@@ -146,153 +148,25 @@
 
     _bakeDecisionBg(ctx) {
       const { W, H, wallH } = this;
-      drawBuildingShell(ctx, W, wallH, H, "#282e3d", "#343c4f");
-
-      // Warm oak acoustic wood-slat accent wall behind the Decision Desk
-      drawWoodSlats(ctx, 14, 12, 134, wallH - 16);
-
-      // Tall floor-to-ceiling panoramic glass curtain wall overlooking high-rise skyline
-      const winX = 162;
-      const winW = Math.min(280, Math.max(140, W - 260));
-      drawCurtainWallWindow(ctx, winX, 13, winW, wallH - 19, 3);
-
-      // Office wall clock beside curtain wall
-      if (winX + winW + 24 < W - 76) {
-        drawOfficeProp(ctx, winX + winW + 20, wallH, "clock", "#38bdf8");
-      }
-
-      // Recessed architectural ceiling LED panels
-      drawCeilingLightBar(ctx, 82, wallH, 52, true);
-      drawCeilingLightBar(ctx, Math.round(W * 0.56), wallH, 68, false);
-      drawElevatorLobby(ctx, W - 52, wallH, "TOP", false, this.spec.lang);
-
-      // Warm oak studio office floor
-      drawOfficeFloor(ctx, W, wallH, H, "#272322", "#322c2a", true);
-
-      // Clean architectural waiting-queue carpet runner from elevator to Decision Desk
-      const carpY = wallH + 16;
-      const carpH = Math.max(40, H - wallH - 32);
-      roundRect(ctx, 148, carpY, W - 208, carpH, 6);
-      ctx.fillStyle = "rgba(71, 85, 105, 0.28)"; ctx.fill();
-      ctx.strokeStyle = "rgba(148, 163, 184, 0.32)"; ctx.lineWidth = 1.2; ctx.stroke();
-
-      // Subtle floor queue directional chevrons pointing left toward Decision Desk
-      ctx.strokeStyle = "rgba(251, 113, 133, 0.25)";
-      ctx.lineWidth = 1.4;
-      for (let qx = 200; qx < W - 96; qx += 92) {
-        const qy = carpY + carpH / 2;
-        ctx.beginPath(); ctx.moveTo(qx + 4, qy - 5); ctx.lineTo(qx - 2, qy); ctx.lineTo(qx + 4, qy + 5); ctx.stroke();
-      }
-
-      drawPottedPlant(ctx, W - 66, wallH + 14, 0.95);
-      drawBuildingColumns(ctx, W, H);
+      drawTwoSliceBackdrop(ctx, this.shared.getBgPlate("queue"), W, wallH, H, 0.62, "#2d323e", "#382c25");
+      drawFloorElevatorBadge(ctx, W, wallH, "TOP", false, this.spec.lang);
     }
 
     _bakeTeamBg(ctx) {
       const { W, H, wallH } = this;
-      const theme = FLOOR_THEMES[hashStr(this.spec.bot.name || this.spec.bot.id) % FLOOR_THEMES.length];
-      drawBuildingShell(ctx, W, wallH, H, theme.wallTop, theme.wallBot);
+      const tint = TEAM_TINTS[hashStr(this.spec.bot.name || this.spec.bot.id) % TEAM_TINTS.length];
+      drawTwoSliceBackdrop(ctx, this.shared.getBgPlate("studio"), W, wallH, H, 0.56, "#293242", "#262d3a");
 
-      // Lead Bot corner office: warm wood-slat accent strip + tall glass curtain wall
-      drawWoodSlats(ctx, 14, 13, 28, wallH - 18);
-      drawCurtainWallWindow(ctx, 46, 13, 106, wallH - 19, hashStr(this.spec.bot.name || "a") % 5);
-
-      // Open Worker bay: wide high-rise glass curtain wall + authentic office props
-      const bayWinW = Math.min(168, Math.max(92, W - 388));
-      drawCurtainWallWindow(ctx, 188, 13, bayWinW, wallH - 19, (hashStr(this.spec.bot.id || "b") + 2) % 6);
-
-      // Real office props along back wall (whiteboard / water cooler / filing cabinet+printer / bookshelf)
-      let propX = 188 + bayWinW + 18;
-      if (propX + 68 < W - 64) {
-        drawOfficeProp(ctx, propX, wallH, theme.props[0], theme.accent);
-        propX += theme.props[0] === "whiteboard" ? 74 : (theme.props[0] === "bookshelf" ? 52 : 44);
-      }
-      if (propX + 26 < W - 60) {
-        drawOfficeProp(ctx, propX, wallH, theme.props[1], theme.accent);
-      }
-
-      // Recessed LED ceiling light bars
-      drawCeilingLightBar(ctx, 88, wallH, 52, true);
-      drawCeilingLightBar(ctx, Math.round((190 + W - 60) / 2), wallH, 74, false);
-
-      // Right-side Elevator Lobby with actual floor number
-      drawElevatorLobby(ctx, W - 52, wallH, this.spec.floorLabel || "2F", (this.spec.crossHandoffs || []).length > 0, this.spec.lang);
-
-      // Modern office carpet-tile perspective floor
-      drawOfficeFloor(ctx, W, wallH, H, theme.floorA, theme.floorB, false);
-
-      // Lead Bot Office Rug
-      roundRect(ctx, 16, wallH + 12, 146, H - wallH - 22, 8);
-      ctx.fillStyle = theme.rug; ctx.fill();
-      ctx.strokeStyle = theme.accent; ctx.globalAlpha = 0.25; ctx.lineWidth = 1; ctx.stroke();
-      ctx.globalAlpha = 1;
-
-      // Architectural Aluminum-Framed Glass Partition + Frosted Privacy Stripe + Door Handle
-      const px = 171;
-      ctx.fillStyle = "rgba(186, 230, 253, 0.12)";
-      ctx.fillRect(px, 12, 6, H - 18);
-      ctx.strokeStyle = "#64748b"; ctx.lineWidth = 1.4;
-      ctx.strokeRect(px, 12, 6, H - 18);
-      // Frosted office glass mid-band
-      ctx.fillStyle = "rgba(226, 232, 240, 0.22)";
-      ctx.fillRect(px + 1, wallH - 24, 4, 16);
-      // Steel door handle
-      ctx.fillStyle = "#e2e8f0";
-      ctx.fillRect(px + 2, wallH + 4, 2, 12);
-
-      drawPottedPlant(ctx, px - 14, wallH + 14, 0.85);
-      drawBuildingColumns(ctx, W, H);
+      // Super subtle floor mood tint (keeps painted office glass partition, whiteboard & plants 100% crisp!)
+      ctx.fillStyle = tint.tint;
+      ctx.fillRect(0, 0, W, H);
+      drawFloorElevatorBadge(ctx, W, wallH, this.spec.floorLabel || "2F", (this.spec.crossHandoffs || []).length > 0, this.spec.lang);
     }
 
     _bakeLoungeBg(ctx) {
       const { W, H, wallH } = this;
-      drawBuildingShell(ctx, W, wallH, H, "#2e2724", "#3d332e");
-
-      // Tall curtain wall window on left hot-desk side
-      drawCurtainWallWindow(ctx, 18, 13, 126, wallH - 19, 4);
-      drawOfficeProp(ctx, 156, wallH, "bookshelf", "#fbbf24");
-
-      // Pantry & Espresso Bar on right wall
-      const barX = Math.max(220, W - 194);
-      drawWoodSlats(ctx, barX - 4, 13, 128, wallH - 18);
-      roundRect(ctx, barX + 34, 15, 48, 15, 4);
-      ctx.fillStyle = "#1c120d"; ctx.fill();
-      ctx.strokeStyle = "rgba(251, 191, 36, 0.65)"; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = "#fde68a";
-      ctx.font = "800 9px -apple-system, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("CAFÉ", barX + 58, 25.5);
-
-      // Bar counter + espresso machine + stacked ceramic mugs
-      roundRect(ctx, barX, wallH - 22, 120, 24, 2);
-      ctx.fillStyle = "#6e472b"; ctx.fill();
-      ctx.fillStyle = "#a6754b"; ctx.fillRect(barX - 2, wallH - 24, 124, 5);
-      roundRect(ctx, barX + 12, wallH - 41, 28, 18, 2);
-      ctx.fillStyle = "#e2e8f0"; ctx.fill();
-      ctx.fillStyle = "#1e293b"; ctx.fillRect(barX + 16, wallH - 34, 20, 9);
-      ctx.fillStyle = "#f59e0b"; ctx.fillRect(barX + 34, wallH - 38, 3, 2);
-      ctx.fillStyle = "#fef3c7";
-      ctx.fillRect(barX + 52, wallH - 30, 6, 6);
-      ctx.fillRect(barX + 61, wallH - 30, 6, 6);
-      ctx.fillRect(barX + 70, wallH - 30, 6, 6);
-      // Office water cooler next to café bar
-      if (barX - 30 > 204) drawOfficeProp(ctx, barX - 28, wallH, "cooler", "#38bdf8");
-
-      drawCeilingLightBar(ctx, 84, wallH, 52, true);
-      drawCeilingLightBar(ctx, barX + 58, wallH, 62, true);
-      drawElevatorLobby(ctx, W - 52, wallH, "1F", (this.spec.crossHandoffs || []).length > 0, this.spec.lang);
-
-      // Warm oak flooring
-      drawOfficeFloor(ctx, W, wallH, H, "#29221d", "#342b24", true);
-
-      // Cozy lounge rug on right half
-      const splitX = Math.round(W * 0.44);
-      roundRect(ctx, splitX, wallH + 14, W - splitX - 60, H - wallH - 24, 9);
-      ctx.fillStyle = "rgba(180, 83, 9, 0.16)"; ctx.fill();
-      ctx.strokeStyle = "rgba(251, 191, 36, 0.25)"; ctx.lineWidth = 1; ctx.stroke();
-
-      drawPottedPlant(ctx, splitX - 10, wallH + 14, 0.9);
-      drawBuildingColumns(ctx, W, H);
+      drawTwoSliceBackdrop(ctx, this.shared.getBgPlate("lounge"), W, wallH, H, 0.56, "#362b24", "#3d2f24");
+      drawFloorElevatorBadge(ctx, W, wallH, "1F", (this.spec.crossHandoffs || []).length > 0, this.spec.lang);
     }
 
     drawDynamic() {
@@ -312,43 +186,44 @@
       const queue = this.spec.queue || [];
       const lang = this.spec.lang;
 
-      const deskFootY = queue.length === 0 ? H - 22 : wallH + 84;
-      drawDecisionDesk(ctx, 20, deskFootY, lang, this.phase);
-
       if (queue.length === 0) {
-        const msg = lang === "zh" ? "☕ 当前无人排队汇报 · 各团队自主推进中" : "☕ Queue clear · All teams running autonomously";
+        const msg = lang === "zh" ? "☕ 暂无排队汇报 · 各团队自主推进中" : "☕ Queue clear · All teams running autonomously";
         ctx.font = "600 11px -apple-system, 'PingFang SC', sans-serif";
-        const tw = ctx.measureText(msg).width + 24;
-        const cx = Math.round((154 + W - 60) / 2);
+        const tw = ctx.measureText(msg).width + 26;
+        const cx = Math.round(W / 2);
         const cy = Math.round((wallH + H) / 2);
         roundRect(ctx, cx - tw / 2, cy - 14, tw, 28, 999);
-        ctx.fillStyle = "rgba(15, 23, 42, 0.68)"; ctx.fill();
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.3)"; ctx.lineWidth = 1; ctx.stroke();
-        ctx.fillStyle = "#e2e8f0"; ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(13, 18, 30, 0.82)"; ctx.fill();
+        ctx.strokeStyle = "rgba(226, 232, 240, 0.25)"; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = "#f1f5f9"; ctx.textAlign = "center";
         ctx.fillText(msg, cx, cy + 4);
         return;
       }
 
-      const perRow = this.queuePerRow || 3;
-      const startX = 194;
-      const usableW = Math.max(180, W - 262);
-      const stepX = Math.min(126, usableW / Math.max(1, Math.min(queue.length, perRow)));
+      // Full-width clean queue (NO decision desk!) — neatly lined up from left to right
+      const perRow = this.queuePerRow || 4;
+      const padLeft = 28;
+      const usableW = Math.max(240, W - 82);
+      const cols = Math.min(queue.length, perRow);
+      const stepX = Math.min(138, usableW / Math.max(1, cols));
 
       queue.forEach((entry, i) => {
         const row = Math.floor(i / perRow);
         const col = i % perRow;
-        const cx = startX + col * stepX + 38;
-        const footY = wallH + 92 + row * 102 + (col % 2 === 1 ? 3 : 0);
-        const nodeId = entry.kind === "bot" ? `decq:bot:${entry.bot.id}` : `decq:worker:${entry.worker.worktreeId}`;
-        const avImg = entry.kind === "bot" ? this.shared.getAvatarImg(entry.bot.id, entry.bot.name) : null;
+        const cx = padLeft + col * stepX + Math.min(62, stepX / 2);
+        const footY = wallH + 74 + row * 98 + (col % 2 === 1 ? 3 : 0);
+        const isBot = entry.kind === "bot";
+        const nodeId = isBot ? `decq:bot:${entry.bot.id}` : `decq:worker:${entry.worker.worktreeId}`;
+        const avImg = isBot ? this.shared.getAvatarImg(entry.bot.id, entry.bot.name) : null;
 
         const dotHit = drawStandingQueueActor(ctx, {
           cx,
           footY,
-          isBot: entry.kind === "bot",
-          eng: entry.kind === "bot" ? entry.bot.agent : entry.worker.agentType,
+          isBot,
+          eng: isBot ? entry.bot.agent : entry.worker.agentType,
           avatarImg: avImg,
-          name: entry.kind === "bot" ? entry.bot.name : entry.worker.displayName,
+          name: isBot ? entry.bot.name : entry.worker.displayName,
+          seedKey: isBot ? entry.bot.id : entry.worker.worktreeId,
           snippet: entry.snippet,
           count: entry.count || 1,
           phase: this.phase + i * 0.7,
@@ -361,7 +236,7 @@
           bot: entry.bot,
           worker: entry.worker,
           dotHit,
-          box: { x: cx - 46, y: footY - 82, w: 92, h: 118 },
+          box: { x: cx - 50, y: footY - 82, w: 100, h: 120 },
         });
       });
     }
@@ -373,8 +248,8 @@
       const lang = this.spec.lang;
       const now = Date.now();
 
-      const leadX = 90;
-      const leadY = wallH + 66;
+      const leadX = Math.max(82, Math.round(W * 0.155));
+      const leadY = wallH + 62;
       const leadId = `team:bot:${b.id}`;
       const bStall = isStalled(b);
       const bDur = b.state === "working" && b.stateStartedAt ? `${bStall ? "⚠ " : ""}${fmtDur(now - b.stateStartedAt)}` : "";
@@ -388,6 +263,7 @@
         eng: b.agent,
         avatarImg: this.shared.getAvatarImg(b.id, b.name),
         name: b.name,
+        seedKey: b.id,
         phase: this.phase,
         hovered: this.hoveredId === leadId,
         lang,
@@ -399,20 +275,23 @@
         kind: "bot",
         bot: b,
         dotHit: null,
-        box: { x: leadX - 56, y: leadY - 68, w: 112, h: 108 },
+        box: { x: leadX - 58, y: leadY - 68, w: 116, h: 108 },
       });
 
       const perRow = this.teamPerRow || 3;
-      const bayStartX = 192;
-      const bayW = Math.max(160, W - 254);
+      const bayStartX = Math.max(176, Math.round(W * 0.29));
+      const bayW = Math.max(160, W - bayStartX - 24);
       const workerCoords = [];
 
       if (workers.length === 0) {
-        const txt = lang === "zh" ? "当前无活跃 Worker（闲置已收起或待派发）" : "No active Workers in bay";
-        ctx.fillStyle = "rgba(203, 213, 225, 0.55)";
+        const txt = lang === "zh" ? "当前无活跃成员（闲置已收起或待派发）" : "No active teammates in bay";
         ctx.font = "600 11px -apple-system, 'PingFang SC', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(txt, bayStartX + bayW / 2, wallH + 66);
+        const tw = ctx.measureText(txt).width + 20;
+        const cx = bayStartX + bayW / 2;
+        roundRect(ctx, cx - tw / 2, wallH + 54, tw, 24, 999);
+        ctx.fillStyle = "rgba(13, 18, 30, 0.72)"; ctx.fill();
+        ctx.fillStyle = "rgba(226, 232, 240, 0.75)"; ctx.textAlign = "center";
+        ctx.fillText(txt, cx, wallH + 69.5);
       } else {
         workers.forEach((w, idx) => {
           const row = Math.floor(idx / perRow);
@@ -420,7 +299,7 @@
           const gridCols = Math.min(perRow, workers.length);
           const cellW = bayW / Math.max(gridCols, 1);
           const wx = bayStartX + cellW * col + cellW / 2;
-          const wy = wallH + 66 + row * 104;
+          const wy = wallH + 62 + row * 102;
           const wId = `team:worker:${w.worktreeId}`;
           const wStall = isStalled(w);
           const wDur = w.state === "working" && w.stateStartedAt ? `${wStall ? "⚠ " : ""}${fmtDur(now - w.stateStartedAt)}` : "";
@@ -435,6 +314,7 @@
             eng: w.agentType,
             avatarImg: null,
             name: w.displayName,
+            seedKey: w.worktreeId || w.displayName,
             phase: this.phase + idx * 0.9,
             hovered: this.hoveredId === wId,
             lang,
@@ -448,7 +328,7 @@
             worker: w,
             bot: b,
             dotHit: null,
-            box: { x: wx - 48, y: wy - 66, w: 96, h: 106 },
+            box: { x: wx - 50, y: wy - 66, w: 100, h: 106 },
           });
         });
       }
@@ -457,9 +337,9 @@
         if (w.state !== "working" || w.needsDecision) return;
         const cycle = (this.phase * 0.22 + idx * 0.37) % 2;
         if (cycle < 1) {
-          drawMessageStream(ctx, leadX + 46, leadY - 24, x - 38, y, cycle, "dispatch");
+          drawMessageStream(ctx, leadX + 48, leadY - 24, x - 40, y, cycle, "dispatch");
         } else {
-          drawMessageStream(ctx, x - 38, y, leadX + 46, leadY - 24, cycle - 1, "reply");
+          drawMessageStream(ctx, x - 40, y, leadX + 48, leadY - 24, cycle - 1, "reply");
         }
       });
     }
@@ -474,10 +354,12 @@
 
       if (active.length === 0) {
         const txt = lang === "zh" ? "开放工位空闲中" : "Hot desks open";
-        ctx.fillStyle = "rgba(203, 213, 225, 0.5)";
         ctx.font = "600 10.5px -apple-system, 'PingFang SC', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(txt, splitX / 2, wallH + 66);
+        const tw = ctx.measureText(txt).width + 18;
+        roundRect(ctx, splitX / 2 - tw / 2, wallH + 54, tw, 22, 999);
+        ctx.fillStyle = "rgba(13, 18, 30, 0.72)"; ctx.fill();
+        ctx.fillStyle = "rgba(226, 232, 240, 0.72)"; ctx.textAlign = "center";
+        ctx.fillText(txt, splitX / 2, wallH + 68.5);
       } else {
         active.forEach((b, i) => {
           const row = Math.floor(i / 2);
@@ -485,7 +367,7 @@
           const cols = Math.min(2, active.length - row * 2);
           const cellW = (splitX - 24) / cols;
           const bx = 14 + cellW * col + cellW / 2;
-          const by = wallH + 66 + row * 104;
+          const by = wallH + 62 + row * 102;
           const nodeId = `lounge:bot:${b.id}`;
           const bStall = isStalled(b);
           const bDur = b.state === "working" && b.stateStartedAt ? `${bStall ? "⚠ " : ""}${fmtDur(now - b.stateStartedAt)}` : "";
@@ -500,78 +382,39 @@
             eng: b.agent,
             avatarImg: this.shared.getAvatarImg(b.id, b.name),
             name: b.name,
+            seedKey: b.id,
             phase: this.phase + i * 0.6,
             hovered: this.hoveredId === nodeId,
             lang,
             durText: bDur,
           });
           this.hitNodes.push({
-            id: nodeId,
-            kind: "bot",
-            bot: b,
-            dotHit: null,
-            box: { x: bx - 52, y: by - 66, w: 104, h: 106 },
+            id: nodeId, kind: "bot", bot: b, dotHit: null,
+            box: { x: bx - 54, y: by - 66, w: 108, h: 106 },
           });
         });
       }
 
-      const rightStart = splitX + 14;
-      const rightW = Math.max(140, W - rightStart - 62);
+      const rightStart = splitX + 12;
+      const rightW = Math.max(140, W - rightStart - 54);
       const sofaRows = Math.max(1, Math.ceil(idle.length / 3));
 
       for (let r = 0; r < sofaRows; r++) {
-        const sy = wallH + 56 + r * 104;
+        const sy = wallH + 54 + r * 102;
         const rowBots = idle.slice(r * 3, r * 3 + 3);
-        const sw = Math.min(rightW - 10, Math.max(136, rowBots.length * 96 + 28));
+        const sw = Math.min(rightW - 10, Math.max(140, rowBots.length * 98 + 28));
         const sx = rightStart + (rightW - sw) / 2;
-
-        ctx.fillStyle = "rgba(0,0,0,0.34)";
-        ctx.beginPath(); ctx.ellipse(sx + sw / 2, sy + 14, sw * 0.52, 7.5, 0, 0, Math.PI * 2); ctx.fill();
-        roundRect(ctx, sx, sy - 26, sw, 28, 8);
-        ctx.fillStyle = "#7c3a21"; ctx.fill();
-        ctx.strokeStyle = "rgba(251, 191, 36, 0.28)"; ctx.lineWidth = 1.1; ctx.stroke();
-
-        const step = sw / Math.max(rowBots.length, 1);
-        rowBots.forEach((b, ci) => {
-          const bx = sx + step * ci + step / 2;
-          const es = engStyle(b.agent);
-          const nodeId = `lounge:idle:${b.id}`;
-          const hov = this.hoveredId === nodeId;
-          const hy = drawBotUpperBody(ctx, bx, sy + 2, es, false, 0);
-          drawBotHead(ctx, bx, hy, 14.5, this.shared.getAvatarImg(b.id, b.name), b.name, hov ? "#7dd3fc" : es.color);
-          ctx.fillStyle = "#fef3c7";
-          roundRect(ctx, bx + 15, sy - 3, 5.5, 5.5, 1.5); ctx.fill();
-
-          this.hitNodes.push({
-            id: nodeId,
-            kind: "bot",
-            bot: b,
-            dotHit: null,
-            box: { x: bx - 40, y: sy - 54, w: 80, h: 98 },
-          });
-        });
-
-        roundRect(ctx, sx + 6, sy - 2, sw - 12, 14, 5);
-        ctx.fillStyle = "#9a4a2a"; ctx.fill();
-        roundRect(ctx, sx - 2, sy - 16, 11, 28, 4);
-        ctx.fillStyle = "#6c311b"; ctx.fill();
-        roundRect(ctx, sx + sw - 9, sy - 16, 11, 28, 4);
-        ctx.fill();
-
-        rowBots.forEach((b, ci) => {
-          const bx = sx + step * ci + step / 2;
-          drawNameAndEngine(ctx, bx, sy + 14, b.name, b.agent, "", false, 88);
-        });
+        drawLoungeSofaGroup(ctx, sx, sy, sw, rowBots, this.shared, this.hoveredId, this.hitNodes);
       }
 
-      // Curled-up sleeping ginger office cat on the lounge rug
-      const catX = W - 78;
-      const catY = wallH + 34;
-      ctx.fillStyle = "rgba(0,0,0,0.28)";
-      ctx.beginPath(); ctx.ellipse(catX, catY + 4, 10, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+      // Cozy curled-up ginger office cat resting on the woven lounge rug (bottom-right)
+      const catX = W - 42;
+      const catY = H - 22;
+      ctx.fillStyle = "rgba(0,0,0,0.34)";
+      ctx.beginPath(); ctx.ellipse(catX, catY + 4, 10.5, 3.8, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#f59e0b";
-      ctx.beginPath(); ctx.ellipse(catX, catY, 8.5, 5.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(catX - 5.5, catY - 2, 4.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(catX, catY, 8.8, 5.6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(catX - 5.5, catY - 2, 4.3, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.moveTo(catX - 8, catY - 4); ctx.lineTo(catX - 7, catY - 8); ctx.lineTo(catX - 5, catY - 5); ctx.fill();
       ctx.beginPath(); ctx.moveTo(catX - 5, catY - 5); ctx.lineTo(catX - 3, catY - 8); ctx.lineTo(catX - 2, catY - 4); ctx.fill();
     }
@@ -581,11 +424,15 @@
     constructor(handlers) {
       this.handlers = handlers;
       this.avatarImgs = new Map();
+      this.bgPlates = new Map();
       this.scenes = [];
       this.timerId = null;
 
+      this._preloadBgPlates();
+
       this.shared = {
         getAvatarImg: (id, name) => this.avatarImgs.get(id) || this.avatarImgs.get(name) || null,
+        getBgPlate: (key) => this.bgPlates.get(key) || null,
         onRedDotClick: (n) => this.handlers.onRedDotClick?.(n),
         onActorClick: (n) => this.handlers.onActorClick?.(n),
         onActorDblClick: (n) => this.handlers.onActorDblClick?.(n),
@@ -595,6 +442,20 @@
         if (document.hidden) this.pause();
         else this._ensureLoop();
       });
+    }
+
+    _preloadBgPlates() {
+      const files = {
+        queue: "./bg-queue.jpg",
+        studio: "./bg-studio.jpg",
+        lounge: "./bg-lounge.jpg",
+      };
+      for (const [key, src] of Object.entries(files)) {
+        const img = new Image();
+        img.onload = () => this.scenes.forEach((s) => s.layoutAndBake());
+        img.src = src;
+        this.bgPlates.set(key, img);
+      }
     }
 
     setAvatars(avatarsMap) {

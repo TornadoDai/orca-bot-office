@@ -4,15 +4,15 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.5.0",
-  "description": "Ultra-lightweight 2.5D stacked office building & Decision Report Queue in Orca: Bots queue upstairs to report, crisp sprites, engine badges, message trails.",
+  "version": "0.6.0",
+  "description": "Ultra-lightweight illustrated 2.5D modern office tower & Decision Report Queue in Orca: queueing Bots, human-styled teammates, engine badges & low CPU.",
   "license": "MIT",
   "icon": "assets/icon.png",
   "screenshots": [
     {
       "path": "assets/screenshot.png",
-      "alt": "Bot Office 2.5D stacked office tower with top Decision Report Queue, modern studio floors, crisp Bot and Worker sprites, engine badges, and preview card",
-      "caption": "2.5D stacked office floors with a top Decision Report Queue, Claude/agy/Codex/Pi badges, and low CPU overhead"
+      "alt": "Bot Office illustrated 2.5D modern office building with top Decision Report Queue, warm studio floors, human-styled teammates, engine badges & preview card",
+      "caption": "Illustrated 2.5D office building with Decision Report Queue, human teammates, Claude/agy/Codex/Pi badges & low CPU"
     }
   ],
   "engines": {

@@ -129,11 +129,13 @@ function filterBots(rawBots) {
 
 function miniRobotBadgeHtml(w) {
   const m = engMeta(w.agentType);
-  const eye = w.needsDecision ? "#fb7185" : (w.state === "working" ? "#4ade80" : "#64748b");
-  return `<svg viewBox="0 0 28 28" width="22" height="22">
-    <rect x="4" y="6" width="20" height="16" rx="5" fill="#f8fafc" stroke="${m.color}" stroke-width="2"/>
-    <rect x="7" y="10" width="14" height="8" rx="3" fill="#0f172a"/>
-    <circle cx="11.5" cy="14" r="1.8" fill="${eye}"/><circle cx="16.5" cy="14" r="1.8" fill="${eye}"/>
+  const dot = w.needsDecision ? "#fb7185" : (w.state === "working" ? "#4ade80" : "#64748b");
+  return `<svg viewBox="0 0 28 28" width="24" height="24">
+    <circle cx="14" cy="11" r="6" fill="#fbd6b8" stroke="#18141c" stroke-width="1.3"/>
+    <path d="M8 10 A6 6 0 0 1 20 10 Q14 7 8 10 Z" fill="#2d2428"/>
+    <circle cx="12" cy="11.5" r="1" fill="#18141c"/><circle cx="16" cy="11.5" r="1" fill="#18141c"/>
+    <path d="M6 25 C6 19.5 9.5 17.5 14 17.5 C18.5 17.5 22 19.5 22 25 Z" fill="${m.color}" stroke="#18141c" stroke-width="1.3"/>
+    <circle cx="22.5" cy="21.5" r="2.6" fill="${dot}" stroke="#151d2e" stroke-width="1.2"/>
   </svg>`;
 }
 
