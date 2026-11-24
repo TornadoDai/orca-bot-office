@@ -191,10 +191,19 @@
       // Live real-time analog wall clock synced to local system time
       drawLiveWallClock(ctx, W, wallH);
 
-      // Center unlabeled executive workstation beneath the wall clock (empty/invisible by default, or custom avatar!)
-      drawCenterOwnerDesk(ctx, Math.round(W / 2), wallH + 26, this.phase, {
+      // Center unlabeled executive workstation beneath the wall clock (clickable to customize avatar!)
+      const deskX = Math.round(W / 2);
+      const deskY = wallH + 26;
+      drawCenterOwnerDesk(ctx, deskX, deskY, this.phase, {
         mode: this.spec.ownerAvatarMode || "empty",
         avatarImg: this.shared.getAvatarImg("__owner__", "__owner__"),
+        hovered: this.hoveredId === "owner:desk",
+      });
+      this.hitNodes.push({
+        id: "owner:desk",
+        kind: "ownerDesk",
+        dotHit: null,
+        box: { x: deskX - 58, y: deskY - 54, w: 116, h: 70 },
       });
 
       if (queue.length === 0) {
@@ -478,9 +487,17 @@
     }
 
     setAvatars(avatarsMap) {
-      for (const [key, src] of Object.entries(avatarsMap || {})) {
-        if (!src || this.avatarImgs.has(key)) continue;
+      const map = avatarsMap || {};
+      if (!map.__owner__ && this.avatarImgs.has("__owner__")) {
+        this.avatarImgs.delete("__owner__");
+        this.scenes.forEach((s) => s.drawDynamic());
+      }
+      for (const [key, src] of Object.entries(map)) {
+        if (!src) continue;
+        const prev = this.avatarImgs.get(key);
+        if (prev && prev._src === src) continue;
         const img = new Image();
+        img._src = src;
         img.onload = () => this.scenes.forEach((s) => s.drawDynamic());
         img.src = src;
         this.avatarImgs.set(key, img);

@@ -18,6 +18,7 @@ An ultra-lightweight **2.5D Side-Scrolling Stacked Office Tower & Grouped Workbe
 
 - **Illustrated 2.5D Modern Office Tower (`<canvas>`)**: Warm painted high-rise office backdrops (furnished executive briefing suite with a **live real-time circular wall clock**, glass-partitioned startup studios with twilight skylines, whiteboards, water coolers, printers, bookshelves, and a cozy `1F` espresso café lounge) cached offscreen with 3D-shaded oak workstations.
 - **Interactive Decision-First Card (`TOP` Report Queue)**: Any Bot or teammate synced with Orca's native `Needs you` items queues in front of the unlabeled executive desk (empty chair by default, or optional custom avatar via `ownerAvatarMode` / `ownerAvatarPath`) holding a report clipboard. Click to view the **exact active decision context** (full `--after` pagination matching `item.question.eventId`, clickable URLs, zero scroll clutter), pick options, and hit **Enter** to route your answer straight back to that Bot's item chat.
+- **In-Office Bot Hiring (`+ Hire`) & Clickable Executive Chair**: Click **`+ Hire`** in the top bar to recruit a new Bot through your HR/Creator Bot — supporting both **Direct Create Card** (`orca bot create --offer`) and **Discuss with HR First**. Click the **TOP floor executive chair** directly anytime to switch between **Empty Chair**, **Silhouette**, or **Custom Image** (with built-in local image upload).
 - **Native Light & Dark Themes**: Automatically follows Orca's Light and Dark color schemes across the floor cards, SVG analytics charts, tables, and inspector modal.
 - **Human-Styled Teammates & Agent Engine Identity**: Expressive human-styled colleagues (unique hairstyles, glasses/headphones, 3D-shaded outfits) and Lead Bots display color-coded engine badges (`✦ Claude`, `◈ agy`, `⬡ Codex`, `π Pi`) everywhere at a glance.
 - **Branch Chat Awareness (`⑂N`)**: Bots with open branch chats display a calm teal `⑂N` badge on the **top-left** of their avatar (never conflicting with the top-right coral-rose `Needs you` alert) and in List view, stay awake at their desks while a branch chat is active, and auto-expand active branch chats inside the Inspector Card when no decisions are pending.
@@ -66,6 +67,7 @@ Or in Orca: **Settings → Plugins → Install from Git** with `https://github.c
 
 - **真实立体感现代写字楼插画分层**：采用 2.5D 精绘暖光写字楼室内实景底图，顶层为精装「决策汇报区」（配备**实时走时的正圆挂钟**、藏青金边地毯、候场沙发茶几与胡桃木矮柜台灯），下层为玻璃隔断研发工作室与 1F 意式咖啡吧台，静态背景离屏缓存零渲染负担。
 - **顶层「决策汇报区」+ 卡片内直接决策回复**：中央设置无文字原木工位（默认空椅隐形，可在插件设置里自定义头像 `ownerAvatarMode` / `ownerAvatarPath`），所有待决策 Bot 整齐在前方排队汇报；点开卡片精确翻页（`--after`）匹配当前最新待决策事件，完整呈现未截断上下文与可点选项，支持直接点选或回车把答复发回对应 Bot 聊天继续推进。
+- **办公室内直接招新（`+ 招新`）& 汇报区工位点选换形象**：顶栏新增 **`+ 招新`** 按钮，可选择负责招聘的 HR Bot，同时支持**「直接出创建卡」**与**「和 HR 先聊需求」**两种方式；直接点击顶层汇报区**中央皮椅/办公桌**即可随时切换「空椅隐形 / 极淡剪影 / 上传任意本地头像图片」，无需再去设置页手填路径。
 - **原生浅色 / 深色双主题**：顶栏、楼层卡片、仪表盘 SVG 图表与详情卡片全部响应 Orca 浅色与深色主题切换。
 - **拟人化团队成员 & 代理一眼分辨**：Worker 为带不同发型、眼镜/耳机与立体光影穿搭的研发同事形象，搭配高辨识度配色代理徽章（`✦ Claude` 琥珀、`◈ agy` 天蓝、`⬡ Codex` 紫罗兰、`π Pi` 翠绿）。
 - **分支聊天轻感知（`⑂N` 不与红点冲突）**：有活跃分支聊天的 Bot 在头像**左上角**显示青绿色 `⑂N` 角标（与右上角珊瑚红待决策提醒彻底隔离），近期活跃时工位保持亮屏不睡大觉，无待决策项时详情卡片自动展开活跃分支。

@@ -4,7 +4,7 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "description": "Ultra-lightweight illustrated 2.5D office tower, interactive in-card decision replies & SVG team workload analytics dashboard in Orca's right sidebar.",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -111,6 +111,12 @@
       {
         "key": "ownerAvatarPath",
         "title": "Custom Avatar Image Path (used when Top Desk Figure Style = custom, e.g. ~/avatar.png)",
+        "type": "string",
+        "default": ""
+      },
+      {
+        "key": "hrBotName",
+        "title": "Preferred HR / Bot-Creator Bot Name (blank = auto-detect)",
         "type": "string",
         "default": ""
       },

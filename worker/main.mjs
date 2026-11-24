@@ -51,6 +51,7 @@ export default function activate(orca) {
     const language = String((await orca.settings?.get?.("language").catch(() => "auto")) || "auto");
     const ownerAvatarMode = String((await orca.settings?.get?.("ownerAvatarMode").catch(() => "empty")) || "empty");
     const ownerAvatarPath = String((await orca.settings?.get?.("ownerAvatarPath").catch(() => "")) || "");
+    const hrBotName = String((await orca.settings?.get?.("hrBotName").catch(() => "")) || "");
     const dashModules = {
       tokenDetails: (await orca.settings?.get?.("dashShowTokenDetails").catch(() => true)) !== false,
       branchChats: (await orca.settings?.get?.("dashShowBranchChats").catch(() => true)) !== false,
@@ -66,6 +67,7 @@ export default function activate(orca) {
       language,
       ownerAvatarMode,
       ownerAvatarPath,
+      hrBotName,
       dashModules,
     };
   }
@@ -108,6 +110,7 @@ export default function activate(orca) {
           hideStaleIdleHours: opts.hideStaleIdleHours,
           language: opts.language,
           ownerAvatarMode: opts.ownerAvatarMode,
+          hrBotName: opts.hrBotName,
           dashModules: opts.dashModules,
         };
         const hash = computeSnapshotHash(snap);
@@ -157,7 +160,88 @@ export default function activate(orca) {
 
   orca.panels.handle("office.getAvatars", async () => {
     const opts = await readOptions();
-    return await collectBotAvatars(opts.ownerAvatarPath);
+    const avs = await collectBotAvatars(opts.ownerAvatarPath);
+    const storedOwner = await orca.storage?.get?.("ownerAvatarDataUrl").catch(() => null);
+    if (typeof storedOwner === "string" && storedOwner.startsWith("data:image/")) {
+      avs.__owner__ = storedOwner;
+    }
+    return avs;
+  });
+
+  orca.panels.handle("office.setOwnerAvatar", async (input = {}) => {
+    const mode = ["empty", "custom", "silhouette"].includes(input.mode) ? input.mode : "empty";
+    await orca.settings?.set?.("ownerAvatarMode", mode);
+    if (input.clearImage) {
+      await orca.storage?.delete?.("ownerAvatarDataUrl").catch(() => {});
+    } else if (typeof input.dataUrl === "string" && input.dataUrl.startsWith("data:image/") && input.dataUrl.length < 180000) {
+      await orca.storage?.set?.("ownerAvatarDataUrl", input.dataUrl);
+    }
+    scheduleRefresh(150, true);
+    return { ok: true, mode };
+  });
+
+  orca.panels.handle("office.hireBot", async (input = {}) => {
+    const hrBotName = String(input.hrBotName || "").trim();
+    const hrWorktreeId = String(input.hrWorktreeId || "").trim();
+    const mode = input.mode === "discuss" ? "discuss" : "offer";
+    const name = String(input.name || "").trim();
+    const purpose = String(input.purpose || "").trim();
+    const template = String(input.template || "").trim();
+    const worktree = String(input.worktree || "").trim();
+    const watches = String(input.watches || "").trim();
+    const doesText = String(input.doesText || "").trim();
+    const reports = String(input.reports || "").trim();
+    const isZh = input.lang === "zh";
+    if (!hrBotName) throw new Error("hrBotName is required");
+
+    const lines = [];
+    if (mode === "offer") {
+      lines.push(isZh ? "【老板在 Bot Office 发起了直接招新请求（直接出创建卡）】" : "[Owner requested a new Bot from Bot Office — Direct Create Card]");
+      if (name) lines.push(`${isZh ? "名称" : "Name"}: ${name}`);
+      if (purpose) lines.push(`${isZh ? "一句话职责" : "Purpose"}: ${purpose}`);
+      if (template) lines.push(`${isZh ? "模板" : "Template"}: ${template}`);
+      if (worktree) lines.push(`${isZh ? "绑定工作区" : "Worktree"}: ${worktree}`);
+      if (watches) lines.push(`${isZh ? "关注/监听" : "Watches"}: ${watches}`);
+      if (doesText) lines.push(`${isZh ? "负责执行" : "Does"}: ${doesText}`);
+      if (reports) lines.push(`${isZh ? "汇报方式" : "Reports"}: ${reports}`);
+      lines.push("");
+      lines.push(
+        isZh
+          ? "请直接按以上信息执行 `orca bot create --offer` 弹出原生建 Bot 确认卡片（补全必要参数即可，无需用 orchestration reply 回复 Bot Office）。"
+          : "Please directly run `orca bot create --offer` with the details above to show the native Create Bot confirmation card (do not run orchestration reply back to Bot Office)."
+      );
+    } else {
+      lines.push(isZh ? "【老板在 Bot Office 想先和你沟通招新 Bot 需求】" : "[Owner wants to discuss hiring a new Bot from Bot Office]");
+      if (name) lines.push(`${isZh ? "暂定名称" : "Draft name"}: ${name}`);
+      if (template) lines.push(`${isZh ? "意向类型" : "Template hint"}: ${template}`);
+      if (purpose) lines.push(`${isZh ? "初步想法" : "Idea"}: ${purpose}`);
+      if (worktree) lines.push(`${isZh ? "可能关联工作区" : "Related worktree"}: ${worktree}`);
+      lines.push("");
+      lines.push(
+        isZh
+          ? "请先在本聊天里和老板对齐这个新 Bot 的职责边界、SOUL 和权限方案，对齐后再发 `orca bot create --offer` 卡片（无需用 orchestration reply 回复 Bot Office）。"
+          : "Please align on scope, SOUL, and permissions with the owner in this chat first, then send the `orca bot create --offer` card once agreed (do not run orchestration reply back to Bot Office)."
+      );
+    }
+
+    const subject = `${mode === "offer" ? "Hire Bot" : "Discuss New Bot"}: ${name || template || "New Bot"}`.slice(0, 120);
+    await runOrcaJson(
+      orcaBin,
+      [
+        "orchestration", "send",
+        "--from", "plugin:bot-office",
+        "--to", `bot:${hrBotName}`,
+        "--type", "status",
+        "--subject", subject,
+        "--body", lines.join("\n"),
+      ],
+      12000
+    );
+    if (hrWorktreeId) {
+      await orca.host.call("workspace.open", { workspaceId: hrWorktreeId }).catch(() => {});
+    }
+    scheduleRefresh(1500, true);
+    return { sent: true, hrBotName, mode };
   });
 
   orca.panels.handle("office.getAnalytics", async (input = {}) => {

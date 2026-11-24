@@ -95,6 +95,25 @@ async function sendDecision(payload) {
   if (!orcaApi?.plugin?.request) throw new Error("Orca plugin bridge unavailable");
   return await orcaApi.plugin.request("office.sendDecision", payload);
 }
+async function hireBot(payload) {
+  if (!orcaApi?.plugin?.request) throw new Error("Orca plugin bridge unavailable");
+  return await orcaApi.plugin.request("office.hireBot", payload);
+}
+async function saveOwnerAvatar(payload) {
+  if (!snapshot) snapshot = { settings: {} };
+  if (!snapshot.settings) snapshot.settings = {};
+  snapshot.settings.ownerAvatarMode = payload.mode || "empty";
+  if (payload.clearImage) {
+    delete avatars.__owner__;
+  } else if (payload.dataUrl) {
+    avatars.__owner__ = payload.dataUrl;
+  }
+  towerMgr.setAvatars(avatars);
+  render();
+  if (orcaApi?.plugin?.request) {
+    await orcaApi.plugin.request("office.setOwnerAvatar", payload);
+  }
+}
 function jumpToBotDecision(bot) {
   if (bot.selfNeedsDecision && bot.worktreeId) { void openWorkspace(bot.worktreeId, true); return; }
   const blockedW = (bot.workers || []).find((w) => w.needsDecision);
@@ -109,12 +128,22 @@ const towerMgr = new window.OfficeTowerEngine({
     else if (node.worker?.worktreeId) void openWorkspace(node.worker.worktreeId, true);
   },
   onActorClick(node) {
+    if (node.kind === "ownerDesk") {
+      openCard = { kind: "ownerDesk" };
+      renderModal();
+      return;
+    }
     openCard = node.kind === "bot"
       ? { kind: "bot", id: node.bot.id }
       : { kind: "worker", worktreeId: node.worker.worktreeId };
     renderModal();
   },
   onActorDblClick(node) {
+    if (node.kind === "ownerDesk") {
+      openCard = { kind: "ownerDesk" };
+      renderModal();
+      return;
+    }
     const wid = node.kind === "bot" ? node.bot.worktreeId : node.worker.worktreeId;
     if (wid) void openWorkspace(wid, true);
   },
@@ -433,6 +462,27 @@ function findCardTarget() {
 }
 
 function renderModal() {
+  if (openCard?.kind === "hire") {
+    window.OfficeModals.renderHireModal({
+      snapshot,
+      tr: t(),
+      hireBot,
+      showToast,
+      onClose: () => { openCard = null; renderModal(); },
+    });
+    return;
+  }
+  if (openCard?.kind === "ownerDesk") {
+    window.OfficeModals.renderOwnerAvatarModal({
+      snapshot,
+      avatars,
+      tr: t(),
+      saveOwnerAvatar,
+      showToast,
+      onClose: () => { openCard = null; renderModal(); },
+    });
+    return;
+  }
   window.OfficeInspector.renderModal({
     target: findCardTarget(),
     avatars,
@@ -544,6 +594,7 @@ function render() {
   document.getElementById("viewListBtn").textContent = tr.tabList;
   document.getElementById("searchInput").placeholder = tr.searchPh;
   document.getElementById("engFilter").options[0].textContent = tr.allEng;
+  document.getElementById("hireBotBtn").textContent = tr.hireBtnTop;
   document.getElementById("activeOnlyBtn").textContent = tr.activeOnly;
   document.getElementById("refreshBtn").textContent = tr.refresh;
   document.getElementById("viewOfficeBtn").classList.toggle("active", viewMode === "office");
@@ -675,6 +726,10 @@ document.getElementById("viewListBtn").addEventListener("click", () => { viewMod
 document.getElementById("refreshBtn").addEventListener("click", () => {
   void loadAll(true);
   if (viewMode === "dashboard") void loadAnalytics(true);
+});
+document.getElementById("hireBotBtn").addEventListener("click", () => {
+  openCard = { kind: "hire" };
+  renderModal();
 });
 document.getElementById("activeOnlyBtn").addEventListener("click", (e) => {
   activeOnly = !activeOnly;

@@ -667,6 +667,57 @@ body {
 html:not(.light) .wb-tag.branch-hot { color: #5eead4; }
 .ic-tl-lbl.hot { background: var(--badge-hot-bg); color: var(--badge-hot-fg); }
 
+/* Hire Bot & Owner Chair Customizer Modals */
+.btn.hire-btn {
+  border-color: rgba(20, 184, 166, 0.45);
+  background: rgba(20, 184, 166, 0.14);
+  color: #0f766e;
+  font-weight: 800;
+}
+html:not(.light) .btn.hire-btn { color: #5eead4; }
+.btn.hire-btn:hover { border-color: #14b8a6; opacity: 0.95; }
+
+.om-card { max-width: 460px; }
+.om-av { font-size: 20px; }
+.om-form { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.om-field { display: flex; flex-direction: column; gap: 3.5px; }
+.om-lbl { font-size: 10.5px; font-weight: 700; color: var(--fg-soft); }
+.om-hint { font-size: 9.5px; font-weight: 500; color: var(--muted); }
+.om-input, .om-textarea {
+  width: 100%; border-radius: 8px; border: 1px solid var(--border-strong);
+  background: var(--input-bg); color: var(--fg-strong); font-family: inherit;
+  font-size: 11.5px; padding: 6.5px 9px; outline: none; user-select: text;
+}
+.om-textarea { resize: vertical; min-height: 60px; line-height: 1.45; }
+.om-input:focus, .om-textarea:focus { border-color: var(--cyan); }
+.om-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.om-chip {
+  padding: 3.5px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700; cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--chip-bg); color: var(--fg-soft);
+}
+.om-chip.active { background: var(--eng-agy-bg); border-color: var(--eng-agy-bd); color: var(--eng-agy-fg); }
+.om-adv-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 7px; }
+.om-actions { margin-top: 12px; }
+.om-primary {
+  border-color: #0d9488; background: linear-gradient(135deg, #0d9488, #0284c7); color: #f0fdfa;
+}
+
+.om-mode-grid { margin-top: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.om-mode-card {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center;
+  padding: 10px 7px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--modal-sub); color: var(--fg);
+}
+.om-mode-card:hover { border-color: var(--cyan); }
+.om-mode-card.active { background: var(--eng-agy-bg); border-color: var(--eng-agy-bd); color: var(--eng-agy-fg); }
+.om-mode-ico { font-size: 20px; line-height: 1.2; }
+.om-mode-lbl { font-size: 11px; font-weight: 800; color: var(--fg-strong); }
+.om-mode-desc { font-size: 9.5px; color: var(--muted); line-height: 1.3; }
+.om-upload-box {
+  margin-top: 10px; padding: 9px 10px; border-radius: 9px; background: var(--modal-sub);
+  border: 1px dashed var(--border-strong); display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+}
+
 /* Slim theme-aware scrollbars */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

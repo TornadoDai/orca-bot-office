@@ -593,7 +593,7 @@
     chG.addColorStop(0, "#43343f"); chG.addColorStop(1, "#1e1923");
     roundRect(ctx, cx - 21, ty - 42, 42, 42, 10);
     ctx.fillStyle = chG; ctx.fill();
-    ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.strokeStyle = opts.hovered ? "#7dd3fc" : INK; ctx.lineWidth = opts.hovered ? 2 : 1.4; ctx.stroke();
     // Subtle tufted headrest & backrest seam
     ctx.fillStyle = "rgba(255,255,255,0.09)";
     roundRect(ctx, cx - 15, ty - 38, 30, 6.5, 3); ctx.fill();
