@@ -4,10 +4,14 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Ultra-lightweight illustrated 2.5D office tower, interactive in-card decision replies & SVG team workload analytics dashboard in Orca's right sidebar.",
   "license": "MIT",
   "icon": "assets/icon.png",
+  "cover": {
+    "path": "assets/cover.webp",
+    "alt": "Bot Office 2.5D illustrated office tower with real-time wall clock, executive briefing suite and categorized SVG analytics dashboard"
+  },
   "screenshots": [
     {
       "path": "assets/screenshot.png",
