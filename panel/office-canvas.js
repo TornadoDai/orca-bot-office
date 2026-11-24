@@ -11,7 +11,7 @@
   } = window.OfficeArch;
 
   const {
-    drawSeatedDeskStation, drawStandingQueueActor, drawLoungeSofaGroup, drawMessageStream,
+    drawSeatedDeskStation, drawStandingQueueActor, drawLoungeSofaGroup, drawCenterOwnerDesk, drawMessageStream,
   } = window.OfficeSprites;
 
   class FloorScene {
@@ -97,13 +97,13 @@
         this.wallH = 104;
         const q = sp.queue || [];
         if (q.length === 0) {
-          this.H = 158;
+          this.H = 178;
           this.needsAnimation = false;
         } else {
           const availW = Math.max(240, this.W - 76);
           this.queuePerRow = Math.max(2, Math.min(5, Math.floor(availW / 124)));
           const rows = Math.ceil(q.length / this.queuePerRow);
-          this.H = 128 + rows * 98;
+          this.H = 166 + rows * 98;
           this.needsAnimation = true;
         }
       } else if (sp.kind === "team") {
@@ -186,32 +186,36 @@
       const queue = this.spec.queue || [];
       const lang = this.spec.lang;
 
+      // Center unlabeled executive workstation beneath the wall clock (grounds the space warmly!)
+      drawCenterOwnerDesk(ctx, Math.round(W / 2), wallH + 26, this.phase);
+
       if (queue.length === 0) {
         const msg = lang === "zh" ? "☕ 暂无排队汇报 · 各团队自主推进中" : "☕ Queue clear · All teams running autonomously";
-        ctx.font = "600 11px -apple-system, 'PingFang SC', sans-serif";
-        const tw = ctx.measureText(msg).width + 26;
+        ctx.font = "600 10.5px -apple-system, 'PingFang SC', sans-serif";
+        const tw = ctx.measureText(msg).width + 24;
         const cx = Math.round(W / 2);
-        const cy = Math.round((wallH + H) / 2);
-        roundRect(ctx, cx - tw / 2, cy - 14, tw, 28, 999);
+        const cy = H - 22;
+        roundRect(ctx, cx - tw / 2, cy - 12, tw, 24, 999);
         ctx.fillStyle = "rgba(13, 18, 30, 0.82)"; ctx.fill();
-        ctx.strokeStyle = "rgba(226, 232, 240, 0.25)"; ctx.lineWidth = 1; ctx.stroke();
+        ctx.strokeStyle = "rgba(226, 232, 240, 0.24)"; ctx.lineWidth = 1; ctx.stroke();
         ctx.fillStyle = "#f1f5f9"; ctx.textAlign = "center";
-        ctx.fillText(msg, cx, cy + 4);
+        ctx.fillText(msg, cx, cy + 3.5);
         return;
       }
 
-      // Full-width clean queue (NO decision desk!) — neatly lined up from left to right
+      // Queueing Bots & teammates neatly centered in front of the center desk
       const perRow = this.queuePerRow || 4;
-      const padLeft = 28;
-      const usableW = Math.max(240, W - 82);
+      const usableW = Math.max(240, W - 72);
       const cols = Math.min(queue.length, perRow);
-      const stepX = Math.min(138, usableW / Math.max(1, cols));
+      const stepX = Math.min(142, usableW / Math.max(1, cols));
+      const rowTotalW = stepX * cols;
+      const startX = Math.round((W - rowTotalW) / 2);
 
       queue.forEach((entry, i) => {
         const row = Math.floor(i / perRow);
         const col = i % perRow;
-        const cx = padLeft + col * stepX + Math.min(62, stepX / 2);
-        const footY = wallH + 74 + row * 98 + (col % 2 === 1 ? 3 : 0);
+        const cx = startX + col * stepX + stepX / 2;
+        const footY = wallH + 114 + row * 98 + (col % 2 === 1 ? 3 : 0);
         const isBot = entry.kind === "bot";
         const nodeId = isBot ? `decq:bot:${entry.bot.id}` : `decq:worker:${entry.worker.worktreeId}`;
         const avImg = isBot ? this.shared.getAvatarImg(entry.bot.id, entry.bot.name) : null;

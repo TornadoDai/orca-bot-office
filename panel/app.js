@@ -83,6 +83,10 @@ async function openExternalUrl(url) {
     await orcaApi.shell.openExternal(url).catch(() => {});
   }
 }
+async function sendDecision(payload) {
+  if (!orcaApi?.plugin?.request) throw new Error("Orca plugin bridge unavailable");
+  return await orcaApi.plugin.request("office.sendDecision", payload);
+}
 function jumpToBotDecision(bot) {
   if (bot.selfNeedsDecision && bot.worktreeId) { void openWorkspace(bot.worktreeId, true); return; }
   const blockedW = (bot.workers || []).find((w) => w.needsDecision);
@@ -413,164 +417,24 @@ function findCardTarget() {
 }
 
 function renderModal() {
-  const root = document.getElementById("modalRoot");
-  const target = findCardTarget();
-  if (!target) { root.innerHTML = ""; return; }
-  const tr = t();
-  const now = Date.now();
-
-  let title = "", roleText = "", engRaw = "", repo = "", branch = "";
-  let statusCls = "idle", statusText = "", needsDec = false, lastAt = null;
-  let timeline = [], links = [], avatarHtml = "", primaryWsId = null, attnWorkerWsId = null;
-  let workersHtml = "", decisionsHtml = "", hasItems = false;
-
-  if (target.kind === "bot") {
-    const b = target.bot;
-    title = b.name; roleText = tr.roleBot; engRaw = b.agent;
-    needsDec = b.needsDecision; lastAt = b.lastActivityAt;
-    timeline = b.timeline || []; links = b.links || []; primaryWsId = b.worktreeId;
-    const firstDecW = (b.workers || []).find((w) => w.needsDecision);
-    if (!b.selfNeedsDecision && firstDecW) attnWorkerWsId = firstDecW.worktreeId;
-
-    const stall = isStalled(b);
-    const dur = b.state === "working" && b.stateStartedAt ? fmtDur(now - b.stateStartedAt) : "";
-    if (needsDec) {
-      statusCls = "attn";
-      statusText = `● ${(b.needsYouItems || []).length ? tr.stateNeedItem(b.needsYouItems.length) : (b.selfNeedsDecision ? tr.stateNeedPerm : tr.stateNeedWorker)}`;
-    } else if (stall) { statusCls = "stall"; statusText = tr.stateStall(dur); }
-    else if (b.state === "working" || b.workingWorkerCount > 0) { statusCls = "working"; statusText = `● ${tr.stateWorking}${dur ? ` · ${tr.stateRunDur(dur)}` : ""}`; }
-    else { statusCls = "idle"; statusText = `💤 ${tr.stateIdle}`; }
-
-    const av = avatars[b.id] || avatars[b.name];
-    avatarHtml = av ? `<img src="${av}" alt=""/>` : `<span style="font-weight:800;font-size:16px">${esc((b.name || "?").slice(0, 1).toUpperCase())}</span>`;
-
-    const items = b.needsYouItems || [];
-    hasItems = items.length > 0;
-    if (hasItems) {
-      decisionsHtml = `
-        <div class="ic-section-title">${esc(tr.secDecisions)}</div>
-        ${items.map((it) => {
-          const qs = it.ask?.questions || [];
-          return `
-            <div class="ic-decision-box">
-              <div class="ic-dec-title"><span class="ic-dec-num">#${it.number}</span><span>${esc(it.title)}</span></div>
-              ${it.ask?.context ? `<div class="ic-dec-ctx">${esc(it.ask.context)}</div>` : ""}
-              ${qs.length ? `<div class="ic-q-list">${qs.map((q, qi) => `
-                <div class="ic-q-item">
-                  <div class="ic-q-prompt">${qi + 1}. ${esc(q.prompt)}</div>
-                  ${(q.options || []).length ? `<div class="ic-q-opts">${q.options.map((opt, oi) => {
-                    const isRec = q.recommended === oi;
-                    return `<span class="ic-q-chip ${isRec ? "rec" : ""}">${isRec ? "★ " : ""}${esc(opt.label)}</span>`;
-                  }).join("")}</div>` : ""}
-                </div>`).join("")}</div>` : ""}
-            </div>`;
-        }).join("")}`;
-    }
-
-    if ((b.workers || []).length > 0) {
-      workersHtml = `
-        <div class="ic-section-title">${esc(tr.secWorkers(b.workingWorkerCount, b.workers.length))}</div>
-        <div class="ic-workers">
-          ${b.workers.map((w) => {
-            const mode = w.needsDecision ? "attn" : (w.state === "working" ? "working" : "idle");
-            const wd = w.state === "working" && w.stateStartedAt ? fmtDur(now - w.stateStartedAt) : "";
-            return `
-              <div class="ic-worker-row ${mode === "attn" ? "attn" : ""}" data-modal-switch-worker="${esc(w.worktreeId)}">
-                <span class="ic-w-dot ${mode}"></span>
-                <div class="ic-w-main">
-                  <div class="ic-w-name">${esc(w.displayName)} ${engPillHtml(w.agentType)}${wd ? ` · ${esc(wd)}` : ""}</div>
-                  <div class="ic-w-act">${esc(w.activity || tr.stateIdle)}</div>
-                </div>
-                <span class="ic-w-go ${w.needsDecision ? "attn" : ""}" data-modal-jump="${esc(w.worktreeId)}" data-modal-attn="${w.needsDecision ? "1" : "0"}">${w.needsDecision ? "● ↗" : "↗"}</span>
-              </div>`;
-          }).join("")}
-        </div>`;
-    }
-  } else {
-    const w = target.worker;
-    title = w.displayName;
-    roleText = target.kind === "worker" ? tr.roleWorker(target.bot.name) : tr.roleStandalone;
-    engRaw = w.agentType; repo = w.repo; branch = w.branch;
-    needsDec = w.needsDecision; lastAt = w.lastActivityAt;
-    timeline = w.timeline || []; links = w.links || [];
-    primaryWsId = w.worktreeId; avatarHtml = miniRobotBadgeHtml(w);
-
-    const stall = isStalled(w);
-    const dur = w.state === "working" && w.stateStartedAt ? fmtDur(now - w.stateStartedAt) : "";
-    if (needsDec) { statusCls = "attn"; statusText = `● ${tr.stateNeedPerm}`; }
-    else if (stall) { statusCls = "stall"; statusText = tr.stateStall(dur); }
-    else if (w.state === "working") { statusCls = "working"; statusText = `● ${tr.stateWorking}${dur ? ` · ${tr.stateRunDur(dur)}` : ""}`; }
-    else { statusCls = "idle"; statusText = `💤 ${tr.stateIdle}`; }
-  }
-
-  const linksHtml = links.length
-    ? `<div class="ic-links">${links.map((lk) => `<button class="ic-link-chip" data-ext-url="${esc(lk.url)}">${lk.kind === "pr" ? "🔀 " : "🔗 "}${esc(lk.label)} ↗</button>`).join("")}</div>`
-    : "";
-  const timelineHtml = timeline.length
-    ? timeline.map((row) => `<div class="ic-tl-row"><span class="ic-tl-lbl">${esc(row.label)}</span>${esc(row.text)}</div>`).join("")
-    : `<div class="ic-tl-row" style="color:#94a3b8">${esc(tr.noActivity)}</div>`;
-  const primaryLabel = needsDec && !attnWorkerWsId ? (target.kind === "bot" ? tr.btnGoDecide : tr.btnGoWorker) : tr.btnOpenWs;
-  const primaryBtn = primaryWsId ? `<button class="ic-btn ${needsDec && !attnWorkerWsId ? "primary-attn" : ""}" id="icOpenBtn">${esc(primaryLabel)}</button>` : "";
-  const jumpAttnWorkerBtn = attnWorkerWsId ? `<button class="ic-btn primary-attn" id="icJumpAttnWorkerBtn">${esc(tr.btnGoWorker)}</button>` : "";
-  const tasksBtn = hasItems ? `<button class="ic-btn secondary" id="icTasksBtn">${esc(tr.btnOpenTasks)}</button>` : "";
-
-  root.innerHTML = `
-    <div class="card-backdrop" id="cardBackdrop">
-      <div class="inspector-card ${needsDec ? "is-attn" : ""}">
-        <div class="ic-head">
-          <div class="ic-av">${avatarHtml}${needsDec ? `<span class="ic-av-dot"></span>` : ""}</div>
-          <div class="ic-title-wrap">
-            <div class="ic-name">${esc(title)}</div>
-            <div class="ic-meta">
-              ${engPillHtml(engRaw)}
-              <span class="ic-pill">${esc(roleText)}</span>
-              ${repo ? `<span class="ic-pill">${esc(repo)}</span>` : ""}
-              ${branch ? `<span class="ic-pill branch" id="icCopyBranch" title="Click to copy branch">${esc(branch)}</span>` : ""}
-            </div>
-          </div>
-          <button class="ic-close" id="icCloseBtn">×</button>
-        </div>
-        <div class="ic-status-bar ${statusCls}">
-          <span>${esc(statusText)}</span>
-          ${lastAt ? `<span class="ic-time">${esc(relTime(lastAt))}</span>` : ""}
-        </div>
-        ${linksHtml}
-        ${decisionsHtml}
-        <div class="ic-section-title">${esc(tr.secTimeline)}</div>
-        <div class="ic-timeline">${timelineHtml}</div>
-        ${workersHtml}
-        <div class="ic-actions">
-          <button class="ic-btn secondary" id="icDismissBtn">${esc(tr.btnClose)}</button>
-          ${tasksBtn}
-          ${jumpAttnWorkerBtn}
-          ${primaryBtn}
-        </div>
-      </div>
-    </div>`;
-
-  const close = () => { openCard = null; renderModal(); };
-  document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") close(); });
-  document.getElementById("icCloseBtn")?.addEventListener("click", close);
-  document.getElementById("icDismissBtn")?.addEventListener("click", close);
-  document.getElementById("icOpenBtn")?.addEventListener("click", () => { if (primaryWsId) void openWorkspace(primaryWsId, needsDec); close(); });
-  document.getElementById("icJumpAttnWorkerBtn")?.addEventListener("click", () => { if (attnWorkerWsId) void openWorkspace(attnWorkerWsId, true); close(); });
-  document.getElementById("icTasksBtn")?.addEventListener("click", () => { void openTasksView(); close(); });
-  document.getElementById("icCopyBranch")?.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(branch); showToast(tr.copiedBranch(branch)); } catch {}
-  });
-  document.querySelectorAll("[data-ext-url]").forEach((el) => {
-    el.addEventListener("click", () => void openExternalUrl(el.getAttribute("data-ext-url")));
-  });
-  document.querySelectorAll("[data-modal-switch-worker]").forEach((el) => {
-    el.addEventListener("click", () => { openCard = { kind: "worker", worktreeId: el.getAttribute("data-modal-switch-worker") }; renderModal(); });
-  });
-  document.querySelectorAll("[data-modal-jump]").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const wid = el.getAttribute("data-modal-jump");
-      if (wid) void openWorkspace(wid, el.getAttribute("data-modal-attn") === "1");
-      close();
-    });
+  window.OfficeInspector.renderModal({
+    target: findCardTarget(),
+    avatars,
+    tr: t(),
+    now: Date.now(),
+    engPillHtml,
+    miniRobotBadgeHtml,
+    isStalled,
+    fmtDur,
+    relTime,
+    openWorkspace,
+    openTasksView,
+    openExternalUrl,
+    sendDecision,
+    showToast,
+    onClose: () => { openCard = null; renderModal(); },
+    onSwitchWorker: (wid) => { openCard = { kind: "worker", worktreeId: wid }; renderModal(); },
+    onRerender: () => renderModal(),
   });
 }
 
@@ -656,7 +520,13 @@ function render() {
     dashWrap.style.display = "block";
     legendEl.style.display = "none";
     towerMgr.pause();
-    dashWrap.innerHTML = window.OfficeDashboard.renderDashboardHtml(analytics, avatars, engPillHtml, tr);
+    dashWrap.innerHTML = window.OfficeDashboard.renderDashboardHtml(
+      analytics,
+      avatars,
+      engPillHtml,
+      tr,
+      { engineFilter, searchQuery, activeOnly }
+    );
     bindDomClickHandlers(dashWrap);
   } else if (viewMode === "list") {
     officeWrap.style.display = "none";

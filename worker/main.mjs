@@ -179,6 +179,36 @@ export default function activate(orca) {
     return { ran: false };
   });
 
+  orca.panels.handle("office.sendDecision", async (input = {}) => {
+    const botName = String(input.botName || "").trim();
+    const body = String(input.body || "").trim();
+    const subject = String(input.subject || "Owner decision reply").trim().slice(0, 140);
+    const itemNumber = input.itemNumber ? Number(input.itemNumber) : null;
+    if (!botName) throw new Error("botName is required");
+    if (!body) throw new Error("reply body is required");
+
+    const args = [
+      "orchestration",
+      "send",
+      "--from",
+      "plugin:bot-office",
+      "--to",
+      `bot:${botName}`,
+      "--type",
+      "handoff",
+      "--subject",
+      subject,
+      "--body",
+      body,
+    ];
+    if (itemNumber && Number.isFinite(itemNumber)) {
+      args.splice(6, 0, "--item", String(itemNumber));
+    }
+    const result = await runOrcaJson(orcaBin, args, 12000);
+    scheduleRefresh(1500, true);
+    return { sent: true, result };
+  });
+
   orca.commands.register("bot-office.show", async () => {
     const key = await resolveOwnPluginKey();
     const child = spawn(orcaBin, ["plugin", "open", key, "--panel", "office"], {

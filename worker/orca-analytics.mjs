@@ -235,8 +235,12 @@ export async function collectOfficeAnalytics(orcaBin, orcaHost, snapshot, { forc
     if (isStalled(b, now)) stalledTotal += 1;
 
     let teamStalled = isStalled(b, now) ? 1 : 0;
+    const workerEngines = new Set();
     for (const w of b.workers || []) {
-      if (w.agentType) addEng(w.agentType);
+      if (w.agentType) {
+        addEng(w.agentType);
+        workerEngines.add(String(w.agentType).toLowerCase());
+      }
       liveTerminals += Number(w.liveTerminalCount || 0);
       linkedRefs += (w.links || []).length;
       if (isStalled(w, now)) {
@@ -255,18 +259,26 @@ export async function collectOfficeAnalytics(orcaBin, orcaHost, snapshot, { forc
     let dispatchCount = 0;
     let teamDurMs = 0;
     let teamDurCount = 0;
+    const teamDays = buildLast7Days(now);
+    const teamTrendMap = new Map(teamDays.map((d) => [d.key, d]));
 
     for (const it of entry.items) {
       if (it.createdAt) {
-        const dk = trendMap.get(dayKeyLocal(it.createdAt));
+        const key = dayKeyLocal(it.createdAt);
+        const dk = trendMap.get(key);
         if (dk) dk.created += 1;
+        const tdk = teamTrendMap.get(key);
+        if (tdk) tdk.created += 1;
       }
       if (it.status === "done") {
         const doneTs = it.closedAt || it.updatedAt || it.lastActivityAt;
         if (doneTs) {
           if (Number(doneTs) >= sevenDaysAgo) done7d += 1;
-          const dk = trendMap.get(dayKeyLocal(doneTs));
+          const key = dayKeyLocal(doneTs);
+          const dk = trendMap.get(key);
           if (dk) dk.done += 1;
+          const tdk = teamTrendMap.get(key);
+          if (tdk) tdk.done += 1;
         }
       }
       for (const lk of it.links || []) {
@@ -295,19 +307,24 @@ export async function collectOfficeAnalytics(orcaBin, orcaHost, snapshot, { forc
       id: b.id,
       name: b.name,
       agent: b.agent || "other",
+      workerEngines: [...workerEngines],
       worktreeId: b.worktreeId || null,
       counts: c,
       totalItems: teamTotalItems,
       doneCount: c.done,
       done7d,
+      dailyTrend: teamDays,
       activeWorkers: b.workingWorkerCount || 0,
       totalWorkers: (b.workers || []).length,
       dispatchCount,
       avgDispatchMins: teamDurCount > 0 ? Math.max(1, Math.round(teamDurMs / teamDurCount / 60000)) : null,
+      dispatchDurTotalMs: teamDurMs,
+      dispatchDurCount: teamDurCount,
       tokens: tok.tokens,
       messages: tok.messages,
       sessions: tok.sessions,
       stalledCount: teamStalled,
+      isWorking: b.state === "working" || (b.workingWorkerCount || 0) > 0,
       needsDecision: Boolean(b.needsDecision),
       decisionCount: b.decisionCount || 0,
     };

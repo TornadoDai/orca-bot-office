@@ -554,6 +554,111 @@
     });
   }
 
+  /* ── Unlabeled Center Executive Workstation for TOP Decision & Report Queue ── */
+
+  function drawCenterOwnerDesk(ctx, cx, baseY, phase) {
+    const deskW = 148;
+    const ty = baseY - 22;
+
+    // Grounded soft floor shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.36)";
+    ctx.beginPath(); ctx.ellipse(cx, baseY + 4, deskW * 0.56, 9.5, 0, 0, Math.PI * 2); ctx.fill();
+
+    // Executive high-back leather swivel chair
+    const chG = ctx.createLinearGradient(cx - 20, ty - 42, cx + 20, ty);
+    chG.addColorStop(0, "#3b2e38"); chG.addColorStop(1, "#1c1721");
+    roundRect(ctx, cx - 20, ty - 40, 40, 40, 10);
+    ctx.fillStyle = chG; ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    roundRect(ctx, cx - 15, ty - 37, 30, 6, 3); ctx.fill();
+
+    // Calm seated figure behind center desk (smart dark navy blazer + white shirt, ZERO text/crown)
+    const bob = Math.sin(phase * 0.85) * 0.5;
+    // Neck
+    ctx.fillStyle = "#e5b38c";
+    roundRect(ctx, cx - 4, ty - 24 + bob, 8, 6, 2); ctx.fill(); ctx.stroke();
+    // Tailored dark charcoal-navy blazer
+    const coatG = ctx.createLinearGradient(cx, ty - 19 + bob, cx, ty + 3 + bob);
+    coatG.addColorStop(0, "#334155"); coatG.addColorStop(1, "#1e293b");
+    roundRect(ctx, cx - 17, ty - 19 + bob, 34, 22, 9);
+    ctx.fillStyle = coatG; ctx.fill(); ctx.stroke();
+    // Crisp white collar V
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.moveTo(cx - 6, ty - 19 + bob); ctx.lineTo(cx + 6, ty - 19 + bob);
+    ctx.lineTo(cx, ty - 9 + bob); ctx.closePath(); ctx.fill();
+    // 3D-shaded calm head & neat hair
+    const hy = ty - 33 + bob;
+    const fg = ctx.createRadialGradient(cx - 3, hy - 3, 2, cx, hy + 1, 13);
+    fg.addColorStop(0, "#ffe4cc"); fg.addColorStop(1, "#e5b38c");
+    ctx.fillStyle = fg; ctx.strokeStyle = INK; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, hy, 12.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // Hair
+    ctx.fillStyle = "#221d24";
+    ctx.beginPath();
+    ctx.arc(cx, hy - 2.5, 13, Math.PI * 0.96, Math.PI * 0.04);
+    ctx.quadraticCurveTo(cx + 3, hy - 7, cx - 12, hy - 1.5);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Calm eyes + gentle smile
+    ctx.fillStyle = "#1f1a24";
+    ctx.beginPath(); ctx.arc(cx - 4.2, hy + 0.8, 1.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4.2, hy + 0.8, 1.7, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#8c5342"; ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.arc(cx, hy + 4.5, 2.3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+
+    // Rich 3D Walnut Executive Desk (completely clean front panel — ZERO text!)
+    const x0 = cx - deskW / 2;
+    ctx.fillStyle = "#1f1918";
+    ctx.fillRect(x0 + 6, ty + 14, 6, 10);
+    ctx.fillRect(x0 + deskW - 12, ty + 14, 6, 10);
+
+    const apG = ctx.createLinearGradient(0, ty + 8, 0, ty + 24);
+    apG.addColorStop(0, "#6e4228"); apG.addColorStop(1, "#3d2214");
+    roundRect(ctx, x0, ty + 8, deskW, 16, 3);
+    ctx.fillStyle = apG; ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+    // Subtle recessed walnut trim frame (classy wood detail, no lettering)
+    ctx.strokeStyle = "rgba(255, 224, 185, 0.16)"; ctx.lineWidth = 1;
+    roundRect(ctx, x0 + 8, ty + 11.5, deskW - 16, 9, 2); ctx.stroke();
+
+    // Oblique walnut desktop
+    const topG = ctx.createLinearGradient(0, ty, 0, ty + 9);
+    topG.addColorStop(0, "#b88252"); topG.addColorStop(1, "#855530");
+    ctx.beginPath();
+    ctx.moveTo(x0 + 5, ty); ctx.lineTo(x0 + deskW - 5, ty);
+    ctx.lineTo(x0 + deskW, ty + 9); ctx.lineTo(x0, ty + 9); ctx.closePath();
+    ctx.fillStyle = topG; ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = "rgba(255, 248, 232, 0.28)";
+    ctx.fillRect(x0 + 6, ty + 1, deskW - 12, 1.2);
+
+    // Warm architectural brass desk lamp on left
+    const lampGlow = ctx.createRadialGradient(x0 + 22, ty - 4, 2, x0 + 22, ty + 4, 24);
+    lampGlow.addColorStop(0, "rgba(254, 240, 138, 0.28)");
+    lampGlow.addColorStop(1, "rgba(254, 240, 138, 0)");
+    ctx.fillStyle = lampGlow;
+    ctx.beginPath(); ctx.arc(x0 + 22, ty + 2, 24, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#d97706"; ctx.fillRect(x0 + 13, ty + 2, 11, 2.6);
+    ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(x0 + 18, ty + 2); ctx.lineTo(x0 + 16, ty - 8); ctx.lineTo(x0 + 24, ty - 11); ctx.stroke();
+    ctx.fillStyle = "#fef08a"; ctx.fillRect(x0 + 21, ty - 11.5, 6.5, 2.6);
+
+    // Sleek silver laptop in center-right + ceramic coffee mug with gentle steam
+    ctx.fillStyle = "#cbd5e1"; ctx.fillRect(cx + 16, ty + 1.5, 24, 3);
+    ctx.fillStyle = "#334155"; ctx.strokeStyle = INK; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx + 19, ty + 1.5); ctx.lineTo(cx + 37, ty + 1.5);
+    ctx.lineTo(cx + 34, ty - 10); ctx.lineTo(cx + 16, ty - 10); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = "#fff7ed"; ctx.strokeStyle = INK; ctx.lineWidth = 0.9;
+    roundRect(ctx, x0 + deskW - 22, ty - 3, 7, 7, 1.5); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,0.42)"; ctx.lineWidth = 1;
+    const st = Math.sin(phase * 1.6) * 1.3;
+    ctx.beginPath(); ctx.moveTo(x0 + deskW - 18.5, ty - 5); ctx.quadraticCurveTo(x0 + deskW - 18.5 + st, ty - 10, x0 + deskW - 18, ty - 14); ctx.stroke();
+  }
+
   /* ── Sleek Luminous Message Stream (Paper-Dart + Fading Light Trail) ── */
 
   function drawMessageStream(ctx, x1, y1, x2, y2, progress, kind) {
@@ -603,6 +708,6 @@
   window.OfficeSprites = {
     drawEngineBadge, drawNameAndEngine, drawSoftRoseDot, drawLeadAvatarHead,
     drawHumanWorkerHead, drawSeatedDeskStation, drawStandingQueueActor,
-    drawLoungeSofaGroup, drawMessageStream,
+    drawLoungeSofaGroup, drawCenterOwnerDesk, drawMessageStream,
   };
 })();
