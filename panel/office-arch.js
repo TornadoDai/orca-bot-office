@@ -159,9 +159,214 @@
     }
   }
 
+  /* ── Executive Briefing Suite Decor (Baked once into offscreen bgCanvas -> 0% CPU!) ── */
+
+  function drawDecisionFloorDecor(ctx, W, wallH, H) {
+    ctx.save();
+    // 1) Warm ceiling recessed spotlight cones over the center desk & briefing walkway
+    const spot = ctx.createRadialGradient(W / 2, 10, 8, W / 2, wallH + 38, Math.min(230, W * 0.36));
+    spot.addColorStop(0, "rgba(255, 243, 214, 0.14)");
+    spot.addColorStop(0.6, "rgba(255, 232, 186, 0.05)");
+    spot.addColorStop(1, "rgba(255, 232, 186, 0)");
+    ctx.fillStyle = spot;
+    ctx.fillRect(0, 4, W, wallH + 90);
+
+    // 2) Executive woven navy-and-brass area rug grounding the center walnut desk
+    const rugW = Math.min(268, Math.max(180, W * 0.4));
+    const rugH = 44;
+    const rx = Math.round((W - rugW) / 2);
+    const ry = wallH + 8;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
+    roundRect(ctx, rx + 2, ry + 3, rugW, rugH, 6); ctx.fill();
+    const rg = ctx.createLinearGradient(rx, ry, rx, ry + rugH);
+    rg.addColorStop(0, "rgba(30, 41, 66, 0.86)");
+    rg.addColorStop(1, "rgba(20, 28, 48, 0.92)");
+    roundRect(ctx, rx, ry, rugW, rugH, 6);
+    ctx.fillStyle = rg; ctx.fill();
+    ctx.strokeStyle = "rgba(217, 169, 98, 0.55)"; ctx.lineWidth = 1.4; ctx.stroke();
+    roundRect(ctx, rx + 5, ry + 4.5, rugW - 10, rugH - 9, 3.5);
+    ctx.strokeStyle = "rgba(245, 208, 138, 0.32)"; ctx.lineWidth = 0.9; ctx.stroke();
+
+    // 3) Upper-left corner: tall indoor monstera plant + cozy waiting armchair & brass side table
+    if (W >= 420) {
+      // Ceramic planter & leafy indoor tree (far left)
+      const px = 30, py = wallH + 16;
+      ctx.fillStyle = "rgba(0,0,0,0.32)";
+      ctx.beginPath(); ctx.ellipse(px, py + 12, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
+      const potG = ctx.createLinearGradient(px - 8, py - 2, px + 8, py + 12);
+      potG.addColorStop(0, "#e7e0d2"); potG.addColorStop(1, "#a89f8d");
+      roundRect(ctx, px - 8, py - 2, 16, 14, 3);
+      ctx.fillStyle = potG; ctx.fill();
+      ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.stroke();
+      ctx.strokeStyle = "#3f2e21"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(px, py - 2); ctx.lineTo(px, py - 22); ctx.stroke();
+      const leaves = [
+        [-8, -19, 8.5, 5, -0.45, "#2f855a"],
+        [8, -21, 8.5, 5, 0.4, "#276749"],
+        [-6, -29, 7.5, 4.5, -0.3, "#38a169"],
+        [6, -30, 7.5, 4.5, 0.35, "#2f855a"],
+        [0, -34, 7, 5, 0, "#48bb78"],
+      ];
+      for (const [dx, dy, lr1, lr2, rot, col] of leaves) {
+        ctx.fillStyle = col; ctx.strokeStyle = "#163b2a"; ctx.lineWidth = 0.9;
+        ctx.beginPath(); ctx.ellipse(px + dx, py + dy, lr1, lr2, rot, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+
+      // Cozy caramel-leather lounge waiting chair + mini brass side table
+      const ax = 76, ay = wallH + 18;
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath(); ctx.ellipse(ax, ay + 12, 20, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+      const chBack = ctx.createLinearGradient(0, ay - 14, 0, ay + 6);
+      chBack.addColorStop(0, "#b46238"); chBack.addColorStop(1, "#72361a");
+      roundRect(ctx, ax - 15, ay - 14, 30, 18, 6);
+      ctx.fillStyle = chBack; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+      roundRect(ctx, ax - 13, ay + 1, 26, 9, 3.5);
+      ctx.fillStyle = "#c97445"; ctx.fill(); ctx.stroke();
+      roundRect(ctx, ax - 18, ay - 6, 6, 15, 2.5); ctx.fillStyle = chBack; ctx.fill(); ctx.stroke();
+      roundRect(ctx, ax + 12, ay - 6, 6, 15, 2.5); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#3b2314";
+      ctx.fillRect(ax - 14, ay + 9, 3, 4); ctx.fillRect(ax + 11, ay + 9, 3, 4);
+
+      // Small round walnut & brass coffee table with teacup
+      const tx = 114, ty = wallH + 22;
+      ctx.fillStyle = "rgba(0,0,0,0.26)";
+      ctx.beginPath(); ctx.ellipse(tx, ty + 7, 11, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#b58b4c"; ctx.fillRect(tx - 1.2, ty - 2, 2.4, 9);
+      ctx.beginPath(); ctx.ellipse(tx, ty - 3, 11, 4.5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "#8c5b34"; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+      // White teacup on saucer
+      ctx.fillStyle = "#f8fafc";
+      roundRect(ctx, tx - 3, ty - 7.5, 5.5, 4.2, 1.2); ctx.fill();
+      ctx.strokeStyle = INK; ctx.lineWidth = 0.7; ctx.stroke();
+    }
+
+    // 4) Upper-right executive walnut credenza with glowing ambient lamp & brass trophy (left of elevator plant)
+    if (W >= 460) {
+      const cx = W - 166, cy = wallH + 4;
+      const cw = 68, ch = 22;
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath(); ctx.ellipse(cx + cw / 2, cy + ch + 3, cw * 0.52, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+      const cg = ctx.createLinearGradient(0, cy, 0, cy + ch);
+      cg.addColorStop(0, "#754829"); cg.addColorStop(1, "#452815");
+      roundRect(ctx, cx, cy, cw, ch, 3);
+      ctx.fillStyle = cg; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+      // Top bevel & 3 cabinet doors with brass knobs
+      ctx.fillStyle = "#a36c40"; ctx.fillRect(cx + 2, cy + 1, cw - 4, 3);
+      ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.lineWidth = 0.9;
+      ctx.beginPath(); ctx.moveTo(cx + cw / 3, cy + 5); ctx.lineTo(cx + cw / 3, cy + ch - 2);
+      ctx.moveTo(cx + (cw * 2) / 3, cy + 5); ctx.lineTo(cx + (cw * 2) / 3, cy + ch - 2); ctx.stroke();
+      ctx.fillStyle = "#fbbf24";
+      [cx + cw / 6, cx + cw / 2, cx + (cw * 5) / 6].forEach((kx) => {
+        ctx.beginPath(); ctx.arc(kx, cy + 12, 1.3, 0, Math.PI * 2); ctx.fill();
+      });
+      // Warm table lamp on credenza left
+      const lx = cx + 15, ly = cy;
+      const lg = ctx.createRadialGradient(lx, ly - 10, 2, lx, ly - 6, 20);
+      lg.addColorStop(0, "rgba(254, 240, 138, 0.36)"); lg.addColorStop(1, "rgba(254, 240, 138, 0)");
+      ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(lx, ly - 8, 20, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#d97706"; ctx.fillRect(lx - 1.5, ly - 8, 3, 8);
+      ctx.beginPath(); ctx.moveTo(lx - 7, ly - 7); ctx.lineTo(lx - 4.5, ly - 16); ctx.lineTo(lx + 4.5, ly - 16); ctx.lineTo(lx + 7, ly - 7); ctx.closePath();
+      ctx.fillStyle = "#fef3c7"; ctx.fill(); ctx.strokeStyle = "#b45309"; ctx.lineWidth = 0.9; ctx.stroke();
+      // Books & small brass award on credenza right
+      ctx.fillStyle = "#38bdf8"; ctx.fillRect(cx + 34, cy - 8, 3.5, 8);
+      ctx.fillStyle = "#fb7185"; ctx.fillRect(cx + 38, cy - 9.5, 3.5, 9.5);
+      ctx.fillStyle = "#f59e0b"; ctx.fillRect(cx + 42, cy - 7, 3.5, 7);
+      // Tiny gold trophy
+      ctx.fillStyle = "#fbbf24"; ctx.strokeStyle = "#92400e"; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.arc(cx + 55, cy - 7, 3.5, 0, Math.PI, false); ctx.fill(); ctx.stroke();
+      ctx.fillRect(cx + 54, cy - 3.5, 2, 3.5); ctx.fillRect(cx + 52, cy - 1, 6, 1.5);
+    }
+
+    // 5) Subtle warm brass floor trim line separating desk zone & briefing queue zone
+    const lineY = wallH + 59;
+    const lgLine = ctx.createLinearGradient(W * 0.16, lineY, W * 0.84, lineY);
+    lgLine.addColorStop(0, "rgba(217, 169, 98, 0)");
+    lgLine.addColorStop(0.5, "rgba(245, 208, 138, 0.36)");
+    lgLine.addColorStop(1, "rgba(217, 169, 98, 0)");
+    ctx.strokeStyle = lgLine; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(W * 0.16, lineY); ctx.lineTo(W * 0.84, lineY); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* ── Live Real-Time Analog Wall Clock over TOP Floor Center Pillar ── */
+
+  function drawLiveWallClock(ctx, W, wallH) {
+    const cx = W * 0.4996;
+    const cy = wallH * 0.4146;
+    const rx = Math.max(13, W * 0.0315);
+    const ry = Math.max(10.5, wallH * 0.098);
+
+    const now = new Date();
+    const sec = now.getSeconds();
+    const min = now.getMinutes() + sec / 60;
+    const hr = (now.getHours() % 12) + min / 60;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    // Soft wall drop shadow matching the painted wood slat pillar
+    ctx.fillStyle = "rgba(0, 0, 0, 0.36)";
+    ctx.beginPath(); ctx.ellipse(0.8, 1.8, rx + 2.2, ry + 2.2, 0, 0, Math.PI * 2); ctx.fill();
+
+    // Outer espresso-bronze clock rim (covers painted static clock completely!)
+    const rimG = ctx.createLinearGradient(0, -ry - 2, 0, ry + 2);
+    rimG.addColorStop(0, "#5c4a3c"); rimG.addColorStop(1, "#261d17");
+    ctx.fillStyle = rimG;
+    ctx.beginPath(); ctx.ellipse(0, 0, rx + 2.2, ry + 2.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+
+    // Cream porcelain clock dial
+    const dialG = ctx.createRadialGradient(-rx * 0.25, -ry * 0.25, 1, 0, 0, Math.max(rx, ry));
+    dialG.addColorStop(0, "#fffdf8");
+    dialG.addColorStop(0.85, "#efe8da");
+    dialG.addColorStop(1, "#d8cebc");
+    ctx.fillStyle = dialG;
+    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(120, 96, 72, 0.45)"; ctx.lineWidth = 0.8; ctx.stroke();
+
+    // Scale into elliptical coordinates so ticks & hands stay aligned with the clock rim!
+    ctx.scale(1, ry / rx);
+    const R = rx;
+
+    // 12 crisp hour markers (thicker at 12, 3, 6, 9)
+    for (let i = 0; i < 12; i++) {
+      const a = (i * Math.PI) / 6;
+      const major = i % 3 === 0;
+      const r1 = R * (major ? 0.7 : 0.78);
+      const r2 = R * 0.9;
+      ctx.strokeStyle = major ? "#1e293b" : "#64748b";
+      ctx.lineWidth = major ? 1.4 : 0.8;
+      ctx.beginPath();
+      ctx.moveTo(Math.sin(a) * r1, -Math.cos(a) * r1);
+      ctx.lineTo(Math.sin(a) * r2, -Math.cos(a) * r2);
+      ctx.stroke();
+    }
+
+    // Real-time Hour Hand
+    const ha = (hr * Math.PI) / 6;
+    ctx.strokeStyle = "#18141c"; ctx.lineWidth = 1.9; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(ha) * R * 0.52, -Math.cos(ha) * R * 0.52); ctx.stroke();
+
+    // Real-time Minute Hand
+    const ma = (min * Math.PI) / 30;
+    ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 1.3; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(ma) * R * 0.76, -Math.cos(ma) * R * 0.76); ctx.stroke();
+
+    // Real-time Subtle Crimson Second Hand
+    const sa = (sec * Math.PI) / 30;
+    ctx.strokeStyle = "#e11d48"; ctx.lineWidth = 0.75; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(-Math.sin(sa) * R * 0.16, Math.cos(sa) * R * 0.16);
+    ctx.lineTo(Math.sin(sa) * R * 0.82, -Math.cos(sa) * R * 0.82); ctx.stroke();
+
+    // Brass center pin
+    ctx.fillStyle = "#b45309";
+    ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
   window.OFFICE_ENG_STYLES = ENG_STYLES;
   window.OfficeArch = {
     ENG_STYLES, TEAM_TINTS, ROSE, INK, engStyle, hashStr, trimText, roundRect,
     fmtDur, isStalled, drawTwoSliceBackdrop, drawGlassPartitionOverlay, drawFloorElevatorBadge,
+    drawDecisionFloorDecor, drawLiveWallClock,
   };
 })();

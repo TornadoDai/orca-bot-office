@@ -8,6 +8,7 @@
   const {
     TEAM_TINTS, hashStr, roundRect, fmtDur, isStalled,
     drawTwoSliceBackdrop, drawGlassPartitionOverlay, drawFloorElevatorBadge,
+    drawDecisionFloorDecor, drawLiveWallClock,
   } = window.OfficeArch;
 
   const {
@@ -149,6 +150,7 @@
     _bakeDecisionBg(ctx) {
       const { W, H, wallH } = this;
       drawTwoSliceBackdrop(ctx, this.shared.getBgPlate("queue"), W, wallH, H, 0.62, "#2d323e", "#382c25");
+      drawDecisionFloorDecor(ctx, W, wallH, H);
       drawFloorElevatorBadge(ctx, W, wallH, "TOP", false, this.spec.lang);
     }
 
@@ -185,6 +187,9 @@
       const { W, H, wallH } = this;
       const queue = this.spec.queue || [];
       const lang = this.spec.lang;
+
+      // Live real-time analog wall clock synced to local system time
+      drawLiveWallClock(ctx, W, wallH);
 
       // Center unlabeled executive workstation beneath the wall clock (empty/invisible by default, or custom avatar!)
       drawCenterOwnerDesk(ctx, Math.round(W / 2), wallH + 26, this.phase, {
@@ -440,6 +445,7 @@
       this.bgPlates = new Map();
       this.scenes = [];
       this.timerId = null;
+      this.clockTimerId = null;
 
       this._preloadBgPlates();
 
@@ -501,20 +507,34 @@
         clearInterval(this.timerId);
         this.timerId = null;
       }
+      if (this.clockTimerId) {
+        clearInterval(this.clockTimerId);
+        this.clockTimerId = null;
+      }
     }
 
     _ensureLoop() {
-      if (document.hidden || this.timerId) return;
-      if (!this.scenes.some((s) => s.needsAnimation)) return;
-      this.timerId = setInterval(() => {
-        if (document.hidden) { this.pause(); return; }
-        for (const s of this.scenes) {
-          if (s.needsAnimation) {
-            s.phase += 0.36;
-            s.drawDynamic();
+      if (document.hidden) return;
+      if (!this.timerId && this.scenes.some((s) => s.needsAnimation)) {
+        this.timerId = setInterval(() => {
+          if (document.hidden) { this.pause(); return; }
+          for (const s of this.scenes) {
+            if (s.needsAnimation) {
+              s.phase += 0.36;
+              s.drawDynamic();
+            }
           }
-        }
-      }, 280);
+        }, 280);
+      }
+      // Ultra-lightweight 10s wall clock tick even when TOP floor queue is calm (0 active anims)
+      if (!this.clockTimerId && this.scenes.some((s) => s.spec.kind === "decision" && !s.needsAnimation)) {
+        this.clockTimerId = setInterval(() => {
+          if (document.hidden) { this.pause(); return; }
+          for (const s of this.scenes) {
+            if (s.spec.kind === "decision" && !s.needsAnimation) s.drawDynamic();
+          }
+        }, 10000);
+      }
     }
   }
 
