@@ -186,8 +186,11 @@
       const queue = this.spec.queue || [];
       const lang = this.spec.lang;
 
-      // Center unlabeled executive workstation beneath the wall clock (grounds the space warmly!)
-      drawCenterOwnerDesk(ctx, Math.round(W / 2), wallH + 26, this.phase);
+      // Center unlabeled executive workstation beneath the wall clock (empty/invisible by default, or custom avatar!)
+      drawCenterOwnerDesk(ctx, Math.round(W / 2), wallH + 26, this.phase, {
+        mode: this.spec.ownerAvatarMode || "empty",
+        avatarImg: this.shared.getAvatarImg("__owner__", "__owner__"),
+      });
 
       if (queue.length === 0) {
         const msg = lang === "zh" ? "☕ 暂无排队汇报 · 各团队自主推进中" : "☕ Queue clear · All teams running autonomously";

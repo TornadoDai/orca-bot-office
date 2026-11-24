@@ -211,7 +211,13 @@ function renderTower(bots) {
       <div class="floor-canvas-wrap"><canvas class="floor-canvas" id="dnf_floor_decision"></canvas></div>
     </div>`;
 
-  specs.push({ canvasId: "dnf_floor_decision", kind: "decision", queue: decisionQueue, lang: getLang() });
+  specs.push({
+    canvasId: "dnf_floor_decision",
+    kind: "decision",
+    queue: decisionQueue,
+    ownerAvatarMode: snapshot.settings?.ownerAvatarMode || "empty",
+    lang: getLang(),
+  });
 
   // 2) Team Floors + Ground Floor Lounge
   const teamBots = [];
@@ -652,7 +658,13 @@ if (orcaApi?.plugin?.on) {
     if (snap) { snapshot = snap; detectNewDecisions(snap); render(); }
   });
 }
-if (orcaApi?.on) { orcaApi.on("theme", () => render()); }
+if (orcaApi?.on) {
+  orcaApi.on("theme", (ev) => {
+    if (ev?.colorScheme === "light") document.documentElement.classList.add("light");
+    else if (ev?.colorScheme === "dark") document.documentElement.classList.remove("light");
+    render();
+  });
+}
 
 window.__botOfficeInjectMock = (mockSnap, mockAvatars = {}, mockAnalytics = null) => {
   snapshot = mockSnap;

@@ -147,8 +147,8 @@
     const grid = [0, 0.5, 1].map((frac) => {
       const y = padT + plotH * (1 - frac);
       return `
-        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(148,163,184,0.12)" stroke-dasharray="2 3"/>
-        <text x="${padL - 5}" y="${(y + 3).toFixed(1)}" text-anchor="end" fill="#64748b" font-size="9" font-family="ui-monospace,monospace">${Math.round(maxVal * frac)}</text>`;
+        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="var(--svg-grid)" stroke-dasharray="2 3"/>
+        <text x="${padL - 5}" y="${(y + 3).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="ui-monospace,monospace">${Math.round(maxVal * frac)}</text>`;
     });
 
     const cols = top.map((tm, i) => {
@@ -163,12 +163,12 @@
 
       return `
         <g data-card-bot="${esc(tm.id)}" style="cursor:pointer">
-          <rect x="${(cx - bw - 2).toFixed(1)}" y="${yDone.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, hDone).toFixed(1)}" rx="3" fill="#34d399"/>
-          ${tm.doneCount > 0 ? `<text x="${(cx - bw / 2 - 2).toFixed(1)}" y="${(yDone - 3).toFixed(1)}" text-anchor="middle" fill="#a7f3d0" font-size="8.5" font-weight="700">${tm.doneCount}</text>` : ""}
-          <rect x="${(cx + 2).toFixed(1)}" y="${yDisp.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, hDisp).toFixed(1)}" rx="3" fill="#38bdf8"/>
-          ${tm.dispatchCount > 0 ? `<text x="${(cx + bw / 2 + 2).toFixed(1)}" y="${(yDisp - 3).toFixed(1)}" text-anchor="middle" fill="#bae6fd" font-size="8.5" font-weight="700">${tm.dispatchCount}</text>` : ""}
-          <rect x="${(cx - 14).toFixed(1)}" y="${H - 2.5}" width="28" height="2" rx="1" fill="${meta.color}" opacity="0.85"/>
-          <text x="${cx.toFixed(1)}" y="${H - 6.5}" text-anchor="middle" fill="#cbd5e1" font-size="9.5" font-weight="700">${esc(shortName)}</text>
+          <rect x="${(cx - bw - 2).toFixed(1)}" y="${yDone.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, hDone).toFixed(1)}" rx="3" fill="#10b981"/>
+          ${tm.doneCount > 0 ? `<text x="${(cx - bw / 2 - 2).toFixed(1)}" y="${(yDone - 3).toFixed(1)}" text-anchor="middle" fill="var(--svg-val-done)" font-size="8.5" font-weight="700">${tm.doneCount}</text>` : ""}
+          <rect x="${(cx + 2).toFixed(1)}" y="${yDisp.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, hDisp).toFixed(1)}" rx="3" fill="#0ea5e9"/>
+          ${tm.dispatchCount > 0 ? `<text x="${(cx + bw / 2 + 2).toFixed(1)}" y="${(yDisp - 3).toFixed(1)}" text-anchor="middle" fill="var(--svg-val-disp)" font-size="8.5" font-weight="700">${tm.dispatchCount}</text>` : ""}
+          <rect x="${(cx - 14).toFixed(1)}" y="${H - 2.5}" width="28" height="2" rx="1" fill="${meta.color}" opacity="0.88"/>
+          <text x="${cx.toFixed(1)}" y="${H - 6.5}" text-anchor="middle" fill="var(--fg)" font-size="9.5" font-weight="700">${esc(shortName)}</text>
         </g>`;
     });
 
@@ -199,7 +199,7 @@
     return `
       <svg class="db-bar-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="total ${total}">
         <defs><clipPath id="rbar"><rect x="0" y="0" width="${W}" height="${H}" rx="4"/></clipPath></defs>
-        <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="rgba(148,163,184,0.12)"/>
+        <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="var(--svg-track)"/>
         <g clip-path="url(#rbar)">${rects.join("")}</g>
       </svg>`;
   }
@@ -213,8 +213,8 @@
     const gridLines = [0, 0.5, 1].map((frac) => {
       const y = padT + plotH * (1 - frac);
       return `
-        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(148,163,184,0.12)" stroke-dasharray="2 3"/>
-        <text x="${padL - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end" fill="#64748b" font-size="8.5" font-family="ui-monospace,monospace">${Math.round(maxVal * frac)}</text>`;
+        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="var(--svg-grid)" stroke-dasharray="2 3"/>
+        <text x="${padL - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="8.5" font-family="ui-monospace,monospace">${Math.round(maxVal * frac)}</text>`;
     });
 
     const bars = [], donePts = [], labels = [];
@@ -225,14 +225,14 @@
       const hDone = ((d.done || 0) / maxVal) * plotH;
       const yCreate = padT + plotH - hCreate;
       const yDone = padT + plotH - hDone;
-      if (d.created > 0) bars.push(`<rect x="${(cx - bw - 1).toFixed(1)}" y="${yCreate.toFixed(1)}" width="${bw.toFixed(1)}" height="${hCreate.toFixed(1)}" rx="2" fill="rgba(56,189,248,0.45)"/>`);
-      if (d.done > 0) bars.push(`<rect x="${(cx + 1).toFixed(1)}" y="${yDone.toFixed(1)}" width="${bw.toFixed(1)}" height="${hDone.toFixed(1)}" rx="2" fill="#34d399"/>`);
+      if (d.created > 0) bars.push(`<rect x="${(cx - bw - 1).toFixed(1)}" y="${yCreate.toFixed(1)}" width="${bw.toFixed(1)}" height="${hCreate.toFixed(1)}" rx="2" fill="rgba(14,165,233,0.45)"/>`);
+      if (d.done > 0) bars.push(`<rect x="${(cx + 1).toFixed(1)}" y="${yDone.toFixed(1)}" width="${bw.toFixed(1)}" height="${hDone.toFixed(1)}" rx="2" fill="#10b981"/>`);
       donePts.push(`${(cx + 1 + bw / 2).toFixed(1)},${yDone.toFixed(1)}`);
-      labels.push(`<text x="${cx.toFixed(1)}" y="${H - 5}" text-anchor="middle" fill="#8e9db5" font-size="8.5" font-family="ui-monospace,monospace">${esc(d.label.slice(3))}</text>`);
+      labels.push(`<text x="${cx.toFixed(1)}" y="${H - 5}" text-anchor="middle" fill="var(--muted)" font-size="8.5" font-family="ui-monospace,monospace">${esc(d.label.slice(3))}</text>`);
     });
 
     const poly = donePts.length > 1
-      ? `<polyline points="${donePts.join(" ")}" fill="none" stroke="#6ee7b7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>`
+      ? `<polyline points="${donePts.join(" ")}" fill="none" stroke="#10b981" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>`
       : "";
 
     return `<svg class="db-chart-svg" viewBox="0 0 ${W} ${H}">${gridLines.join("")}${bars.join("")}${poly}${labels.join("")}</svg>`;
@@ -264,10 +264,10 @@
     return `
       <div class="db-donut-wrap">
         <svg class="db-donut-svg" viewBox="0 0 96 96" width="88" height="88">
-          <circle cx="48" cy="48" r="${R}" fill="none" stroke="rgba(148,163,184,0.14)" stroke-width="12"/>
+          <circle cx="48" cy="48" r="${R}" fill="none" stroke="var(--svg-track)" stroke-width="12"/>
           ${slices.join("")}
-          <text x="48" y="45" text-anchor="middle" fill="#f8fafc" font-size="16" font-weight="800">${total}</text>
-          <text x="48" y="58" text-anchor="middle" fill="#8e9db5" font-size="8.5" font-weight="700">${esc(tr.dbUnits)}</text>
+          <text x="48" y="45" text-anchor="middle" fill="var(--fg-strong)" font-size="16" font-weight="800">${total}</text>
+          <text x="48" y="58" text-anchor="middle" fill="var(--muted)" font-size="8.5" font-weight="700">${esc(tr.dbUnits)}</text>
         </svg>
         <div class="db-donut-legend">${legend || `<div class="db-muted">—</div>`}</div>
       </div>`;
@@ -295,22 +295,22 @@
       <div class="db-kpi-grid">
         <div class="db-kpi">
           <div class="db-kpi-lbl">✅ ${esc(tr.dbKpiDone)}</div>
-          <div class="db-kpi-val" style="color:#6ee7b7">${kpi.totalDone || 0}</div>
+          <div class="db-kpi-val c-done">${kpi.totalDone || 0}</div>
           <div class="db-kpi-sub">${esc(tr.dbKpiDoneSub(kpi.totalDone7d || 0, kpi.totalItems || 0))}</div>
         </div>
         <div class="db-kpi">
           <div class="db-kpi-lbl">🚀 ${esc(tr.dbKpiDispatch)}</div>
-          <div class="db-kpi-val" style="color:#7dd3fc">${kpi.totalDispatches || 0}</div>
+          <div class="db-kpi-val c-disp">${kpi.totalDispatches || 0}</div>
           <div class="db-kpi-sub">${esc(tr.dbKpiDispatchSub(fmtDurMins(kpi.avgDispatchMins)))}</div>
         </div>
         <div class="db-kpi">
           <div class="db-kpi-lbl">🔥 ${esc(tr.dbKpiTokens)}</div>
-          <div class="db-kpi-val" style="color:#fcd34d">${esc(tokDisplay)}</div>
+          <div class="db-kpi-val c-tok">${esc(tokDisplay)}</div>
           <div class="db-kpi-sub">${esc(tokSub)}</div>
         </div>
         <div class="db-kpi ${kpi.decisionCount > 0 ? "is-attn" : ""}">
           <div class="db-kpi-lbl">⚡ ${esc(tr.dbKpiLive)}</div>
-          <div class="db-kpi-val" style="color:${kpi.decisionCount > 0 ? "#fda4af" : "#e2e8f0"}">${kpi.workingNow || 0}<span class="db-kpi-slash"> / ${kpi.decisionCount || 0}</span></div>
+          <div class="db-kpi-val ${kpi.decisionCount > 0 ? "c-attn" : "c-norm"}">${kpi.workingNow || 0}<span class="db-kpi-slash"> / ${kpi.decisionCount || 0}</span></div>
           <div class="db-kpi-sub">${esc(tr.dbKpiLiveSub(kpi.automationsEnabled || 0, kpi.stalledTotal || 0))}</div>
         </div>
       </div>`;
@@ -408,8 +408,8 @@
                 <div class="db-t-info">
                   <div class="db-t-name">${esc(tm.name)} ${engPillHtml(tm.agent)}</div>
                   <div class="db-t-sub">
-                    <span style="color:#6ee7b7">${c.done || 0} ${esc(tr.dbStDone)}</span>
-                    ${pending > 0 ? ` · <span style="color:#7dd3fc">${pending} ${esc(tr.dbStOpen)}</span>` : ""}
+                    <span style="color:var(--kpi-done)">${c.done || 0} ${esc(tr.dbStDone)}</span>
+                    ${pending > 0 ? ` · <span style="color:var(--kpi-disp)">${pending} ${esc(tr.dbStOpen)}</span>` : ""}
                     ${tm.dispatchCount > 0 ? ` · ${tm.dispatchCount} ${esc(tr.dbDispUnit)}` : ""}
                     ${tm.tokens > 0 ? ` · ${esc(fmtTokens(tm.tokens))}` : ""}
                   </div>

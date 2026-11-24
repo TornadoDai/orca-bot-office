@@ -156,6 +156,15 @@
           ? `<details class="ic-collapse"><summary class="ic-collapse-sum">${esc(tr.secWorkers(b.workingWorkerCount, b.workers.length))}</summary><div class="ic-workers">${rows}</div></details>`
           : `<div class="ic-section-title">${esc(tr.secWorkers(b.workingWorkerCount, b.workers.length))}</div><div class="ic-workers">${rows}</div>`;
       }
+      const bChats = b.branchChats || [];
+      if (bChats.length > 0) {
+        const chatRows = bChats.map((ch) => `
+          <div class="ic-tl-row">
+            <span class="ic-tl-lbl">chat</span><b>${esc(ch.title)}</b>${ch.lastActivityAt ? ` <span class="ic-muted">· ${esc(relTime(ch.lastActivityAt))}</span>` : ""}
+            ${ch.lastSaid || ch.lastAsked ? `<div class="ic-branch-sub">${esc(ch.lastSaid || ch.lastAsked)}</div>` : ""}
+          </div>`).join("");
+        workersHtml += `<details class="ic-collapse"><summary class="ic-collapse-sum">${esc(tr.secBranchChats(bChats.length))}</summary><div class="ic-timeline">${chatRows}</div></details>`;
+      }
     } else {
       const w = target.worker;
       title = w.displayName;

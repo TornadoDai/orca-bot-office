@@ -49,12 +49,16 @@ export default function activate(orca) {
     const soloBotsInLounge = (await orca.settings?.get?.("soloBotsInLounge").catch(() => true)) !== false;
     const hideStaleIdleHours = Number((await orca.settings?.get?.("hideStaleIdleHours").catch(() => 24)) ?? 24);
     const language = String((await orca.settings?.get?.("language").catch(() => "auto")) || "auto");
+    const ownerAvatarMode = String((await orca.settings?.get?.("ownerAvatarMode").catch(() => "empty")) || "empty");
+    const ownerAvatarPath = String((await orca.settings?.get?.("ownerAvatarPath").catch(() => "")) || "");
     return {
       intervalMs: Math.max(8, Math.min(120, interval)) * 1000,
       showStandalone,
       soloBotsInLounge,
       hideStaleIdleHours: Math.max(0, Math.min(168, hideStaleIdleHours)),
       language,
+      ownerAvatarMode,
+      ownerAvatarPath,
     };
   }
 
@@ -95,6 +99,7 @@ export default function activate(orca) {
           showStandalone: opts.showStandalone,
           hideStaleIdleHours: opts.hideStaleIdleHours,
           language: opts.language,
+          ownerAvatarMode: opts.ownerAvatarMode,
         };
         const hash = computeSnapshotHash(snap);
         const changed = hash !== lastBroadcastHash;
@@ -142,7 +147,8 @@ export default function activate(orca) {
   });
 
   orca.panels.handle("office.getAvatars", async () => {
-    return await collectBotAvatars();
+    const opts = await readOptions();
+    return await collectBotAvatars(opts.ownerAvatarPath);
   });
 
   orca.panels.handle("office.getAnalytics", async (input = {}) => {

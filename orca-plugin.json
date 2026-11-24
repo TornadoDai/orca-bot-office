@@ -4,7 +4,7 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Ultra-lightweight illustrated 2.5D office tower, interactive in-card decision replies & SVG team workload analytics dashboard in Orca's right sidebar.",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -90,6 +90,19 @@
         "type": "string",
         "enum": ["auto", "en", "zh"],
         "default": "auto"
+      },
+      {
+        "key": "ownerAvatarMode",
+        "title": "Top Desk Figure Style (empty = invisible/empty chair, custom = local avatar image, silhouette = subtle figure)",
+        "type": "string",
+        "enum": ["empty", "custom", "silhouette"],
+        "default": "empty"
+      },
+      {
+        "key": "ownerAvatarPath",
+        "title": "Custom Avatar Image Path (used when Top Desk Figure Style = custom, e.g. ~/avatar.png)",
+        "type": "string",
+        "default": ""
       }
     ]
   },

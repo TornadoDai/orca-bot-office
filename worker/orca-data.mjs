@@ -150,45 +150,128 @@ function extractLinkedRefs(rawLinks) {
   return out;
 }
 
-// Low-CPU throttled cache for bot list & native needs-you items
+// Low-CPU throttled cache for bot list, branch chats & native needs-you items
 const itemListCache = new Map(); // botName -> { fetchedAt, items }
-const itemDetailCache = new Map(); // "num:ver" -> ask
+const itemDetailCache = new Map(); // "num:ver:qev" -> ask
+const branchChatsCache = new Map(); // botName -> { fetchedAt, chats }
 let botListCache = { fetchedAt: 0, bots: [] };
 
-function parseAskFromEvents(events, fallbackQuestion) {
+function normalizeAskObject(ask, fallbackText, eventId) {
+  const questions = Array.isArray(ask?.questions)
+    ? ask.questions.map((q) => ({
+        prompt: String(q.prompt || ""),
+        multi: Boolean(q.multi),
+        recommended: typeof q.recommended === "number" ? q.recommended : null,
+        options: Array.isArray(q.options)
+          ? q.options.map((o) =>
+              typeof o === "string"
+                ? { label: o, detail: "" }
+                : { label: String(o.label || ""), detail: String(o.detail || "") }
+            )
+          : [],
+      }))
+    : [];
+  return {
+    eventId: eventId || null,
+    context: String(ask?.context || fallbackText || "").slice(0, 1200),
+    questions,
+  };
+}
+
+function parseAskFromEvents(events, itemQuestion) {
   const list = Array.isArray(events) ? events : [];
-  for (let i = list.length - 1; i >= 0; i--) {
-    const ev = list[i];
-    if (ev?.kind === "commented" && ev?.data?.ask) {
-      const ask = ev.data.ask;
-      const questions = Array.isArray(ask.questions)
-        ? ask.questions.map((q) => ({
-            prompt: String(q.prompt || ""),
-            multi: Boolean(q.multi),
-            recommended: typeof q.recommended === "number" ? q.recommended : null,
-            options: Array.isArray(q.options)
-              ? q.options.map((o) =>
-                  typeof o === "string"
-                    ? { label: o, detail: "" }
-                    : { label: String(o.label || ""), detail: String(o.detail || "") }
-                )
-              : [],
-          }))
-        : [];
+  const qObj = itemQuestion && typeof itemQuestion === "object" ? itemQuestion : null;
+  const targetEventId = qObj?.eventId || null;
+  const qText = qObj ? String(qObj.text || qObj.gist || "") : (typeof itemQuestion === "string" ? itemQuestion : "");
+
+  // 1) Authoritative match: if Orca's item.question names a specific eventId, ONLY use that exact event!
+  // Never fall back to an older already-answered `ask` event when the active question is plain text (e.g. #89).
+  if (targetEventId) {
+    const exact = list.find((ev) => ev?.id === targetEventId);
+    if (exact) {
+      if (exact.data?.ask) {
+        return normalizeAskObject(exact.data.ask, exact.data.text || qText, exact.id);
+      }
       return {
-        eventId: ev.id || null,
-        context: String(ask.context || ev.data.text || "").slice(0, 520),
-        questions,
+        eventId: exact.id,
+        context: String(exact.data?.text || qText || "").slice(0, 1200),
+        questions: [],
       };
     }
-  }
-  for (let i = list.length - 1; i >= 0; i--) {
-    const ev = list[i];
-    if (ev?.kind === "commented" && ev?.actor?.kind === "bot" && ev?.data?.text) {
-      return { eventId: ev.id || null, context: String(ev.data.text).slice(0, 520), questions: [] };
+    if (qText) {
+      return { eventId: targetEventId, context: qText.slice(0, 1200), questions: [] };
     }
   }
-  return { eventId: null, context: typeof fallbackQuestion === "string" ? fallbackQuestion : "", questions: [] };
+
+  // 2) Fallback when item.question has text without eventId
+  if (qText) {
+    return { eventId: null, context: qText.slice(0, 1200), questions: [] };
+  }
+
+  // 3) Last resort: collect answered requestIds so we never surface an already-answered ask
+  const answeredIds = new Set(
+    list.map((ev) => ev?.data?.requestId).filter(Boolean)
+  );
+  for (let i = list.length - 1; i >= 0; i--) {
+    const ev = list[i];
+    if (ev?.kind === "commented" && ev?.actor?.kind === "bot") {
+      if (ev.data?.ask && !answeredIds.has(ev.id)) {
+        return normalizeAskObject(ev.data.ask, ev.data.text, ev.id);
+      }
+      if (ev.data?.text) {
+        return { eventId: ev.id || null, context: String(ev.data.text).slice(0, 1200), questions: [] };
+      }
+    }
+  }
+  return { eventId: null, context: "", questions: [] };
+}
+
+async function fetchItemEventsForQuestion(orcaBin, itemNumber, targetEventId) {
+  let cursor = null;
+  let allEvents = [];
+  let itemMeta = null;
+  for (let page = 0; page < 6; page++) {
+    const args = ["bot", "item", "show", String(itemNumber)];
+    if (cursor) args.push("--cursor", cursor);
+    const detail = await runOrcaJson(orcaBin, args, 6500);
+    if (!itemMeta && detail?.item) itemMeta = detail.item;
+    const evs = Array.isArray(detail?.events) ? detail.events : [];
+    allEvents = allEvents.concat(evs);
+    const effectiveTarget = targetEventId || itemMeta?.question?.eventId || null;
+    if (effectiveTarget && evs.some((ev) => ev?.id === effectiveTarget)) {
+      break;
+    }
+    if (!detail?.nextCursor || !effectiveTarget) break;
+    cursor = String(detail.nextCursor);
+  }
+  return { events: allEvents, item: itemMeta };
+}
+
+async function fetchBotBranchChats(orcaBin, botName, force = false) {
+  const now = Date.now();
+  const cached = branchChatsCache.get(botName);
+  if (!force && cached && now - cached.fetchedAt < 45000) {
+    return cached.chats;
+  }
+  try {
+    const res = await runOrcaJson(orcaBin, ["bot", "chats", "--bot", botName], 6000);
+    const raw = Array.isArray(res?.chats) ? res.chats : [];
+    const chats = raw
+      .filter((c) => !c.home && !c.closed)
+      .sort((a, b) => (b.lastActivityAt || 0) - (a.lastActivityAt || 0))
+      .slice(0, 6)
+      .map((c) => ({
+        id: c.id,
+        title: cleanText(c.title || "Branch chat", 72),
+        lastAsked: cleanText(c.lastAsked || "", 90),
+        lastSaid: cleanText(c.lastSaid || "", 100),
+        lastActivityAt: c.lastActivityAt || null,
+      }));
+    branchChatsCache.set(botName, { fetchedAt: now, chats });
+    return chats;
+  } catch {
+    return cached?.chats || [];
+  }
 }
 
 async function mapWithConcurrency(items, limit, fn) {
@@ -221,18 +304,20 @@ async function fetchBotNeedsYouItems(orcaBin, botName, forceItems = false) {
       (it) => !it.snoozedUntil || Number(it.snoozedUntil) <= now
     );
     const enriched = await mapWithConcurrency(rawItems, 2, async (it) => {
-      const cacheKey = `${it.number}:${it.version || it.lastEventId || it.updatedAt}`;
+      const targetEvId = it.question?.eventId || "";
+      const cacheKey = `${it.number}:${it.version || it.lastEventId || it.updatedAt}:${targetEvId}`;
       let ask = itemDetailCache.get(cacheKey);
       if (!ask) {
         try {
-          const detail = await runOrcaJson(orcaBin, ["bot", "item", "show", String(it.number)], 6500);
-          ask = parseAskFromEvents(detail?.events, it.question);
+          const detail = await fetchItemEventsForQuestion(orcaBin, it.number, targetEvId);
+          ask = parseAskFromEvents(detail.events, detail.item?.question || it.question);
           itemDetailCache.set(cacheKey, ask);
-          if (itemDetailCache.size > 100) {
+          if (itemDetailCache.size > 120) {
             itemDetailCache.delete(itemDetailCache.keys().next().value);
           }
         } catch {
-          ask = { eventId: null, context: cleanText(it.description || it.doneMeans || "", 320), questions: [] };
+          const fallbackTxt = it.question?.text || it.question?.gist || it.description || it.doneMeans || "";
+          ask = { eventId: targetEvId || null, context: cleanText(fallbackTxt, 520), questions: [] };
         }
       }
       return {
@@ -355,12 +440,19 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true, fo
   const rawBots = Array.isArray(botRes.bots) ? botRes.bots : [];
   const rawWts = Array.isArray(wtRes.worktrees) ? wtRes.worktrees : [];
 
-  // Concurrency-capped (3 at a time) + 22s cached native Needs-You item fetch
-  const needsYouList = await mapWithConcurrency(rawBots, 3, async (b) => [
-    b.name,
-    await fetchBotNeedsYouItems(orcaBin, b.name, forceItems),
+  // Concurrency-capped (3 at a time) + cached native Needs-You items & active branch chats
+  const [needsYouList, branchChatsList] = await Promise.all([
+    mapWithConcurrency(rawBots, 3, async (b) => [
+      b.name,
+      await fetchBotNeedsYouItems(orcaBin, b.name, forceItems),
+    ]),
+    mapWithConcurrency(rawBots, 3, async (b) => [
+      b.name,
+      await fetchBotBranchChats(orcaBin, b.name, forceItems),
+    ]),
   ]);
   const needsYouByBot = new Map(needsYouList);
+  const branchChatsByBot = new Map(branchChatsList);
 
   const homeByBot = new Map();
   const workersByBot = new Map();
@@ -440,6 +532,7 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true, fo
       stateStartedAt,
       lastActivityAt: home?.lastActivityAt || workers[0]?.lastActivityAt || null,
       workingWorkerCount,
+      branchChats: branchChatsByBot.get(b.name) || [],
       workers,
     };
   });
@@ -546,31 +639,41 @@ async function toTinyAvatarDataUrl(imgPath, cacheKey, mtimeMs) {
   }
 }
 
-export async function collectBotAvatars() {
+export async function collectBotAvatars(ownerAvatarPath = "") {
   const orcaHome = process.env.ORCA_HOME || path.join(os.homedir(), ".orca");
   const botsRoot = path.join(orcaHome, "bots");
   const avatars = {};
-  if (!fs.existsSync(botsRoot)) return avatars;
-
-  const dirs = fs.readdirSync(botsRoot, { withFileTypes: true }).filter((d) => d.isDirectory());
-  await mapWithConcurrency(dirs, 3, async (dir) => {
-    const folder = path.join(botsRoot, dir.name);
-    const metaPath = path.join(folder, "bot.json");
-    if (!fs.existsSync(metaPath)) return;
-    const imgPath = ["avatar.png", "avatar.jpg", "avatar.jpeg", "avatar.webp"]
-      .map((f) => path.join(folder, f))
-      .find((p) => fs.existsSync(p));
-    if (!imgPath) return;
+  if (fs.existsSync(botsRoot)) {
+    const dirs = fs.readdirSync(botsRoot, { withFileTypes: true }).filter((d) => d.isDirectory());
+    await mapWithConcurrency(dirs, 3, async (dir) => {
+      const folder = path.join(botsRoot, dir.name);
+      const metaPath = path.join(folder, "bot.json");
+      if (!fs.existsSync(metaPath)) return;
+      const imgPath = ["avatar.png", "avatar.jpg", "avatar.jpeg", "avatar.webp"]
+        .map((f) => path.join(folder, f))
+        .find((p) => fs.existsSync(p));
+      if (!imgPath) return;
+      try {
+        const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+        const stat = fs.statSync(imgPath);
+        const key = String(meta.id || dir.name).replace(/[^a-zA-Z0-9_-]/g, "_");
+        const dataUrl = await toTinyAvatarDataUrl(imgPath, key, stat.mtimeMs);
+        if (dataUrl && meta.id) avatars[meta.id] = dataUrl;
+        if (dataUrl && meta.name) avatars[meta.name] = dataUrl;
+      } catch {
+        // Ignore unreadable folder
+      }
+    });
+  }
+  const custom = String(ownerAvatarPath || "").trim().replace(/^~(?=\/)/, os.homedir());
+  if (custom && fs.existsSync(custom)) {
     try {
-      const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
-      const stat = fs.statSync(imgPath);
-      const key = String(meta.id || dir.name).replace(/[^a-zA-Z0-9_-]/g, "_");
-      const dataUrl = await toTinyAvatarDataUrl(imgPath, key, stat.mtimeMs);
-      if (dataUrl && meta.id) avatars[meta.id] = dataUrl;
-      if (dataUrl && meta.name) avatars[meta.name] = dataUrl;
+      const stat = fs.statSync(custom);
+      const dataUrl = await toTinyAvatarDataUrl(custom, "__owner_custom__", stat.mtimeMs);
+      if (dataUrl) avatars.__owner__ = dataUrl;
     } catch {
-      // Ignore unreadable folder
+      // Ignore unreadable custom avatar
     }
-  });
+  }
   return avatars;
 }

@@ -556,7 +556,9 @@
 
   /* ── Unlabeled Center Executive Workstation for TOP Decision & Report Queue ── */
 
-  function drawCenterOwnerDesk(ctx, cx, baseY, phase) {
+  function drawCenterOwnerDesk(ctx, cx, baseY, phase, opts = {}) {
+    const mode = opts.mode || "empty";
+    const avatarImg = opts.avatarImg || null;
     const deskW = 148;
     const ty = baseY - 22;
 
@@ -564,48 +566,37 @@
     ctx.fillStyle = "rgba(0, 0, 0, 0.36)";
     ctx.beginPath(); ctx.ellipse(cx, baseY + 4, deskW * 0.56, 9.5, 0, 0, Math.PI * 2); ctx.fill();
 
-    // Executive high-back leather swivel chair
+    // Executive high-back leather swivel chair (slightly angled cushion detail when empty)
     const chG = ctx.createLinearGradient(cx - 20, ty - 42, cx + 20, ty);
-    chG.addColorStop(0, "#3b2e38"); chG.addColorStop(1, "#1c1721");
-    roundRect(ctx, cx - 20, ty - 40, 40, 40, 10);
+    chG.addColorStop(0, "#43343f"); chG.addColorStop(1, "#1e1923");
+    roundRect(ctx, cx - 21, ty - 42, 42, 42, 10);
     ctx.fillStyle = chG; ctx.fill();
     ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
-    roundRect(ctx, cx - 15, ty - 37, 30, 6, 3); ctx.fill();
+    // Subtle tufted headrest & backrest seam
+    ctx.fillStyle = "rgba(255,255,255,0.09)";
+    roundRect(ctx, cx - 15, ty - 38, 30, 6.5, 3); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.07)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx - 15, ty - 26); ctx.lineTo(cx + 15, ty - 26); ctx.stroke();
 
-    // Calm seated figure behind center desk (smart dark navy blazer + white shirt, ZERO text/crown)
-    const bob = Math.sin(phase * 0.85) * 0.5;
-    // Neck
-    ctx.fillStyle = "#e5b38c";
-    roundRect(ctx, cx - 4, ty - 24 + bob, 8, 6, 2); ctx.fill(); ctx.stroke();
-    // Tailored dark charcoal-navy blazer
-    const coatG = ctx.createLinearGradient(cx, ty - 19 + bob, cx, ty + 3 + bob);
-    coatG.addColorStop(0, "#334155"); coatG.addColorStop(1, "#1e293b");
-    roundRect(ctx, cx - 17, ty - 19 + bob, 34, 22, 9);
-    ctx.fillStyle = coatG; ctx.fill(); ctx.stroke();
-    // Crisp white collar V
-    ctx.fillStyle = "#f8fafc";
-    ctx.beginPath();
-    ctx.moveTo(cx - 6, ty - 19 + bob); ctx.lineTo(cx + 6, ty - 19 + bob);
-    ctx.lineTo(cx, ty - 9 + bob); ctx.closePath(); ctx.fill();
-    // 3D-shaded calm head & neat hair
-    const hy = ty - 33 + bob;
-    const fg = ctx.createRadialGradient(cx - 3, hy - 3, 2, cx, hy + 1, 13);
-    fg.addColorStop(0, "#ffe4cc"); fg.addColorStop(1, "#e5b38c");
-    ctx.fillStyle = fg; ctx.strokeStyle = INK; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(cx, hy, 12.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // Hair
-    ctx.fillStyle = "#221d24";
-    ctx.beginPath();
-    ctx.arc(cx, hy - 2.5, 13, Math.PI * 0.96, Math.PI * 0.04);
-    ctx.quadraticCurveTo(cx + 3, hy - 7, cx - 12, hy - 1.5);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    // Calm eyes + gentle smile
-    ctx.fillStyle = "#1f1a24";
-    ctx.beginPath(); ctx.arc(cx - 4.2, hy + 0.8, 1.7, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + 4.2, hy + 0.8, 1.7, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "#8c5342"; ctx.lineWidth = 1.1;
-    ctx.beginPath(); ctx.arc(cx, hy + 4.5, 2.3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+    // Optional figure: default "empty" (invisible/empty chair), or "custom" avatar, or "silhouette"
+    if (mode === "custom" || mode === "silhouette") {
+      const bob = Math.sin(phase * 0.85) * 0.5;
+      if (mode === "custom" && avatarImg && avatarImg.complete && avatarImg.naturalWidth > 0) {
+        const coatG = ctx.createLinearGradient(cx, ty - 19 + bob, cx, ty + 3 + bob);
+        coatG.addColorStop(0, "#334155"); coatG.addColorStop(1, "#1e293b");
+        roundRect(ctx, cx - 17, ty - 19 + bob, 34, 22, 9);
+        ctx.fillStyle = coatG; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+        drawLeadAvatarHead(ctx, cx, ty - 33 + bob, 14.5, avatarImg, "", "rgba(251, 191, 36, 0.72)");
+      } else {
+        // Subtle frosted minimalist silhouette
+        ctx.save();
+        ctx.globalAlpha = 0.52;
+        ctx.fillStyle = "#64748b";
+        roundRect(ctx, cx - 15, ty - 18 + bob, 30, 20, 9); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, ty - 31 + bob, 10.5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+    }
 
     // Rich 3D Walnut Executive Desk (completely clean front panel — ZERO text!)
     const x0 = cx - deskW / 2;
