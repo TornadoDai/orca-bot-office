@@ -51,6 +51,13 @@ export default function activate(orca) {
     const language = String((await orca.settings?.get?.("language").catch(() => "auto")) || "auto");
     const ownerAvatarMode = String((await orca.settings?.get?.("ownerAvatarMode").catch(() => "empty")) || "empty");
     const ownerAvatarPath = String((await orca.settings?.get?.("ownerAvatarPath").catch(() => "")) || "");
+    const dashModules = {
+      tokenDetails: (await orca.settings?.get?.("dashShowTokenDetails").catch(() => true)) !== false,
+      branchChats: (await orca.settings?.get?.("dashShowBranchChats").catch(() => true)) !== false,
+      automations: (await orca.settings?.get?.("dashShowAutomations").catch(() => true)) !== false,
+      linkedRefs: (await orca.settings?.get?.("dashShowLinkedRefs").catch(() => true)) !== false,
+      diagnostics: (await orca.settings?.get?.("dashShowDiagnostics").catch(() => true)) !== false,
+    };
     return {
       intervalMs: Math.max(8, Math.min(120, interval)) * 1000,
       showStandalone,
@@ -59,6 +66,7 @@ export default function activate(orca) {
       language,
       ownerAvatarMode,
       ownerAvatarPath,
+      dashModules,
     };
   }
 
@@ -100,6 +108,7 @@ export default function activate(orca) {
           hideStaleIdleHours: opts.hideStaleIdleHours,
           language: opts.language,
           ownerAvatarMode: opts.ownerAvatarMode,
+          dashModules: opts.dashModules,
         };
         const hash = computeSnapshotHash(snap);
         const changed = hash !== lastBroadcastHash;
@@ -152,11 +161,28 @@ export default function activate(orca) {
   });
 
   orca.panels.handle("office.getAnalytics", async (input = {}) => {
+    const opts = await readOptions();
     const snap = latestSnapshot || (await refresh(false, { forceItems: false }));
     return await collectOfficeAnalytics(orcaBin, orca.host, snap, {
       force: Boolean(input.force),
+      modules: input.modules || opts.dashModules,
       log: (msg) => orca.log?.(msg),
     });
+  });
+
+  const ALLOWED_DASH_KEYS = new Set([
+    "dashShowTokenDetails",
+    "dashShowBranchChats",
+    "dashShowAutomations",
+    "dashShowLinkedRefs",
+    "dashShowDiagnostics",
+  ]);
+  orca.panels.handle("office.setDashModule", async (input = {}) => {
+    const key = String(input.key || "");
+    if (!ALLOWED_DASH_KEYS.has(key)) throw new Error("Unsupported module setting");
+    const val = Boolean(input.value);
+    await orca.settings?.set?.(key, val);
+    return { ok: true, key, value: val };
   });
 
   orca.panels.handle("office.openWorkspace", async (input = {}) => {

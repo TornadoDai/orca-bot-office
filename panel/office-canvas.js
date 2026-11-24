@@ -264,7 +264,7 @@
         cx: leadX,
         baseY: leadY,
         isLead: true,
-        isWorking: b.state === "working" || b.workingWorkerCount > 0,
+        isWorking: b.state === "working" || b.workingWorkerCount > 0 || (b.activeBranchCount || 0) > 0,
         isStall: bStall,
         isUpstairs: Boolean(b.selfNeedsDecision),
         eng: b.agent,
@@ -275,6 +275,8 @@
         hovered: this.hoveredId === leadId,
         lang,
         durText: bDur,
+        branchCount: b.branchChatCount || 0,
+        branchActive: (b.activeBranchCount || 0) > 0,
       });
 
       this.hitNodes.push({
@@ -383,7 +385,7 @@
             cx: bx,
             baseY: by,
             isLead: true,
-            isWorking: b.state === "working",
+            isWorking: b.state === "working" || (b.activeBranchCount || 0) > 0,
             isStall: bStall,
             isUpstairs: Boolean(b.selfNeedsDecision),
             eng: b.agent,
@@ -394,6 +396,8 @@
             hovered: this.hoveredId === nodeId,
             lang,
             durText: bDur,
+            branchCount: b.branchChatCount || 0,
+            branchActive: (b.activeBranchCount || 0) > 0,
           });
           this.hitNodes.push({
             id: nodeId, kind: "bot", bot: b, dotHit: null,

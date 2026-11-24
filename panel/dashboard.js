@@ -273,7 +273,7 @@
       </div>`;
   }
 
-  function renderDashboardHtml(rawAnalytics, avatars, engPillHtml, tr, filters = {}) {
+  function renderDashboardHtml(rawAnalytics, avatars, engPillHtml, tr, filters = {}, opts = {}) {
     if (!rawAnalytics) return `<div class="db-loading">${esc(tr.dbLoading)}</div>`;
 
     const data = filterAnalytics(rawAnalytics, filters);
@@ -282,7 +282,12 @@
     const trend = data.dailyTrend || [];
     const mix = data.engineMix || [];
     const tok = data.tokenUsage || {};
+    const mods = opts.modules || { tokenDetails: true, branchChats: true, automations: true, linkedRefs: true, diagnostics: true };
+    const relTime = opts.relTime || (() => "");
+    const extras = window.OfficeDashboardExtras;
+    const filterTeamIds = data.isFiltered ? new Set(teams.map((tm) => tm.id)) : null;
 
+    const modToggleBar = extras ? extras.renderModuleToggleBar(mods, tr) : "";
     const filterBanner = data.isFiltered
       ? `<div class="db-filter-banner"><span>🔎 ${esc(tr.dbFilterActive(filters.engineFilter, filters.searchQuery, filters.activeOnly))}</span><span>${teams.length} ${esc(tr.dbTeamUnit)}</span></div>`
       : "";
@@ -460,7 +465,23 @@
         <div class="db-meter-list">${dispatchHtml}</div>
       </div>`;
 
-    return `<div class="dashboard">${filterBanner}${kpiHtml}${teamMetricsChartCard}${midChartsGrid}${tokenCard}${workloadListCard}${dispatchCard}</div>`;
+    const tokDetailsCard = extras && mods.tokenDetails !== false
+      ? extras.renderTokenDetailsCard(tok, fmtTokens, engPillHtml, relTime, tr, filterTeamIds)
+      : "";
+    const branchCard = extras && mods.branchChats !== false
+      ? extras.renderBranchActivityCard(data.branchActivity, engPillHtml, relTime, tr, filterTeamIds)
+      : "";
+    const autoCard = extras && mods.automations !== false
+      ? extras.renderAutomationsCard(data.automations, relTime, tr, filterTeamIds)
+      : "";
+    const linksCard = extras && mods.linkedRefs !== false
+      ? extras.renderLinkedRefsCard(data.linkedRefsList, tr, filterTeamIds)
+      : "";
+    const diagCard = extras && mods.diagnostics !== false
+      ? extras.renderDiagnosticsCard(data.diagnostics, tr)
+      : "";
+
+    return `<div class="dashboard">${modToggleBar}${filterBanner}${kpiHtml}${teamMetricsChartCard}${midChartsGrid}${tokenCard}${tokDetailsCard}${workloadListCard}${dispatchCard}${branchCard}${autoCard}${linksCard}${diagCard}</div>`;
   }
 
   window.OfficeDashboard = { renderDashboardHtml, filterAnalytics, fmtTokens };

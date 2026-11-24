@@ -134,18 +134,49 @@ function extractTimeline(agents, fallback) {
   return entries.slice(0, 5);
 }
 
-function extractLinkedRefs(rawLinks) {
-  const list = Array.isArray(rawLinks) ? rawLinks : [];
+function extractLinkedRefs(rawLinks, linkedPR = null, linkedGitLabMR = null) {
+  const list = Array.isArray(rawLinks) ? [...rawLinks] : [];
   const out = [];
-  for (const item of list.slice(0, 6)) {
+  const seen = new Set();
+  const push = (kind, label, url) => {
+    const cleanLabel = cleanText(label || "Link", 40);
+    const key = url || `${kind}:${cleanLabel}`;
+    if (!cleanLabel && !url) return;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ kind, label: cleanLabel, url: url || "" });
+  };
+  for (const item of list.slice(0, 8)) {
     if (!item) continue;
-    const url = typeof item === "string" ? item : item.url || item.href || "";
+    if (typeof item === "string") {
+      const kind = /\/pull\/|\/merge_requests\//.test(item) ? "pr" : "issue";
+      push(kind, item.replace(/^https?:\/\/[^/]+\//, "").slice(0, 36), item);
+      continue;
+    }
+    const url = item.url || item.href || "";
+    const provider = String(item.provider || "").toLowerCase();
+    const rawType = String(item.type || item.kind || "").toLowerCase();
+    const kind =
+      rawType === "mr" || rawType === "pr" || /\/pull\/|\/merge_requests\//.test(url)
+        ? (rawType === "mr" || provider === "gitlab" || /\/merge_requests\//.test(url) ? "mr" : "pr")
+        : "issue";
+    const numPrefix = kind === "mr" ? "MR !" : kind === "pr" ? "PR #" : "#";
     const label =
-      typeof item === "string"
-        ? item.replace(/^https?:\/\/[^/]+\//, "").slice(0, 36)
-        : item.label || item.key || item.title || (item.number ? `#${item.number}` : url.replace(/^https?:\/\/[^/]+\//, "").slice(0, 36));
-    const kind = typeof item === "object" && item.kind ? String(item.kind) : /\/pull\/|\/merge_requests\//.test(url) ? "pr" : "issue";
-    if (label || url) out.push({ kind, label: cleanText(label || "Link", 36), url });
+      item.label ||
+      item.key ||
+      item.title ||
+      (item.number ? `${numPrefix}${item.number}` : url.replace(/^https?:\/\/[^/]+\//, "").slice(0, 36));
+    push(kind, label, url);
+  }
+  if (linkedPR && typeof linkedPR === "object") {
+    push("pr", linkedPR.title || `PR #${linkedPR.number || ""}`, linkedPR.url || "");
+  } else if (typeof linkedPR === "number" || typeof linkedPR === "string") {
+    push("pr", `PR #${linkedPR}`, "");
+  }
+  if (linkedGitLabMR && typeof linkedGitLabMR === "object") {
+    push("mr", linkedGitLabMR.title || `MR !${linkedGitLabMR.number || linkedGitLabMR.iid || ""}`, linkedGitLabMR.url || "");
+  } else if (typeof linkedGitLabMR === "number" || typeof linkedGitLabMR === "string") {
+    push("mr", `MR !${linkedGitLabMR}`, "");
   }
   return out;
 }
@@ -256,17 +287,30 @@ async function fetchBotBranchChats(orcaBin, botName, force = false) {
   try {
     const res = await runOrcaJson(orcaBin, ["bot", "chats", "--bot", botName], 6000);
     const raw = Array.isArray(res?.chats) ? res.chats : [];
+    const dayMs = 24 * 3600 * 1000;
+    const activeMs = 15 * 60 * 1000;
     const chats = raw
-      .filter((c) => !c.home && !c.closed)
+      .filter((c) => {
+        if (c.home || c.closed) return false;
+        const hasContent = Boolean(String(c.title || "").trim() || String(c.lastAsked || "").trim() || String(c.lastSaid || "").trim());
+        if (!hasContent) return false;
+        const age = c.lastActivityAt ? now - Number(c.lastActivityAt) : Infinity;
+        return age <= dayMs || Boolean(String(c.title || "").trim());
+      })
       .sort((a, b) => (b.lastActivityAt || 0) - (a.lastActivityAt || 0))
-      .slice(0, 6)
-      .map((c) => ({
-        id: c.id,
-        title: cleanText(c.title || "Branch chat", 72),
-        lastAsked: cleanText(c.lastAsked || "", 90),
-        lastSaid: cleanText(c.lastSaid || "", 100),
-        lastActivityAt: c.lastActivityAt || null,
-      }));
+      .slice(0, 8)
+      .map((c) => {
+        const ts = c.lastActivityAt ? Number(c.lastActivityAt) : null;
+        return {
+          id: c.id,
+          title: cleanText(c.title || c.lastAsked || "Branch chat", 72),
+          lastAsked: cleanText(c.lastAsked || "", 90),
+          lastSaid: cleanText(c.lastSaid || "", 100),
+          lastActivityAt: ts,
+          isRecent: Boolean(ts && now - ts <= activeMs),
+          isFresh24h: Boolean(ts && now - ts <= dayMs),
+        };
+      });
     branchChatsCache.set(botName, { fetchedAt: now, chats });
     return chats;
   } catch {
@@ -353,7 +397,7 @@ function buildWorkerItem(w) {
     toolName: picked.agent?.toolName || "",
     activity: extractActivity(picked.agent, w.preview || w.comment || "", 84),
     timeline: extractTimeline(w.agents, w.preview || w.comment || ""),
-    links: extractLinkedRefs(w.linkedItems),
+    links: extractLinkedRefs(w.linkedItems, w.linkedPR, w.linkedGitLabMR),
     unread: Boolean(w.unread),
     liveTerminalCount: Number(w.liveTerminalCount || 0),
     stateStartedAt,
@@ -395,6 +439,8 @@ export function computeSnapshotHash(snap) {
       decisionCount: b.decisionCount,
       activity: b.activity,
       lastActivityAt: b.lastActivityAt,
+      branchChatCount: b.branchChatCount || 0,
+      activeBranchCount: b.activeBranchCount || 0,
       items: (b.needsYouItems || []).map((i) => `${i.number}:${i.updatedAt}`),
       workers: (b.workers || []).map((w) => ({
         id: w.worktreeId,
@@ -509,6 +555,12 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true, fo
     }
 
     const stateStartedAt = picked.agent?.stateStartedAt || home?.lastActivityAt || null;
+    const branchChats = branchChatsByBot.get(b.name) || [];
+    const activeBranchCount = branchChats.filter((c) => c.isRecent).length;
+    const branchChatCount = branchChats.filter((c) => c.isFresh24h).length || branchChats.length;
+    if (!activity && activeBranchCount > 0) {
+      activity = `⑂ ${branchChats[0].title}`;
+    }
 
     return {
       id: b.id,
@@ -527,12 +579,18 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true, fo
       decisionWorkerCount,
       activity,
       timeline,
-      links: extractLinkedRefs(home?.linkedItems),
+      links: extractLinkedRefs(home?.linkedItems, home?.linkedPR, home?.linkedGitLabMR),
       toolName: picked.agent?.toolName || "",
       stateStartedAt,
-      lastActivityAt: home?.lastActivityAt || workers[0]?.lastActivityAt || null,
+      lastActivityAt: Math.max(
+        Number(home?.lastActivityAt || 0),
+        Number(workers[0]?.lastActivityAt || 0),
+        Number(branchChats[0]?.lastActivityAt || 0)
+      ) || null,
       workingWorkerCount,
-      branchChats: branchChatsByBot.get(b.name) || [],
+      branchChats,
+      branchChatCount,
+      activeBranchCount,
       workers,
     };
   });

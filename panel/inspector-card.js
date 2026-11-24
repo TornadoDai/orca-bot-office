@@ -160,10 +160,10 @@
       if (bChats.length > 0) {
         const chatRows = bChats.map((ch) => `
           <div class="ic-tl-row">
-            <span class="ic-tl-lbl">chat</span><b>${esc(ch.title)}</b>${ch.lastActivityAt ? ` <span class="ic-muted">· ${esc(relTime(ch.lastActivityAt))}</span>` : ""}
+            <span class="ic-tl-lbl ${ch.isRecent ? "hot" : ""}">⑂ ${ch.isRecent ? "LIVE" : "CHAT"}</span><b>${esc(ch.title)}</b>${ch.lastActivityAt ? ` <span class="ic-muted">· ${esc(relTime(ch.lastActivityAt))}</span>` : ""}
             ${ch.lastSaid || ch.lastAsked ? `<div class="ic-branch-sub">${esc(ch.lastSaid || ch.lastAsked)}</div>` : ""}
           </div>`).join("");
-        workersHtml += `<details class="ic-collapse"><summary class="ic-collapse-sum">${esc(tr.secBranchChats(bChats.length))}</summary><div class="ic-timeline">${chatRows}</div></details>`;
+        workersHtml += `<details class="ic-collapse" ${hasItems ? "" : "open"}><summary class="ic-collapse-sum">${esc(tr.secBranchChats(bChats.length))}</summary><div class="ic-timeline">${chatRows}</div></details>`;
       }
     } else {
       const w = target.worker;

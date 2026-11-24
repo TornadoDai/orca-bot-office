@@ -13,7 +13,8 @@ An ultra-lightweight **2.5D Side-Scrolling Stacked Office Tower & Grouped Workbe
 - **Native Light & Dark Themes**: Automatically follows Orca's Light and Dark color schemes across the floor cards, SVG analytics charts, tables, and inspector modal.
 - **Human-Styled Teammates & Agent Engine Identity**: Expressive human-styled colleagues (unique hairstyles, glasses/headphones, 3D-shaded outfits) and Lead Bots display color-coded engine badges (`✦ Claude`, `◈ agy`, `⬡ Codex`, `π Pi`) everywhere at a glance.
 - **Sleek Luminous Message Streams**: Minimalist glowing paper-dart packets with fading light trails glide smoothly between Lead Bots and active Workers — clean, airy, and readable.
-- **Charts-First Team Workload & Token Dashboard (`Floors | Dashboard | List`)**: Pure-SVG right-sidebar data panel synced live with the Engine & Search filters — KPI cards, Team Key Metrics bar chart, 7-day delivery pace, Engine Mix donut, CLI Token/message rankings (`history:read`), followed by clickable team workload & dispatch tables.
+- **Charts-First Team Workload & Token Dashboard (`Floors | Dashboard | List`)**: Pure-SVG right-sidebar data panel synced live with the Engine & Search filters — KPI cards, Team Key Metrics bar chart, 7-day delivery pace, Engine Mix donut, CLI Token/message rankings (`history:read`), plus toggleable modular cards for **7-Day Daily Token Trend & Top Heavy Sessions**, **Bot Branch Chats & Activity**, **Automations Schedule & Run History**, **Linked PR / MR / Issue Rollup**, and **Orca Memory & Process Diagnostics**.
+- **Branch Chat Awareness (`⑂N`)**: Bots with active branch chats display a compact `⑂N` badge on floor avatars and in List view, stay awake at their desks while a branch chat is active, and auto-expand their active branch chats inside the Inspector Card when no decisions are pending.
 - **Ultra-Lightweight Architecture**: Zero `backdrop-filter` blur passes, zero external chart libraries, zero infinite CSS animations, offscreen static floor background cache, 0 FPS on idle floors / ≤3.5 FPS only on active floors (auto-pauses when hidden), and hash-diffed event-driven worker updates.
 
 ## Install
@@ -34,6 +35,11 @@ Or in Orca: **Settings → Plugins → Install from Git** with `https://github.c
 | `showStandaloneWorkspaces` | `true` | Show non-Bot workspaces in the collapsible B1 Hot-Desk bar |
 | `ownerAvatarMode` | `empty` | Top-floor center chair display (`empty` invisible, `custom` image, `silhouette`) |
 | `ownerAvatarPath` | `""` | Local image path used when `ownerAvatarMode` is `custom` |
+| `dashShowTokenDetails` | `true` | Dashboard: show 7-day daily token trend & top heavy sessions |
+| `dashShowBranchChats` | `true` | Dashboard: show Bot branch chats & activity |
+| `dashShowAutomations` | `true` | Dashboard: show automation schedule & recent runs |
+| `dashShowLinkedRefs` | `true` | Dashboard: show team PR / MR / Issue rollup |
+| `dashShowDiagnostics` | `true` | Dashboard: show Orca memory & process diagnostics |
 | `language` | `auto` | UI language (`auto`, `en`, `zh`) |
 
 ---
@@ -47,7 +53,8 @@ Or in Orca: **Settings → Plugins → Install from Git** with `https://github.c
 - **原生浅色 / 深色双主题**：顶栏、楼层卡片、仪表盘 SVG 图表与详情卡片全部响应 Orca 浅色与深色主题切换。
 - **拟人化团队成员 & 代理一眼分辨**：Worker 升级为带不同发型、眼镜/耳机与立体光影穿搭的研发同事形象，搭配高辨识度配色代理徽章（`✦ Claude` 琥珀、`◈ agy` 天蓝、`⬡ Codex` 紫罗兰、`π Pi` 翠绿）。
 - **轻量流光消息传递 & 柔和提醒**：用极简流光纸箭 + 渐隐光点轨迹替代厚重信封；全界面改用柔和珊瑚粉/玫瑰红提醒，醒目不刺眼。
-- **图表优先的团队工作量仪表盘（楼层 | 仪表盘 | 列表）**：顶栏代理/搜索/仅在忙筛选同步联动楼层、仪表盘与列表；图表前置（各团队核心指标对比柱图 + 近 7 天节奏 + 代理占比环图 + Token 排行），详细团队明细在后，纯 SVG 零依赖。
+- **图表优先 + 可开关扩展模块仪表盘（楼层 | 仪表盘 | 列表）**：顶栏代理/搜索/仅在忙筛选同步联动；内置一键模块开关，可按需启停「近 7 天 Token 趋势与最耗会话榜」「各 Bot 分支聊天活跃度」「定时任务排期与运行记录」「关联 PR / MR / Issue 汇总」「Orca 内存与进程诊断」；关闭后跳过对应数据采集，零额外开销。
+- **分支聊天轻感知（`⑂N`）**：有活跃分支聊天的 Bot 在楼层头像和列表中展示 `⑂N` 角标，近期活跃时工位保持亮屏不睡大觉，无待决策项时详情卡片自动展开活跃分支。
 - **极度轻量低占用**：零 `backdrop-filter`、零 60 FPS CSS 动画、静态底图离屏缓存 + 静止楼层 0 FPS / 活跃楼层 ~3.5 FPS + 仪表盘按需 60s 缓存。
 
 ### 安装方式

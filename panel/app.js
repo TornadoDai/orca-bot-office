@@ -289,8 +289,8 @@ function renderTower(bots) {
 
   if (showLounge) {
     const canvasId = "dnf_floor_lounge";
-    const activeSolos = soloBots.filter((b) => b.needsDecision || b.state === "working");
-    const idleSolos = soloBots.filter((b) => !b.needsDecision && b.state !== "working");
+    const activeSolos = soloBots.filter((b) => b.needsDecision || b.state === "working" || (b.activeBranchCount || 0) > 0);
+    const idleSolos = soloBots.filter((b) => !b.needsDecision && b.state !== "working" && !(b.activeBranchCount > 0));
     const decCount = soloBots.reduce((acc, b) => acc + (b.decisionCount || 0), 0);
     const badgeCls = decCount > 0 ? "attn" : (activeSolos.length > 0 ? "hot" : "");
     const soloIds = new Set(soloBots.map((b) => b.id));
@@ -348,7 +348,8 @@ function renderListView(bots) {
       avHtml, name: b.name, role: tr.roleBot, engRaw: b.agent,
       sub: b.needsYouItems?.length ? `#${b.needsYouItems[0].number} ${b.needsYouItems[0].title}` : (b.activity || tr.stateIdle),
       attnCount: b.decisionCount || 0, needs: b.needsDecision,
-      working: b.state === "working" || b.workingWorkerCount > 0,
+      working: b.state === "working" || b.workingWorkerCount > 0 || (b.activeBranchCount || 0) > 0,
+      branchCount: b.branchChatCount || 0, branchActive: (b.activeBranchCount || 0) > 0,
       stall: bStall, dur: bDur, time: relTime(b.lastActivityAt),
     };
     if (bRow.needs) needRows.push(bRow);
@@ -386,6 +387,7 @@ function renderListView(bots) {
                 <span class="wb-name">${esc(r.name)}</span>
                 ${engPillHtml(r.engRaw)}
                 <span class="wb-tag">${esc(r.role)}</span>
+                ${r.branchCount ? `<span class="wb-tag ${r.branchActive ? "branch-hot" : "branch"}">⑂ ${esc(tr.listBranchTag(r.branchCount))}</span>` : ""}
                 ${r.stall ? `<span class="wb-tag stall">⚠ ${esc(r.dur)}</span>` : (r.dur ? `<span class="wb-tag">${esc(r.dur)}</span>` : "")}
               </div>
               <div class="wb-sub">${esc(r.sub)}</div>
@@ -467,6 +469,27 @@ function bindDomClickHandlers(container) {
     el.addEventListener("click", (e) => { e.stopPropagation(); openCard = { kind: "standalone", worktreeId: el.getAttribute("data-card-standalone") }; renderModal(); });
     el.addEventListener("dblclick", (e) => { e.stopPropagation(); const w = el.getAttribute("data-dblopen"); if (w) void openWorkspace(w, true); });
   });
+  container.querySelectorAll("[data-ext-url]").forEach((el) => {
+    el.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); void openExternalUrl(el.getAttribute("data-ext-url")); });
+  });
+  container.querySelectorAll("[data-toggle-dash-mod]").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const modKey = btn.getAttribute("data-toggle-dash-mod");
+      const settingKey = btn.getAttribute("data-setting-key");
+      const nextVal = btn.getAttribute("data-mod-val") !== "1";
+      if (!snapshot.settings) snapshot.settings = {};
+      if (!snapshot.settings.dashModules) snapshot.settings.dashModules = { tokenDetails: true, branchChats: true, automations: true, linkedRefs: true, diagnostics: true };
+      snapshot.settings.dashModules[modKey] = nextVal;
+      render();
+      if (orcaApi?.plugin?.request && settingKey) {
+        await orcaApi.plugin.request("office.setDashModule", { key: settingKey, value: nextVal }).catch(() => {});
+        if (nextVal && (modKey === "diagnostics" || modKey === "automations")) {
+          void loadAnalytics(true);
+        }
+      }
+    });
+  });
 }
 
 function detectNewDecisions(snap) {
@@ -531,7 +554,8 @@ function render() {
       avatars,
       engPillHtml,
       tr,
-      { engineFilter, searchQuery, activeOnly }
+      { engineFilter, searchQuery, activeOnly },
+      { modules: snapshot.settings?.dashModules, relTime }
     );
     bindDomClickHandlers(dashWrap);
   } else if (viewMode === "list") {
