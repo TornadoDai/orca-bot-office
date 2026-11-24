@@ -116,15 +116,15 @@ body {
 .eng-pill.pi { background: rgba(52, 211, 153, 0.16); border-color: rgba(52, 211, 153, 0.42); color: #6ee7b7; }
 .eng-pill.other { background: rgba(148, 163, 184, 0.15); border-color: rgba(148, 163, 184, 0.35); color: #cbd5e1; }
 
-/* Stacked DNF-Style 2.5D Oblique Floors */
-.tower { display: flex; flex-direction: column; gap: 8px; }
+/* Stacked Modern Office Building Cutaway Floors */
+.tower { display: flex; flex-direction: column; gap: 6px; }
 .floor-card {
-  position: relative; border-radius: 11px; overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.2); background: #0c1220;
+  position: relative; border-radius: 10px; overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.24); background: #141a26;
 }
 .floor-card.is-boss {
-  border-color: rgba(251, 191, 36, 0.34);
-  background: #14111a;
+  border-color: rgba(148, 163, 184, 0.36);
+  background: #141b26;
 }
 .floor-card.is-boss.has-queue {
   border-color: rgba(251, 113, 133, 0.46);
@@ -132,21 +132,21 @@ body {
 .floor-card.is-attn { border-color: var(--rose-soft-border); }
 .floor-bar {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 5.5px 10px; background: #121a2a;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.13);
+  padding: 5.5px 10px; background: #172030;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
 }
 .floor-card.is-boss .floor-bar {
-  background: #1c1623;
-  border-bottom-color: rgba(251, 191, 36, 0.18);
+  background: #1b2436;
+  border-bottom-color: rgba(148, 163, 184, 0.22);
 }
 .floor-bar-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .f-num {
   font-size: 9.5px; font-weight: 800; font-family: ui-monospace, SFMono-Regular, monospace;
-  color: #fde68a; background: rgba(251, 191, 36, 0.15);
-  border: 1px solid rgba(251, 191, 36, 0.28); padding: 1px 5px; border-radius: 4px; flex-shrink: 0;
+  color: #e2e8f0; background: rgba(100, 116, 139, 0.26);
+  border: 1px solid rgba(148, 163, 184, 0.34); padding: 1px 5px; border-radius: 4px; flex-shrink: 0;
 }
 .f-num.boss {
-  color: #fef3c7; background: rgba(217, 119, 6, 0.28); border-color: rgba(251, 191, 36, 0.48);
+  color: #bae6fd; background: rgba(14, 165, 233, 0.2); border-color: rgba(56, 189, 248, 0.45);
 }
 .f-title { font-size: 12px; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .floor-bar-right { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }

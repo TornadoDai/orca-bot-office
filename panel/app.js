@@ -182,29 +182,28 @@ function renderTower(bots) {
   const now = Date.now();
   const handoffs = (snapshot.mailLinks || []).filter((m) => m.kind === "handoff");
 
-  // 1) Top Penthouse: Boss Office with Queueing Bots & Workers
-  const bossQueue = buildBossQueue(bots);
+  // 1) Top Floor: Decision & Report Queue
+  const decisionQueue = buildBossQueue(bots);
   const specs = [];
   let html = "";
 
-  const bossBadgeCls = bossQueue.length > 0 ? "attn" : "";
-  const bossBadgeHtml = bossQueue.length > 0
-    ? `<span class="f-badge attn"><span class="f-badge-dot"></span>${esc(tr.bossBadgeQueue(bossQueue.length))}</span>`
+  const queueBadgeHtml = decisionQueue.length > 0
+    ? `<span class="f-badge attn"><span class="f-badge-dot"></span>${esc(tr.bossBadgeQueue(decisionQueue.length))}</span>`
     : `<span class="f-badge">${esc(tr.bossBadgeCalm)}</span>`;
 
   html += `
-    <div class="floor-card is-boss ${bossQueue.length > 0 ? "has-queue" : ""}">
+    <div class="floor-card is-boss ${decisionQueue.length > 0 ? "has-queue" : ""}">
       <div class="floor-bar">
         <div class="floor-bar-left">
           <span class="f-num boss">TOP</span>
-          <span class="f-title">👑 ${esc(tr.bossTitle)}</span>
+          <span class="f-title">📋 ${esc(tr.bossTitle)}</span>
         </div>
-        <div class="floor-bar-right">${bossBadgeHtml}</div>
+        <div class="floor-bar-right">${queueBadgeHtml}</div>
       </div>
-      <div class="floor-canvas-wrap"><canvas class="floor-canvas" id="dnf_floor_boss"></canvas></div>
+      <div class="floor-canvas-wrap"><canvas class="floor-canvas" id="dnf_floor_decision"></canvas></div>
     </div>`;
 
-  specs.push({ canvasId: "dnf_floor_boss", kind: "boss", queue: bossQueue, lang: getLang() });
+  specs.push({ canvasId: "dnf_floor_decision", kind: "decision", queue: decisionQueue, lang: getLang() });
 
   // 2) Team Floors + Ground Floor Lounge
   const teamBots = [];
@@ -266,6 +265,7 @@ function renderTower(bots) {
     specs.push({
       canvasId,
       kind: "team",
+      floorLabel: `${floorNum}F`,
       bot: b,
       visibleWorkers,
       crossHandoffs: handoffs.filter((h) => h.from === b.id || h.to === b.id),
