@@ -53,6 +53,28 @@ function buildLast7TokenDays(nowMs) {
   }));
 }
 
+function buildHeatmap28Days(nowMs) {
+  const days = [];
+  const base = new Date(nowMs);
+  base.setHours(0, 0, 0, 0);
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(base.getTime() - i * 86400000);
+    days.push({
+      key: dayKeyLocal(d.getTime()),
+      label: `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+      dow: d.getDay(),
+      tokens: 0,
+      messages: 0,
+      sessions: 0,
+    });
+  }
+  return days;
+}
+
+function buildHourly24() {
+  return Array.from({ length: 24 }, (_, hour) => ({ hour, tokens: 0, messages: 0, sessions: 0 }));
+}
+
 function isStalled(entity, nowMs) {
   const touch = Math.max(Number(entity.lastActivityAt || 0), Number(entity.stateStartedAt || 0));
   return entity.state === "working" && touch > 0 && nowMs - touch > 12 * 60 * 1000;
@@ -212,6 +234,8 @@ async function fetchSessionUsage(orcaHost, bots, nowMs, log = null) {
     byTeamMap: new Map(),
     otherTeam: { tokens: 0, messages: 0, sessions: 0 },
     dailyTokens: buildLast7TokenDays(nowMs),
+    heatmap28d: buildHeatmap28Days(nowMs),
+    hourly24: buildHourly24(),
     topSessions: [],
   };
   if (!orcaHost?.has?.("agent.listSessions")) {
@@ -247,6 +271,9 @@ async function fetchSessionUsage(orcaHost, bots, nowMs, log = null) {
     const otherTeam = { tokens: 0, messages: 0, sessions: 0 };
     const dailyTokens = buildLast7TokenDays(nowMs);
     const dailyMap = new Map(dailyTokens.map((d) => [d.key, d]));
+    const heatmap28d = buildHeatmap28Days(nowMs);
+    const heatMap = new Map(heatmap28d.map((d) => [d.key, d]));
+    const hourly24 = buildHourly24();
     const heavyList = [];
 
     for (const s of sessions) {
@@ -277,11 +304,25 @@ async function fetchSessionUsage(orcaHost, bots, nowMs, log = null) {
       }
 
       if (s?.updatedAt) {
-        const dk = dailyMap.get(dayKeyLocal(s.updatedAt));
+        const tsNum = Number(s.updatedAt);
+        const dayK = dayKeyLocal(tsNum);
+        const dk = dailyMap.get(dayK);
         if (dk) {
           dk.tokens += tokens;
           dk.messages += messages;
           dk.sessions += 1;
+        }
+        const hk = heatMap.get(dayK);
+        if (hk) {
+          hk.tokens += tokens;
+          hk.messages += messages;
+          hk.sessions += 1;
+        }
+        const hr = new Date(tsNum).getHours();
+        if (hr >= 0 && hr < 24) {
+          hourly24[hr].tokens += tokens;
+          hourly24[hr].messages += messages;
+          hourly24[hr].sessions += 1;
         }
       }
 
@@ -317,6 +358,8 @@ async function fetchSessionUsage(orcaHost, bots, nowMs, log = null) {
       byTeamMap,
       otherTeam,
       dailyTokens,
+      heatmap28d,
+      hourly24,
       topSessions,
     };
   } catch (err) {
@@ -577,6 +620,8 @@ export async function collectOfficeAnalytics(
       byEngine: sessionUsage.byEngine,
       otherTeam: sessionUsage.otherTeam,
       dailyTokens: sessionUsage.dailyTokens,
+      heatmap28d: sessionUsage.heatmap28d,
+      hourly24: sessionUsage.hourly24,
       topSessions: sessionUsage.topSessions,
     },
     linkedRefsList,

@@ -292,12 +292,13 @@
     ctx.font = "800 8.5px -apple-system, ui-monospace, sans-serif";
     const w = Math.max(20, ctx.measureText(lbl).width + 8);
     roundRect(ctx, x - w / 2, y - 7, w, 13.5, 999);
-    ctx.fillStyle = active ? "#0284c7" : "rgba(15, 23, 42, 0.88)";
+    // Calm teal (active) / muted slate (quiet) — positioned TOP-LEFT so top-right stays 100% exclusive for rose Needs-You alerts!
+    ctx.fillStyle = active ? "#0f766e" : "rgba(15, 23, 42, 0.86)";
     ctx.fill();
-    ctx.strokeStyle = active ? "#7dd3fc" : "rgba(148, 163, 184, 0.6)";
+    ctx.strokeStyle = active ? "#5eead4" : "rgba(148, 163, 184, 0.55)";
     ctx.lineWidth = 1.1;
     ctx.stroke();
-    ctx.fillStyle = active ? "#f0f9ff" : "#cbd5e1";
+    ctx.fillStyle = active ? "#f0fdfa" : "#cbd5e1";
     ctx.textAlign = "center";
     ctx.fillText(lbl, x, y + 2.5);
     ctx.restore();
@@ -336,7 +337,7 @@
       if (isLead) {
         const ring = isStall ? "#fbbf24" : (isWorking ? es.color : "#e2e8f0");
         drawLeadAvatarHead(ctx, cx - 5, hy, 15.5, avatarImg, name, ring);
-        if (branchCount > 0) drawBranchBadge(ctx, cx + 13, hy - 11, branchCount, branchActive);
+        if (branchCount > 0) drawBranchBadge(ctx, cx - 22, hy - 10, branchCount, branchActive);
       } else {
         drawHumanWorkerHead(ctx, cx - 5, hy + 1, seed, es, isWorking ? "working" : "idle", phase);
       }
@@ -543,7 +544,7 @@
       const hov = hoveredId === nodeId;
       const hy = drawShadedTorso(ctx, bx, sy + 2, es, skin, false, 0, false);
       drawLeadAvatarHead(ctx, bx, hy, 14.5, shared.getAvatarImg(b.id, b.name), b.name, hov ? "#7dd3fc" : es.color);
-      if ((b.branchChatCount || 0) > 0) drawBranchBadge(ctx, bx + 15, hy - 10, b.branchChatCount, (b.activeBranchCount || 0) > 0);
+      if ((b.branchChatCount || 0) > 0) drawBranchBadge(ctx, bx - 16, hy - 10, b.branchChatCount, (b.activeBranchCount || 0) > 0);
       // Warm ceramic mug next to bot
       ctx.fillStyle = "#fff7ed"; ctx.strokeStyle = INK; ctx.lineWidth = 0.9;
       roundRect(ctx, bx + 15, sy - 3, 5.5, 5.5, 1.5); ctx.fill(); ctx.stroke();

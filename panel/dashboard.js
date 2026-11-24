@@ -282,12 +282,15 @@
     const trend = data.dailyTrend || [];
     const mix = data.engineMix || [];
     const tok = data.tokenUsage || {};
-    const mods = opts.modules || { tokenDetails: true, branchChats: true, automations: true, linkedRefs: true, diagnostics: true };
+    const mods = opts.modules || {};
+    const activeCat = opts.category || "all";
+    const switchOpen = Boolean(opts.switchOpen);
     const relTime = opts.relTime || (() => "");
     const extras = window.OfficeDashboardExtras;
     const filterTeamIds = data.isFiltered ? new Set(teams.map((tm) => tm.id)) : null;
+    const show = (cat, key) => (activeCat === "all" || activeCat === cat) && mods[key] !== false;
 
-    const modToggleBar = extras ? extras.renderModuleToggleBar(mods, tr) : "";
+    const navBar = extras ? extras.renderCategoryAndSwitchBar(activeCat, mods, switchOpen, tr) : "";
     const filterBanner = data.isFiltered
       ? `<div class="db-filter-banner"><span>🔎 ${esc(tr.dbFilterActive(filters.engineFilter, filters.searchQuery, filters.activeOnly))}</span><span>${teams.length} ${esc(tr.dbTeamUnit)}</span></div>`
       : "";
@@ -333,23 +336,42 @@
         ${renderTeamMetricsChartSvg(teams, tr)}
       </div>`;
 
-    const midChartsGrid = `
-      <div class="db-two-col">
-        <div class="db-card">
-          <div class="db-card-head">
-            <span class="db-card-title">📈 ${esc(tr.dbSecTrend)}</span>
-            <span class="db-mini-legend">
-              <span><i style="background:#38bdf8"></i>${esc(tr.dbTrCreated)}</span>
-              <span><i style="background:#34d399"></i>${esc(tr.dbTrDone)}</span>
-            </span>
+    const showTrend = show("delivery", "dailyTrend");
+    const showEngine = show("runtime", "engineMix");
+    const midChartsGrid = showTrend && showEngine
+      ? `<div class="db-two-col">
+          <div class="db-card">
+            <div class="db-card-head">
+              <span class="db-card-title">📈 ${esc(tr.dbSecTrend)}</span>
+              <span class="db-mini-legend">
+                <span><i style="background:#38bdf8"></i>${esc(tr.dbTrCreated)}</span>
+                <span><i style="background:#34d399"></i>${esc(tr.dbTrDone)}</span>
+              </span>
+            </div>
+            ${renderTrendSvg(trend)}
           </div>
-          ${renderTrendSvg(trend)}
-        </div>
-        <div class="db-card">
-          <div class="db-card-head"><span class="db-card-title">🧩 ${esc(tr.dbSecEngine)}</span></div>
-          ${renderDonutSvg(mix, tr)}
-        </div>
-      </div>`;
+          <div class="db-card">
+            <div class="db-card-head"><span class="db-card-title">🧩 ${esc(tr.dbSecEngine)}</span></div>
+            ${renderDonutSvg(mix, tr)}
+          </div>
+        </div>`
+      : showTrend
+        ? `<div class="db-card">
+            <div class="db-card-head">
+              <span class="db-card-title">📈 ${esc(tr.dbSecTrend)}</span>
+              <span class="db-mini-legend">
+                <span><i style="background:#38bdf8"></i>${esc(tr.dbTrCreated)}</span>
+                <span><i style="background:#34d399"></i>${esc(tr.dbTrDone)}</span>
+              </span>
+            </div>
+            ${renderTrendSvg(trend)}
+          </div>`
+        : showEngine
+          ? `<div class="db-card">
+              <div class="db-card-head"><span class="db-card-title">🧩 ${esc(tr.dbSecEngine)}</span></div>
+              ${renderDonutSvg(mix, tr)}
+            </div>`
+          : "";
 
     // 3) Token & Messages Visual Ranking
     let tokenBody = "";
@@ -465,23 +487,22 @@
         <div class="db-meter-list">${dispatchHtml}</div>
       </div>`;
 
-    const tokDetailsCard = extras && mods.tokenDetails !== false
-      ? extras.renderTokenDetailsCard(tok, fmtTokens, engPillHtml, relTime, tr, filterTeamIds)
-      : "";
-    const branchCard = extras && mods.branchChats !== false
-      ? extras.renderBranchActivityCard(data.branchActivity, engPillHtml, relTime, tr, filterTeamIds)
-      : "";
-    const autoCard = extras && mods.automations !== false
-      ? extras.renderAutomationsCard(data.automations, relTime, tr, filterTeamIds)
-      : "";
-    const linksCard = extras && mods.linkedRefs !== false
-      ? extras.renderLinkedRefsCard(data.linkedRefsList, tr, filterTeamIds)
-      : "";
-    const diagCard = extras && mods.diagnostics !== false
-      ? extras.renderDiagnosticsCard(data.diagnostics, tr)
-      : "";
+    const sections = [
+      show("delivery", "teamChart") ? teamMetricsChartCard : "",
+      midChartsGrid,
+      extras && show("usage", "usageHeatmap") ? extras.renderUsageHeatmapCard(tok, fmtTokens, tr) : "",
+      show("usage", "tokenTeams") ? tokenCard : "",
+      extras && show("usage", "tokenDetails") ? extras.renderTokenDetailsCard(tok, fmtTokens, engPillHtml, relTime, tr, filterTeamIds) : "",
+      show("delivery", "workloadList") ? workloadListCard : "",
+      show("delivery", "dispatchCard") ? dispatchCard : "",
+      extras && show("runtime", "branchChats") ? extras.renderBranchActivityCard(data.branchActivity, engPillHtml, relTime, tr, filterTeamIds) : "",
+      extras && show("runtime", "automations") ? extras.renderAutomationsCard(data.automations, relTime, tr, filterTeamIds) : "",
+      extras && show("delivery", "linkedRefs") ? extras.renderLinkedRefsCard(data.linkedRefsList, tr, filterTeamIds) : "",
+      extras && show("runtime", "diagnostics") ? extras.renderDiagnosticsCard(data.diagnostics, tr) : "",
+    ].filter(Boolean);
 
-    return `<div class="dashboard">${modToggleBar}${filterBanner}${kpiHtml}${teamMetricsChartCard}${midChartsGrid}${tokenCard}${tokDetailsCard}${workloadListCard}${dispatchCard}${branchCard}${autoCard}${linksCard}${diagCard}</div>`;
+    const bodyHtml = sections.length ? sections.join("") : `<div class="db-empty">${esc(tr.dbAllHidden)}</div>`;
+    return `<div class="dashboard">${kpiHtml}${navBar}${filterBanner}${bodyHtml}</div>`;
   }
 
   window.OfficeDashboard = { renderDashboardHtml, filterAnalytics, fmtTokens };

@@ -4,6 +4,14 @@ let analytics = null;
 let analyticsLoading = false;
 let avatars = {};
 let viewMode = "office";
+let dashCategory = "all";
+let dashSwitchOpen = false;
+let localDashMods = (() => {
+  try { return JSON.parse(localStorage.getItem("botOffice.dashMods.v1") || "{}") || {}; } catch { return {}; }
+})();
+function getMergedDashMods() {
+  return { ...(snapshot?.settings?.dashModules || {}), ...localDashMods };
+}
 let activeOnly = false;
 let searchQuery = "";
 let engineFilter = "all";
@@ -387,7 +395,7 @@ function renderListView(bots) {
                 <span class="wb-name">${esc(r.name)}</span>
                 ${engPillHtml(r.engRaw)}
                 <span class="wb-tag">${esc(r.role)}</span>
-                ${r.branchCount ? `<span class="wb-tag ${r.branchActive ? "branch-hot" : "branch"}">⑂ ${esc(tr.listBranchTag(r.branchCount))}</span>` : ""}
+                ${r.branchCount ? `<span class="wb-tag ${r.branchActive && !r.needs ? "branch-hot" : "branch"}">⑂ ${esc(tr.listBranchTag(r.branchCount))}</span>` : ""}
                 ${r.stall ? `<span class="wb-tag stall">⚠ ${esc(r.dur)}</span>` : (r.dur ? `<span class="wb-tag">${esc(r.dur)}</span>` : "")}
               </div>
               <div class="wb-sub">${esc(r.sub)}</div>
@@ -472,14 +480,30 @@ function bindDomClickHandlers(container) {
   container.querySelectorAll("[data-ext-url]").forEach((el) => {
     el.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); void openExternalUrl(el.getAttribute("data-ext-url")); });
   });
+  container.querySelectorAll("[data-dash-cat]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dashCategory = btn.getAttribute("data-dash-cat") || "all";
+      render();
+    });
+  });
+  container.querySelectorAll("[data-toggle-switch-panel]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dashSwitchOpen = !dashSwitchOpen;
+      render();
+    });
+  });
   container.querySelectorAll("[data-toggle-dash-mod]").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const modKey = btn.getAttribute("data-toggle-dash-mod");
       const settingKey = btn.getAttribute("data-setting-key");
       const nextVal = btn.getAttribute("data-mod-val") !== "1";
+      localDashMods[modKey] = nextVal;
+      try { localStorage.setItem("botOffice.dashMods.v1", JSON.stringify(localDashMods)); } catch {}
       if (!snapshot.settings) snapshot.settings = {};
-      if (!snapshot.settings.dashModules) snapshot.settings.dashModules = { tokenDetails: true, branchChats: true, automations: true, linkedRefs: true, diagnostics: true };
+      if (!snapshot.settings.dashModules) snapshot.settings.dashModules = {};
       snapshot.settings.dashModules[modKey] = nextVal;
       render();
       if (orcaApi?.plugin?.request && settingKey) {
@@ -555,7 +579,7 @@ function render() {
       engPillHtml,
       tr,
       { engineFilter, searchQuery, activeOnly },
-      { modules: snapshot.settings?.dashModules, relTime }
+      { modules: getMergedDashMods(), category: dashCategory, switchOpen: dashSwitchOpen, relTime }
     );
     bindDomClickHandlers(dashWrap);
   } else if (viewMode === "list") {

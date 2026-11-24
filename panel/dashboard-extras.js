@@ -1,20 +1,11 @@
 /**
- * Modular Extra Dashboard Sections (Pure-SVG, Theme-Aware, Toggleable)
- * 1. 7-Day Daily Token Trend & Top Heavy Sessions (from agent.listSessions)
- * 2. Bot Branch Chats & Activity (from bot chats)
- * 3. Automations Schedule & Recent Runs (from automations list + runs)
- * 4. Linked PR / MR / Issue Rollup (from worktree ps + item links)
- * 5. Orca Memory & Process Diagnostics (from diagnostics memory)
+ * Categorized Dashboard Controls + Magpie-Inspired Visual Charts (Pure-SVG, Theme-Aware)
+ * - Category Tabs (All | Delivery | Token Usage | Runtime) + Collapsible 12-Module Switch Drawer
+ * - Magpie-Style 28-Day Activity Heatmap (4x7) + 24-Hour Peak Usage Bar Chart
+ * - Visual Ratio Bars on Automations, Branch Chats, and Linked PR/MR/Issues
+ * - Orca Memory Sparkline & Process Breakdown
  */
 (function () {
-  const ENG_COLORS = {
-    claude: { color: "#f59e0b", short: "Claude", sym: "✦" },
-    antigravity: { color: "#38bdf8", short: "agy", sym: "◈" },
-    codex: { color: "#a78bfa", short: "Codex", sym: "⬡" },
-    pi: { color: "#34d399", short: "Pi", sym: "π" },
-    other: { color: "#94a3b8", short: "Agent", sym: "•" },
-  };
-
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
@@ -38,27 +29,154 @@
     return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   }
 
-  function renderModuleToggleBar(mods, tr) {
-    const defs = [
-      { key: "tokenDetails", setting: "dashShowTokenDetails", label: tr.modTokenDetails, icon: "📊" },
-      { key: "branchChats", setting: "dashShowBranchChats", label: tr.modBranchChats, icon: "⑂" },
-      { key: "automations", setting: "dashShowAutomations", label: tr.modAutomations, icon: "⏰" },
-      { key: "linkedRefs", setting: "dashShowLinkedRefs", label: tr.modLinkedRefs, icon: "🔀" },
-      { key: "diagnostics", setting: "dashShowDiagnostics", label: tr.modDiagnostics, icon: "💻" },
+  const MODULE_GROUPS = [
+    {
+      cat: "delivery",
+      titleKey: "catDelivery",
+      items: [
+        { key: "teamChart", labelKey: "modTeamChart" },
+        { key: "dailyTrend", labelKey: "modDailyTrend" },
+        { key: "workloadList", labelKey: "modWorkload" },
+        { key: "dispatchCard", labelKey: "modDispatch" },
+        { key: "linkedRefs", setting: "dashShowLinkedRefs", labelKey: "modLinkedRefs" },
+      ],
+    },
+    {
+      cat: "usage",
+      titleKey: "catUsage",
+      items: [
+        { key: "usageHeatmap", labelKey: "modHeatmap" },
+        { key: "tokenTeams", labelKey: "modTokenTeams" },
+        { key: "tokenDetails", setting: "dashShowTokenDetails", labelKey: "modTokenDetails" },
+      ],
+    },
+    {
+      cat: "runtime",
+      titleKey: "catRuntime",
+      items: [
+        { key: "engineMix", labelKey: "modEngineMix" },
+        { key: "branchChats", setting: "dashShowBranchChats", labelKey: "modBranchChats" },
+        { key: "automations", setting: "dashShowAutomations", labelKey: "modAutomations" },
+        { key: "diagnostics", setting: "dashShowDiagnostics", labelKey: "modDiagnostics" },
+      ],
+    },
+  ];
+
+  function renderCategoryAndSwitchBar(activeCat, mods, switchOpen, tr) {
+    const allItems = MODULE_GROUPS.flatMap((g) => g.items);
+    const onCount = allItems.filter((it) => mods[it.key] !== false).length;
+    const cats = [
+      { id: "all", label: tr.catAll },
+      { id: "delivery", label: tr.catDelivery },
+      { id: "usage", label: tr.catUsage },
+      { id: "runtime", label: tr.catRuntime },
     ];
+
+    const drawerHtml = switchOpen
+      ? `<div class="db-sw-drawer">
+          ${MODULE_GROUPS.map((g) => `
+            <div class="db-sw-grp">
+              <div class="db-sw-gtitle">${esc(tr[g.titleKey])}</div>
+              <div class="db-mod-pills">
+                ${g.items.map((it) => {
+                  const on = mods[it.key] !== false;
+                  return `<button type="button" class="db-mod-pill ${on ? "on" : ""}" data-toggle-dash-mod="${it.key}" data-setting-key="${it.setting || ""}" data-mod-val="${on ? "1" : "0"}">${on ? "✓ " : ""}${esc(tr[it.labelKey])}</button>`;
+                }).join("")}
+              </div>
+            </div>`).join("")}
+        </div>`
+      : "";
+
     return `
-      <div class="db-mod-bar">
-        <span class="db-mod-lbl">⚙ ${esc(tr.modBarTitle)}</span>
-        <div class="db-mod-pills">
-          ${defs.map((d) => {
-            const on = mods[d.key] !== false;
-            return `<button type="button" class="db-mod-pill ${on ? "on" : ""}" data-toggle-dash-mod="${d.key}" data-setting-key="${d.setting}" data-mod-val="${on ? "1" : "0"}">${esc(d.icon)} ${esc(d.label)}</button>`;
-          }).join("")}
+      <div class="db-nav-wrap">
+        <div class="db-nav-bar">
+          <div class="db-cat-tabs">
+            ${cats.map((c) => `<button type="button" class="db-cat-btn ${activeCat === c.id ? "active" : ""}" data-dash-cat="${c.id}">${esc(c.label)}</button>`).join("")}
+          </div>
+          <button type="button" class="db-sw-btn ${switchOpen ? "active" : ""}" data-toggle-switch-panel="1">⚙ ${esc(tr.modBarTitle)} ${onCount}/${allItems.length}</button>
+        </div>
+        ${drawerHtml}
+      </div>`;
+  }
+
+  /* ── Magpie-Inspired 28-Day Token Heatmap & 24-Hour Peak Usage Chart ── */
+
+  function renderUsageHeatmapCard(tok, fmtTokens, tr) {
+    if (!tok?.available) return "";
+    const days = Array.isArray(tok.heatmap28d) ? tok.heatmap28d : [];
+    const hours = Array.isArray(tok.hourly24) ? tok.hourly24 : [];
+    if (!days.length && !hours.length) return "";
+
+    const maxDayVal = Math.max(1, ...days.map((d) => d.tokens || d.messages || 0));
+    const activeDays = days.filter((d) => (d.tokens || d.messages || 0) > 0).length;
+    const peakDay = days.reduce((best, d) => ((d.tokens || 0) > (best?.tokens || 0) ? d : best), null);
+
+    // 4 rows (weeks) x 7 cols (days) pure SVG heatmap
+    const cell = 18, gap = 4, padX = 2, padY = 4;
+    const hmW = padX * 2 + 7 * cell + 6 * gap;
+    const hmH = padY * 2 + 4 * cell + 3 * gap;
+    const fills = ["var(--svg-track)", "rgba(16,185,129,0.28)", "rgba(16,185,129,0.52)", "rgba(16,185,129,0.78)", "#10b981"];
+
+    const cellsSvg = days.slice(0, 28).map((d, idx) => {
+      const r = Math.floor(idx / 7);
+      const c = idx % 7;
+      const val = d.tokens || d.messages || 0;
+      const ratio = val > 0 ? val / maxDayVal : 0;
+      const lvl = val <= 0 ? 0 : ratio < 0.2 ? 1 : ratio < 0.48 ? 2 : ratio < 0.78 ? 3 : 4;
+      const x = padX + c * (cell + gap);
+      const y = padY + r * (cell + gap);
+      return `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="4" fill="${fills[lvl]}"><title>${esc(d.label)}: ${esc(fmtTokens(d.tokens))} tokens · ${d.sessions} sessions</title></rect>`;
+    }).join("");
+
+    // 24-Hour Peak Usage Bar Chart
+    const hrW = 240, hrH = 88, hPadL = 6, hPadR = 6, hPadT = 10, hPadB = 18;
+    const hPlotW = hrW - hPadL - hPadR, hPlotH = hrH - hPadT - hPadB;
+    const maxHrVal = Math.max(1, ...hours.map((h) => h.tokens || h.messages || 0));
+    let peakHr = -1, peakHrV = 0;
+    hours.forEach((h) => {
+      const v = h.tokens || h.messages || 0;
+      if (v > peakHrV) { peakHrV = v; peakHr = h.hour; }
+    });
+    const bw = hPlotW / 24;
+    const hrBars = hours.map((h, i) => {
+      const v = h.tokens || h.messages || 0;
+      const bh = v > 0 ? Math.max(3, (v / maxHrVal) * hPlotH) : 2;
+      const x = hPadL + i * bw + 1;
+      const y = hPadT + hPlotH - bh;
+      const col = v <= 0 ? "var(--svg-track)" : (i === peakHr ? "#f59e0b" : "#0ea5e9");
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(2, bw - 2).toFixed(1)}" height="${bh.toFixed(1)}" rx="1.8" fill="${col}" opacity="${v > 0 ? 0.9 : 0.7}"><title>${String(i).padStart(2, "0")}:00 — ${esc(fmtTokens(h.tokens))} tokens (${h.sessions})</title></rect>`;
+    }).join("");
+    const hrTicks = [0, 6, 12, 18, 23].map((h) => {
+      const x = hPadL + h * bw + bw / 2;
+      return `<text x="${x.toFixed(1)}" y="${hrH - 4}" text-anchor="middle" fill="var(--muted)" font-size="8" font-family="ui-monospace,monospace">${String(h).padStart(2, "0")}h</text>`;
+    }).join("");
+
+    return `
+      <div class="db-two-col">
+        <div class="db-card">
+          <div class="db-card-head">
+            <span class="db-card-title">🟩 ${esc(tr.dbSecHeatmap)}</span>
+            <span class="db-scope-note">${activeDays}/28 ${esc(tr.dbDayUnit)}</span>
+          </div>
+          <div class="db-hm-wrap">
+            <svg class="db-hm-svg" viewBox="0 0 ${hmW} ${hmH}" width="${hmW}" height="${hmH}">${cellsSvg}</svg>
+            <div class="db-hm-foot">
+              <span>${peakDay && peakDay.tokens > 0 ? `${esc(tr.dbPeakDay)} ${esc(peakDay.label)} (${esc(fmtTokens(peakDay.tokens))})` : esc(tr.dbNoTokens)}</span>
+              <span class="db-hm-scale">${esc(tr.dbLow)} ${fills.map((f) => `<i style="background:${f}"></i>`).join("")} ${esc(tr.dbHigh)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-head">
+            <span class="db-card-title">🕒 ${esc(tr.dbSecPeakHours)}</span>
+            <span class="db-scope-note">${peakHr >= 0 ? `${esc(tr.dbPeakHr)} ${String(peakHr).padStart(2, "0")}:00` : "24h"}</span>
+          </div>
+          <svg class="db-hr-svg" viewBox="0 0 ${hrW} ${hrH}">${hrBars}${hrTicks}</svg>
         </div>
       </div>`;
   }
 
-  /* ── 1) 7-Day Daily Token Bar Chart & Top Heavy Sessions ── */
+  /* ── 7-Day Daily Token Bar Chart & Top Heavy Sessions ── */
 
   function renderDailyTokensSvg(days, fmtTokens) {
     if (!Array.isArray(days) || !days.length) return "";
@@ -132,30 +250,35 @@
       </div>`;
   }
 
-  /* ── 2) Bot Branch Chats & Activity Card ── */
+  /* ── Bot Branch Chats & Activity Card (with visual meter bars!) ── */
 
   function renderBranchActivityCard(branchActivity, engPillHtml, relTime, tr, filterTeamIds = null) {
     const raw = branchActivity || { totalOpen: 0, totalActive15m: 0, byBot: [] };
     const rows = filterTeamIds ? (raw.byBot || []).filter((b) => filterTeamIds.has(b.id)) : (raw.byBot || []);
     const openSum = rows.reduce((a, b) => a + (b.total || 0), 0);
     const actSum = rows.reduce((a, b) => a + (b.active15m || 0), 0);
+    const maxB = Math.max(1, ...rows.map((b) => b.total || 0));
 
     const body = rows.length
-      ? rows.map((b) => `
-          <div class="db-branch-bot" data-card-bot="${esc(b.id)}">
-            <div class="db-branch-head">
-              <span class="db-branch-name">${esc(b.name)} ${engPillHtml(b.agent)}</span>
-              <span class="db-branch-cnt ${b.active15m > 0 ? "active" : ""}">⑂ ${b.total}${b.active15m > 0 ? ` · ${b.active15m} ${esc(tr.dbActiveShort)}` : ""}</span>
-            </div>
-            <div class="db-branch-chats">
-              ${(b.chats || []).map((c) => `
-                <div class="db-branch-item">
-                  <span class="db-b-dot ${c.isRecent ? "hot" : ""}"></span>
-                  <span class="db-b-title">${esc(c.title)}</span>
-                  ${c.lastActivityAt ? `<span class="db-muted">${esc(relTime(c.lastActivityAt))}</span>` : ""}
-                </div>`).join("")}
-            </div>
-          </div>`).join("")
+      ? rows.map((b) => {
+          const pct = Math.min(100, Math.max(14, Math.round((b.total / maxB) * 100)));
+          return `
+            <div class="db-branch-bot" data-card-bot="${esc(b.id)}">
+              <div class="db-branch-head">
+                <span class="db-branch-name">${esc(b.name)} ${engPillHtml(b.agent)}</span>
+                <span class="db-branch-cnt ${b.active15m > 0 ? "active" : ""}">⑂ ${b.total}${b.active15m > 0 ? ` · ${b.active15m} ${esc(tr.dbActiveShort)}` : ""}</span>
+              </div>
+              <div class="db-meter-track sm"><div class="db-meter-fill teal" style="width:${pct}%"></div></div>
+              <div class="db-branch-chats">
+                ${(b.chats || []).map((c) => `
+                  <div class="db-branch-item">
+                    <span class="db-b-dot ${c.isRecent ? "hot" : ""}"></span>
+                    <span class="db-b-title">${esc(c.title)}</span>
+                    ${c.lastActivityAt ? `<span class="db-muted">${esc(relTime(c.lastActivityAt))}</span>` : ""}
+                  </div>`).join("")}
+              </div>
+            </div>`;
+        }).join("")
       : `<div class="db-empty" style="border:none;padding:12px">${esc(tr.dbNoBranches)}</div>`;
 
     return `
@@ -168,16 +291,30 @@
       </div>`;
   }
 
-  /* ── 3) Automations Schedule & Recent Runs Card ── */
+  /* ── Automations Schedule & Recent Runs Card (with outcome ratio bar!) ── */
 
   function renderAutomationsCard(autoData, relTime, tr, filterTeamIds = null) {
     const raw = autoData || { total: 0, enabled: 0, items: [], recentRuns: [] };
-    const items = filterTeamIds
-      ? (raw.items || []).filter((a) => !a.botId || filterTeamIds.has(a.botId))
-      : (raw.items || []);
-    const runs = filterTeamIds
-      ? (raw.recentRuns || []).filter((r) => !r.botId || filterTeamIds.has(r.botId))
-      : (raw.recentRuns || []);
+    const items = filterTeamIds ? (raw.items || []).filter((a) => !a.botId || filterTeamIds.has(a.botId)) : (raw.items || []);
+    const runs = filterTeamIds ? (raw.recentRuns || []).filter((r) => !r.botId || filterTeamIds.has(r.botId)) : (raw.recentRuns || []);
+
+    const okCnt = runs.filter((r) => r.status === "completed").length;
+    const skipCnt = runs.filter((r) => String(r.status || "").includes("skip")).length;
+    const failCnt = runs.filter((r) => r.status === "failed" || r.status === "error").length;
+    const runTot = Math.max(1, okCnt + skipCnt + failCnt);
+
+    const outcomeBar = runs.length > 0
+      ? `<div class="db-mem-bar" title="OK / Skipped / Failed">
+           ${okCnt ? `<i style="width:${Math.round((okCnt / runTot) * 100)}%;background:#10b981"></i>` : ""}
+           ${skipCnt ? `<i style="width:${Math.round((skipCnt / runTot) * 100)}%;background:#f59e0b"></i>` : ""}
+           ${failCnt ? `<i style="width:${Math.round((failCnt / runTot) * 100)}%;background:#f43f5e"></i>` : ""}
+         </div>
+         <div class="db-mini-legend">
+           <span><i style="background:#10b981"></i>${esc(tr.dbRunOk)} ${okCnt}</span>
+           <span><i style="background:#f59e0b"></i>${esc(tr.dbRunSkip)} ${skipCnt}</span>
+           ${failCnt ? `<span><i style="background:#f43f5e"></i>${esc(tr.dbRunFail)} ${failCnt}</span>` : ""}
+         </div>`
+      : "";
 
     const statusBadge = (st) => {
       const s = String(st || "");
@@ -220,16 +357,34 @@
           <span class="db-card-title">⏰ ${esc(tr.dbSecAutos)}</span>
           <span class="db-scope-note">${raw.enabled}/${raw.total} ${esc(tr.dbEnabledUnit)}</span>
         </div>
+        ${outcomeBar}
         <div class="db-auto-list">${schedHtml}</div>
         ${runsHtml}
       </div>`;
   }
 
-  /* ── 4) Linked PR / MR / Issue Rollup Card ── */
+  /* ── Linked PR / MR / Issue Rollup Card (with kind ratio bar!) ── */
 
   function renderLinkedRefsCard(refs, tr, filterTeamIds = null) {
     const list = Array.isArray(refs) ? refs : [];
     const filtered = filterTeamIds ? list.filter((r) => !r.teamId || filterTeamIds.has(r.teamId)) : list;
+    const prCnt = filtered.filter((r) => r.kind === "pr").length;
+    const mrCnt = filtered.filter((r) => r.kind === "mr").length;
+    const issCnt = Math.max(0, filtered.length - prCnt - mrCnt);
+    const tot = Math.max(1, filtered.length);
+
+    const kindBar = filtered.length > 0
+      ? `<div class="db-mem-bar">
+           ${prCnt ? `<i style="width:${Math.round((prCnt / tot) * 100)}%;background:#10b981"></i>` : ""}
+           ${mrCnt ? `<i style="width:${Math.round((mrCnt / tot) * 100)}%;background:#f59e0b"></i>` : ""}
+           ${issCnt ? `<i style="width:${Math.round((issCnt / tot) * 100)}%;background:#38bdf8"></i>` : ""}
+         </div>
+         <div class="db-mini-legend">
+           ${prCnt ? `<span><i style="background:#10b981"></i>PR ${prCnt}</span>` : ""}
+           ${mrCnt ? `<span><i style="background:#f59e0b"></i>MR ${mrCnt}</span>` : ""}
+           ${issCnt ? `<span><i style="background:#38bdf8"></i>Issue ${issCnt}</span>` : ""}
+         </div>`
+      : "";
 
     const body = filtered.length
       ? filtered.map((r) => {
@@ -252,11 +407,12 @@
           <span class="db-card-title">🔀 ${esc(tr.dbSecLinks)}</span>
           <span class="db-scope-note">${filtered.length}</span>
         </div>
+        ${kindBar}
         <div class="db-ref-list">${body}</div>
       </div>`;
   }
 
-  /* ── 5) Orca Memory & Process Diagnostics Card ── */
+  /* ── Orca Memory & Process Diagnostics Card ── */
 
   function renderMemSparklineSvg(history) {
     if (!Array.isArray(history) || history.length < 2) return "";
@@ -330,7 +486,8 @@
   }
 
   window.OfficeDashboardExtras = {
-    renderModuleToggleBar,
+    renderCategoryAndSwitchBar,
+    renderUsageHeatmapCard,
     renderTokenDetailsCard,
     renderBranchActivityCard,
     renderAutomationsCard,
