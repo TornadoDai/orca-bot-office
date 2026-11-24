@@ -11,8 +11,18 @@
   "screenshots": [
     {
       "path": "assets/screenshot.png",
-      "alt": "Bot Office illustrated 2.5D modern office floors alongside a team workload analytics dashboard with stacked bars, 7-day trend, engine donut and token usage",
-      "caption": "2.5D illustrated office tower + lightweight SVG team workload & token analytics dashboard"
+      "alt": "Bot Office illustrated 2.5D modern office tower with real-time circular wall clock, furnished executive briefing suite and categorized SVG analytics dashboard",
+      "caption": "2.5D illustrated office tower + categorized SVG team workload & Magpie-style usage dashboard"
+    },
+    {
+      "path": "assets/preview-analytics.png",
+      "alt": "Categorized Dashboard with 12-panel switch drawer, 28-day usage heatmap, 24-hour peak usage chart, branch chat activity, automations and Orca memory diagnostics",
+      "caption": "12-panel switch drawer, 28-day heatmap, 24h peak hours, automations & Orca diagnostics"
+    },
+    {
+      "path": "assets/preview-light-decision.png",
+      "alt": "Native light theme showing interactive in-card decision reply modal and light analytics dashboard",
+      "caption": "Native light theme with interactive in-card decision replies"
     }
   ],
   "engines": {
