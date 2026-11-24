@@ -288,13 +288,13 @@
     ctx.restore();
   }
 
-  /* ── Live Real-Time Analog Wall Clock over TOP Floor Center Pillar ── */
+  /* ── Live Real-Time Analog Wall Clock over TOP Floor Center Pillar (True 1:1 Circle!) ── */
 
   function drawLiveWallClock(ctx, W, wallH) {
     const cx = W * 0.4996;
-    const cy = wallH * 0.4146;
-    const rx = Math.max(13, W * 0.0315);
-    const ry = Math.max(10.5, wallH * 0.098);
+    const cy = wallH * 0.41;
+    // Perfect circular radius large enough to cleanly cover the painted oval while sitting well above the chair
+    const R = Math.min(21, Math.max(14, W * 0.0305));
 
     const now = new Date();
     const sec = now.getSeconds();
@@ -303,38 +303,34 @@
 
     ctx.save();
     ctx.translate(cx, cy);
-    // Soft wall drop shadow matching the painted wood slat pillar
+    // Soft wall drop shadow
     ctx.fillStyle = "rgba(0, 0, 0, 0.36)";
-    ctx.beginPath(); ctx.ellipse(0.8, 1.8, rx + 2.2, ry + 2.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0.8, 2, R + 2.2, 0, Math.PI * 2); ctx.fill();
 
-    // Outer espresso-bronze clock rim (covers painted static clock completely!)
-    const rimG = ctx.createLinearGradient(0, -ry - 2, 0, ry + 2);
-    rimG.addColorStop(0, "#5c4a3c"); rimG.addColorStop(1, "#261d17");
+    // Outer espresso-bronze round clock bezel
+    const rimG = ctx.createLinearGradient(0, -R - 2, 0, R + 2);
+    rimG.addColorStop(0, "#6b5544"); rimG.addColorStop(1, "#261d17");
     ctx.fillStyle = rimG;
-    ctx.beginPath(); ctx.ellipse(0, 0, rx + 2.2, ry + 2.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, R + 2.2, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
 
-    // Cream porcelain clock dial
-    const dialG = ctx.createRadialGradient(-rx * 0.25, -ry * 0.25, 1, 0, 0, Math.max(rx, ry));
+    // Cream porcelain circular clock dial
+    const dialG = ctx.createRadialGradient(-R * 0.25, -R * 0.25, 1, 0, 0, R);
     dialG.addColorStop(0, "#fffdf8");
     dialG.addColorStop(0.85, "#efe8da");
     dialG.addColorStop(1, "#d8cebc");
     ctx.fillStyle = dialG;
-    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = "rgba(120, 96, 72, 0.45)"; ctx.lineWidth = 0.8; ctx.stroke();
-
-    // Scale into elliptical coordinates so ticks & hands stay aligned with the clock rim!
-    ctx.scale(1, ry / rx);
-    const R = rx;
 
     // 12 crisp hour markers (thicker at 12, 3, 6, 9)
     for (let i = 0; i < 12; i++) {
       const a = (i * Math.PI) / 6;
       const major = i % 3 === 0;
-      const r1 = R * (major ? 0.7 : 0.78);
-      const r2 = R * 0.9;
+      const r1 = R * (major ? 0.72 : 0.8);
+      const r2 = R * 0.91;
       ctx.strokeStyle = major ? "#1e293b" : "#64748b";
-      ctx.lineWidth = major ? 1.4 : 0.8;
+      ctx.lineWidth = major ? 1.5 : 0.85;
       ctx.beginPath();
       ctx.moveTo(Math.sin(a) * r1, -Math.cos(a) * r1);
       ctx.lineTo(Math.sin(a) * r2, -Math.cos(a) * r2);
@@ -343,23 +339,23 @@
 
     // Real-time Hour Hand
     const ha = (hr * Math.PI) / 6;
-    ctx.strokeStyle = "#18141c"; ctx.lineWidth = 1.9; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(ha) * R * 0.52, -Math.cos(ha) * R * 0.52); ctx.stroke();
+    ctx.strokeStyle = "#18141c"; ctx.lineWidth = 2.1; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(ha) * R * 0.5, -Math.cos(ha) * R * 0.5); ctx.stroke();
 
     // Real-time Minute Hand
     const ma = (min * Math.PI) / 30;
-    ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 1.3; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(ma) * R * 0.76, -Math.cos(ma) * R * 0.76); ctx.stroke();
+    ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 1.4; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(ma) * R * 0.75, -Math.cos(ma) * R * 0.75); ctx.stroke();
 
     // Real-time Subtle Crimson Second Hand
     const sa = (sec * Math.PI) / 30;
-    ctx.strokeStyle = "#e11d48"; ctx.lineWidth = 0.75; ctx.lineCap = "round";
+    ctx.strokeStyle = "#e11d48"; ctx.lineWidth = 0.85; ctx.lineCap = "round";
     ctx.beginPath(); ctx.moveTo(-Math.sin(sa) * R * 0.16, Math.cos(sa) * R * 0.16);
     ctx.lineTo(Math.sin(sa) * R * 0.82, -Math.cos(sa) * R * 0.82); ctx.stroke();
 
     // Brass center pin
     ctx.fillStyle = "#b45309";
-    ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, 1.7, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
