@@ -227,7 +227,7 @@ export default function activate(orca) {
       "--to",
       `bot:${botName}`,
       "--type",
-      "handoff",
+      "status",
       "--subject",
       subject,
       "--body",
