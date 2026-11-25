@@ -260,5 +260,118 @@
     ctx.restore();
   }
 
-  window.OfficePresets = { PRESET_LIST, drawPresetFigure, renderPresetThumbDataUrl, drawRecruitingFrontDesk };
+  /* ── Idle Worker Slacking Activities (Sleep / Phone / TV / Coffee / Music) ── */
+
+  const IDLE_ACTIVITIES = ["sleep", "phone", "tv", "coffee", "music"];
+
+  function getIdleActivity(seed) {
+    return IDLE_ACTIVITIES[Math.abs(seed || 0) % IDLE_ACTIVITIES.length];
+  }
+
+  function drawIdleMonitorTv(ctx, mx, my, phase) {
+    // Vibrant mini TV / anime show playing on the worker's monitor while slacking!
+    const tick = Math.floor(phase * 1.4) % 3;
+    const glow = ctx.createRadialGradient(mx, my + 6, 2, mx, my + 8, 22);
+    glow.addColorStop(0, "rgba(251, 146, 60, 0.24)");
+    glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(mx, my + 8, 22, 0, Math.PI * 2); ctx.fill();
+
+    // Mini colorful show scene inside bezel (mx-12..mx+12, my-1..my+12)
+    ctx.fillStyle = tick === 1 ? "#38bdf8" : "#60a5fa";
+    ctx.fillRect(mx - 11.5, my - 0.5, 23, 7);
+    ctx.fillStyle = tick === 2 ? "#34d399" : "#22c55e";
+    ctx.fillRect(mx - 11.5, my + 6.5, 23, 5.5);
+    // Cute moving character/sun sprite on TV screen
+    ctx.fillStyle = "#fde047";
+    ctx.beginPath(); ctx.arc(mx - 5 + tick * 2.5, my + 2.8, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fb7185";
+    ctx.fillRect(mx + 1 - tick * 1.5, my + 4.5, 5.5, 5);
+    // Tiny play badge on top-right corner of monitor
+    ctx.fillStyle = "#f43f5e";
+    roundRect(ctx, mx + 6, my - 5.5, 9, 6, 2); ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.moveTo(mx + 9.2, my - 4); ctx.lineTo(mx + 9.2, my - 1); ctx.lineTo(mx + 12.2, my - 2.5); ctx.closePath(); ctx.fill();
+  }
+
+  function drawIdleDeskActivity(ctx, { mode, cx, deskTopY, x0, phase }) {
+    ctx.save();
+    if (mode === "sleep") {
+      ctx.fillStyle = "rgba(241, 245, 249, 0.85)";
+      ctx.font = "700 9.5px ui-monospace, monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("zZ", cx + 14, deskTopY - 38);
+    } else if (mode === "phone") {
+      // Glowing smartphone held in hands right above the desk!
+      const px = cx - 5, py = deskTopY - 12;
+      const g = ctx.createRadialGradient(px, py - 2, 1, px, py - 2, 16);
+      g.addColorStop(0, "rgba(96, 165, 250, 0.36)");
+      g.addColorStop(1, "rgba(96, 165, 250, 0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(px, py - 2, 16, 0, Math.PI * 2); ctx.fill();
+
+      roundRect(ctx, px - 5, py - 5, 10, 14, 2);
+      ctx.fillStyle = "#0f172a"; ctx.fill();
+      ctx.strokeStyle = "#93c5fd"; ctx.lineWidth = 1.1; ctx.stroke();
+      ctx.fillStyle = "#38bdf8"; ctx.fillRect(px - 3.5, py - 3, 7, 4.5);
+      ctx.fillStyle = "#f472b6"; ctx.fillRect(px - 3.5, py + 2.5, 4.5, 2.2);
+      ctx.fillStyle = "#e2e8f0"; ctx.fillRect(px - 3.5, py + 5.5, 6.5, 1.4);
+
+      // Floating mini notification bubble beside head
+      const fy = Math.sin(phase * 1.6) * 1.4;
+      roundRect(ctx, cx + 13, deskTopY - 46 + fy, 13, 10, 3.5);
+      ctx.fillStyle = "rgba(15, 23, 42, 0.86)"; ctx.fill();
+      ctx.strokeStyle = "#60a5fa"; ctx.lineWidth = 0.9; ctx.stroke();
+      ctx.fillStyle = "#f472b6";
+      ctx.beginPath(); ctx.arc(cx + 19.5, deskTopY - 41 + fy, 2.1, 0, Math.PI * 2); ctx.fill();
+    } else if (mode === "tv") {
+      // Cute red-and-white striped popcorn / snack cup on the desk!
+      const sx = x0 + 18, sy = deskTopY - 6;
+      ctx.fillStyle = "#ffffff"; ctx.strokeStyle = INK; ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(sx - 4, sy); ctx.lineTo(sx + 4, sy); ctx.lineTo(sx + 3, sy + 7.5); ctx.lineTo(sx - 3, sy + 7.5); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(sx - 2.6, sy + 0.5, 1.4, 6.5);
+      ctx.fillRect(sx + 1.2, sy + 0.5, 1.4, 6.5);
+      // Fluffy golden popcorn puffs
+      ctx.fillStyle = "#fef08a";
+      ctx.beginPath(); ctx.arc(sx - 2, sy - 0.5, 2.1, 0, Math.PI * 2); ctx.arc(sx + 1.8, sy - 0.5, 2.1, 0, Math.PI * 2); ctx.arc(sx, sy - 1.8, 2.2, 0, Math.PI * 2); ctx.fill();
+    } else if (mode === "coffee") {
+      // Rising aromatic steam wisps above the mug + cozy tea cup in hand
+      const lift = (phase * 2.5) % 4;
+      ctx.strokeStyle = "rgba(255, 251, 235, 0.78)";
+      ctx.lineWidth = 1.2; ctx.lineCap = "round";
+      [0, 4.5].forEach((dx, idx) => {
+        const bx = x0 + 9 + dx;
+        const by = deskTopY - 6 - ((lift + idx * 1.8) % 4);
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.quadraticCurveTo(bx - 2, by - 3.5, bx + 1, by - 7);
+        ctx.stroke();
+      });
+      // Cozy mug badge floating softly near head
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "700 9.5px -apple-system, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("☕", cx + 13, deskTopY - 37);
+    } else if (mode === "music") {
+      // Floating colorful music notes drifting up!
+      const bob1 = Math.sin(phase * 1.8) * 2;
+      const bob2 = Math.cos(phase * 1.8) * 2;
+      ctx.font = "800 10.5px -apple-system, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#c4b5fd";
+      ctx.fillText("♪", cx + 13, deskTopY - 38 + bob1);
+      ctx.fillStyle = "#5eead4";
+      ctx.font = "800 9.5px -apple-system, sans-serif";
+      ctx.fillText("♫", cx + 21, deskTopY - 46 + bob2);
+    }
+    ctx.restore();
+  }
+
+  window.OfficePresets = {
+    PRESET_LIST, drawPresetFigure, renderPresetThumbDataUrl, drawRecruitingFrontDesk,
+    getIdleActivity, drawIdleMonitorTv, drawIdleDeskActivity,
+  };
 })();

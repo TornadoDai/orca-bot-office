@@ -114,7 +114,8 @@
         const bayW = Math.max(170, this.W - bayStart - 20);
         this.teamPerRow = Math.max(2, Math.min(3, Math.floor(bayW / 132)));
         const rows = Math.max(1, Math.ceil(workers.length / this.teamPerRow));
-        this.H = 132 + rows * 102;
+        this.teamRows = rows;
+        this.H = 144 + rows * 118;
         this.needsAnimation =
           sp.bot.state === "working" ||
           workers.some((w) => w.state === "working" || w.needsDecision);
@@ -125,7 +126,8 @@
         const leftRows = Math.max(1, Math.ceil(active.length / 2));
         const rightRows = Math.max(1, Math.ceil(idle.length / 3));
         const rows = Math.max(leftRows, rightRows);
-        this.H = 132 + rows * 102;
+        this.loungeRows = rows;
+        this.H = 142 + rows * 116;
         this.needsAnimation = active.length > 0;
       }
 
@@ -284,60 +286,50 @@
       const lang = this.spec.lang;
       const now = Date.now();
 
+      const perRow = this.teamPerRow || 3;
+      const totalRows = this.teamRows || Math.max(1, Math.ceil(workers.length / perRow));
+      const topRowY = wallH + 92; // Keeps back-row heads cleanly BELOW wall baseboard (never sitting on the wall!)
+      const rowStep = 118;        // 13px clean gap between rows (zero overlapping engine pills!)
+      const frontRowY = topRowY + (totalRows - 1) * rowStep;
+
       const leadX = Math.max(82, Math.round(W * 0.155));
-      const leadY = wallH + 62;
+      const leadY = frontRowY;
       const leadId = `team:bot:${b.id}`;
       const bStall = isStalled(b);
       const bDur = b.state === "working" && b.stateStartedAt ? `${bStall ? "⚠ " : ""}${fmtDur(now - b.stateStartedAt)}` : "";
-      drawSeatedDeskStation(ctx, {
-        cx: leadX,
-        baseY: leadY,
-        isLead: true,
-        isWorking: b.state === "working" || b.workingWorkerCount > 0 || (b.activeBranchCount || 0) > 0,
-        isStall: bStall,
-        isUpstairs: Boolean(b.selfNeedsDecision),
-        eng: b.agent,
-        avatarImg: this.shared.getAvatarImg(b.id, b.name),
-        name: b.name,
-        seedKey: b.id,
-        phase: this.phase,
-        hovered: this.hoveredId === leadId,
-        lang,
-        durText: bDur,
-        branchCount: b.branchChatCount || 0,
-        branchActive: (b.activeBranchCount || 0) > 0,
-      });
 
-      this.hitNodes.push({
-        id: leadId,
-        kind: "bot",
-        bot: b,
-        dotHit: null,
-        box: { x: leadX - 58, y: leadY - 68, w: 116, h: 108 },
-      });
-
-      const perRow = this.teamPerRow || 3;
       const bayStartX = Math.max(176, Math.round(W * 0.29));
       const bayW = Math.max(160, W - bayStartX - 24);
       const workerCoords = [];
 
+      // Bottom-Up Stacking: Active Workers & Lead Bot anchor the front/bottom row; idle/new Workers stack UPWARD behind!
+      // Render in painter's order (visualRow 0 -> totalRows - 1) so foreground desks cleanly sit in front of back rows.
       if (workers.length === 0) {
         const txt = lang === "zh" ? "当前无活跃成员（闲置已收起或待派发）" : "No active teammates in bay";
         ctx.font = "600 11px -apple-system, 'PingFang SC', sans-serif";
         const tw = ctx.measureText(txt).width + 20;
         const cx = bayStartX + bayW / 2;
-        roundRect(ctx, cx - tw / 2, wallH + 54, tw, 24, 999);
+        roundRect(ctx, cx - tw / 2, frontRowY - 12, tw, 24, 999);
         ctx.fillStyle = "rgba(13, 18, 30, 0.72)"; ctx.fill();
         ctx.fillStyle = "rgba(226, 232, 240, 0.75)"; ctx.textAlign = "center";
-        ctx.fillText(txt, cx, wallH + 69.5);
+        ctx.fillText(txt, cx, frontRowY + 3.5);
       } else {
-        workers.forEach((w, idx) => {
-          const row = Math.floor(idx / perRow);
+        const positioned = workers.map((w, idx) => {
+          const rowFromBottom = Math.floor(idx / perRow);
+          const visualRow = (totalRows - 1) - rowFromBottom;
           const col = idx % perRow;
           const gridCols = Math.min(perRow, workers.length);
           const cellW = bayW / Math.max(gridCols, 1);
-          const wx = bayStartX + cellW * col + cellW / 2;
-          const wy = wallH + 62 + row * 102;
+          return {
+            w,
+            idx,
+            visualRow,
+            wx: bayStartX + cellW * col + cellW / 2,
+            wy: topRowY + visualRow * rowStep,
+          };
+        }).sort((a, b) => a.visualRow - b.visualRow || a.idx - b.idx);
+
+        positioned.forEach(({ w, idx, wx, wy }) => {
           const wId = `team:worker:${w.worktreeId}`;
           const wStall = isStalled(w);
           const wDur = w.state === "working" && w.stateStartedAt ? `${wStall ? "⚠ " : ""}${fmtDur(now - w.stateStartedAt)}` : "";
@@ -371,6 +363,34 @@
         });
       }
 
+      // Draw Lead Bot cleanly in front/bottom-left (firmly on the floor, aligned with active front row!)
+      drawSeatedDeskStation(ctx, {
+        cx: leadX,
+        baseY: leadY,
+        isLead: true,
+        isWorking: b.state === "working" || b.workingWorkerCount > 0 || (b.activeBranchCount || 0) > 0,
+        isStall: bStall,
+        isUpstairs: Boolean(b.selfNeedsDecision),
+        eng: b.agent,
+        avatarImg: this.shared.getAvatarImg(b.id, b.name),
+        name: b.name,
+        seedKey: b.id,
+        phase: this.phase,
+        hovered: this.hoveredId === leadId,
+        lang,
+        durText: bDur,
+        branchCount: b.branchChatCount || 0,
+        branchActive: (b.activeBranchCount || 0) > 0,
+      });
+
+      this.hitNodes.push({
+        id: leadId,
+        kind: "bot",
+        bot: b,
+        dotHit: null,
+        box: { x: leadX - 58, y: leadY - 68, w: 116, h: 108 },
+      });
+
       workerCoords.forEach(({ w, x, y }, idx) => {
         if (w.state !== "working" || w.needsDecision) return;
         const cycle = (this.phase * 0.22 + idx * 0.37) % 2;
@@ -390,22 +410,29 @@
       const now = Date.now();
       const splitX = Math.round(W * 0.44);
 
+      const topRowY = wallH + 88;
+      const rowStep = 116;
+      const totalRows = this.loungeRows || 1;
+      const frontRowY = topRowY + (totalRows - 1) * rowStep;
+
       if (active.length === 0) {
         const txt = lang === "zh" ? "开放工位空闲中" : "Hot desks open";
         ctx.font = "600 10.5px -apple-system, 'PingFang SC', sans-serif";
         const tw = ctx.measureText(txt).width + 18;
-        roundRect(ctx, splitX / 2 - tw / 2, wallH + 54, tw, 22, 999);
+        roundRect(ctx, splitX / 2 - tw / 2, frontRowY - 12, tw, 22, 999);
         ctx.fillStyle = "rgba(13, 18, 30, 0.72)"; ctx.fill();
         ctx.fillStyle = "rgba(226, 232, 240, 0.72)"; ctx.textAlign = "center";
-        ctx.fillText(txt, splitX / 2, wallH + 68.5);
+        ctx.fillText(txt, splitX / 2, frontRowY + 2.5);
       } else {
+        const activeRows = Math.max(1, Math.ceil(active.length / 2));
         active.forEach((b, i) => {
-          const row = Math.floor(i / 2);
+          const rowFromBottom = Math.floor(i / 2);
+          const visualRow = (totalRows - 1) - rowFromBottom;
           const col = i % 2;
-          const cols = Math.min(2, active.length - row * 2);
+          const cols = Math.min(2, active.length - rowFromBottom * 2);
           const cellW = (splitX - 24) / cols;
           const bx = 14 + cellW * col + cellW / 2;
-          const by = wallH + 62 + row * 102;
+          const by = topRowY + visualRow * rowStep;
           const nodeId = `lounge:bot:${b.id}`;
           const bStall = isStalled(b);
           const bDur = b.state === "working" && b.stateStartedAt ? `${bStall ? "⚠ " : ""}${fmtDur(now - b.stateStartedAt)}` : "";
@@ -439,8 +466,9 @@
       const rightW = Math.max(140, W - rightStart - 54);
       const sofaRows = Math.max(1, Math.ceil(idle.length / 3));
 
-      for (let r = 0; r < sofaRows; r++) {
-        const sy = wallH + 54 + r * 102;
+      for (let r = sofaRows - 1; r >= 0; r--) {
+        const visualRow = (totalRows - 1) - r;
+        const sy = topRowY - 6 + visualRow * rowStep;
         const rowBots = idle.slice(r * 3, r * 3 + 3);
         const sw = Math.min(rightW - 10, Math.max(140, rowBots.length * 98 + 28));
         const sx = rightStart + (rightW - sw) / 2;

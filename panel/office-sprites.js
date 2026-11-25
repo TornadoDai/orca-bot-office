@@ -153,13 +153,15 @@
     return y - 35.5;
   }
 
-  function drawHumanWorkerHead(ctx, cx, cy, seed, es, state, phase) {
+  function drawHumanWorkerHead(ctx, cx, cy, seed, es, state, phase, idleMode = "sleep") {
     const hair = HAIR_PALETTES[seed % HAIR_PALETTES.length];
     const skin = SKIN_PALETTES[(seed >> 2) % SKIN_PALETTES.length];
     const style = (seed >> 3) % 6;
     const hasGlasses = (seed % 5) === 1 || (seed % 5) === 3;
-    const hasHeadphones = (seed % 4) === 0 || (seed % 4) === 2;
+    const hasHeadphones = (state === "idle" && idleMode === "music") || (seed % 4) === 0 || (seed % 4) === 2;
     const r = 13.5;
+    const grooveY = state === "idle" && idleMode === "music" ? Math.sin(phase * 2.2) * 1.1 : 0;
+    cy += grooveY;
 
     ctx.save();
     // Back hair volume (for bob / ponytail styles)
@@ -188,24 +190,30 @@
     ctx.beginPath(); ctx.ellipse(cx + 7, cy + 4, 3.2, 1.8, 0, 0, Math.PI * 2); ctx.fill();
 
     // Expressive eyes & mouth
-    if (state === "idle") {
+    if (state === "idle" && idleMode === "sleep") {
       // Cozy closed sleepy eyes
       ctx.strokeStyle = "#33292a"; ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.arc(cx - 4.8, cy + 1, 2.5, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
       ctx.beginPath(); ctx.arc(cx + 4.8, cy + 1, 2.5, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
       ctx.beginPath(); ctx.arc(cx, cy + 6.5, 1.6, 0, Math.PI * 2); ctx.fillStyle = "#c9856d"; ctx.fill();
+    } else if (state === "idle" && (idleMode === "coffee" || idleMode === "music")) {
+      // Happy relaxed curved smile-eyes (^ ^)
+      ctx.strokeStyle = "#2b2126"; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(cx - 4.8, cy + 2.2, 2.5, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx + 4.8, cy + 2.2, 2.5, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
+      ctx.strokeStyle = "#8c5342"; ctx.lineWidth = 1.25;
+      ctx.beginPath(); ctx.arc(cx, cy + 5.2, 2.6, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke();
     } else {
-      const look = state === "working" ? Math.sin(phase * 1.1) * 0.9 + 0.6 : 0;
+      const lookX = state === "idle" && idleMode === "tv" ? 2.1 : (state === "working" ? Math.sin(phase * 1.1) * 0.9 + 0.6 : 0);
+      const lookY = state === "idle" && idleMode === "phone" ? 1.8 : 0;
       ctx.fillStyle = "#1f1a24";
-      ctx.beginPath(); ctx.ellipse(cx - 4.8 + look, cy + 1, 2.1, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(cx + 4.8 + look, cy + 1, 2.1, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-      // Crisp white catchlight
+      ctx.beginPath(); ctx.ellipse(cx - 4.8 + lookX, cy + 1 + lookY, 2.1, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx + 4.8 + lookX, cy + 1 + lookY, 2.1, 2.4, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#ffffff";
-      ctx.beginPath(); ctx.arc(cx - 5.4 + look, cy - 0.1, 0.85, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx + 4.2 + look, cy - 0.1, 0.85, 0, Math.PI * 2); ctx.fill();
-      // Gentle smile
+      ctx.beginPath(); ctx.arc(cx - 5.4 + lookX, cy - 0.1 + lookY, 0.85, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + 4.2 + lookX, cy - 0.1 + lookY, 0.85, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = "#8c5342"; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.arc(cx, cy + 5.2, 2.4, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy + 5.2, 2.5, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
     }
 
     // Optional stylish glasses
@@ -332,6 +340,10 @@
     ctx.fillStyle = "#334155"; ctx.fill(); ctx.stroke();
 
     // Character seated cleanly behind the desk!
+    const idleMode = (!isLead && !isWorking && !isUpstairs && window.OfficePresets)
+      ? window.OfficePresets.getIdleActivity(seed)
+      : "sleep";
+
     if (!isUpstairs) {
       const hy = drawShadedTorso(ctx, cx - 5, deskTopY + 3, es, skin, isWorking, phase, false);
       if (isLead) {
@@ -339,9 +351,9 @@
         drawLeadAvatarHead(ctx, cx - 5, hy, 15.5, avatarImg, name, ring);
         if (branchCount > 0) drawBranchBadge(ctx, cx - 22, hy - 10, branchCount, branchActive);
       } else {
-        drawHumanWorkerHead(ctx, cx - 5, hy + 1, seed, es, isWorking ? "working" : "idle", phase);
+        drawHumanWorkerHead(ctx, cx - 5, hy + 1, seed, es, isWorking ? "working" : "idle", phase, idleMode);
       }
-      if (!isWorking && !branchActive) {
+      if (isLead && !isWorking && !branchActive) {
         ctx.fillStyle = "rgba(241, 245, 249, 0.82)";
         ctx.font = "700 9.5px ui-monospace, monospace";
         ctx.textAlign = "left";
@@ -422,6 +434,8 @@
       ctx.fillRect(mx - 10.5, my + 4.4, 17 - (scan === 1 ? 5 : 0), 2.2);
       ctx.fillStyle = es.color;
       ctx.fillRect(mx - 10.5, my + 8.3, 14, 2.2);
+    } else if (!isLead && !isUpstairs && idleMode === "tv" && window.OfficePresets) {
+      window.OfficePresets.drawIdleMonitorTv(ctx, mx, my, phase);
     } else {
       ctx.fillStyle = "rgba(148,163,184,0.22)";
       ctx.fillRect(mx - 8, my + 3, 16, 2);
@@ -430,6 +444,9 @@
     // Warm ceramic mug on left (+ tiny brass desk lamp on Lead Bot desk!)
     ctx.fillStyle = "#fff7ed"; ctx.strokeStyle = INK; ctx.lineWidth = 0.9;
     roundRect(ctx, x0 + 7, deskTopY - 3, 6.5, 6.5, 1.5); ctx.fill(); ctx.stroke();
+    if (!isLead && !isWorking && !isUpstairs && window.OfficePresets) {
+      window.OfficePresets.drawIdleDeskActivity(ctx, { mode: idleMode, cx, deskTopY, x0, phase });
+    }
     if (isLead) {
       ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(x0 + 17, deskTopY + 1); ctx.lineTo(x0 + 15, deskTopY - 8); ctx.lineTo(x0 + 22, deskTopY - 11); ctx.stroke();
