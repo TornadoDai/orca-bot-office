@@ -4,6 +4,7 @@
 (function () {
   const CATS = [
     { id: "all", zh: "全部岗位", en: "All Roles" },
+    { id: "mine", zh: "👤 我发布的", en: "👤 Published by Me" },
     { id: "community", zh: "🌐 社区分享", en: "🌐 Community" },
     { id: "official", zh: "🏛️ Orca 官方模板", en: "🏛️ Orca Official" },
     { id: "dev", zh: "研发与审查", en: "Dev & Review" },
@@ -32,7 +33,8 @@
   function filterAndSort(bots, lang = "zh") {
     let list = Array.isArray(bots) ? [...bots] : [];
     if (ui.category !== "all") {
-      if (ui.category === "official") list = list.filter((b) => b.kind === "official" || b.trust === "official");
+      if (ui.category === "mine") list = list.filter((b) => Boolean(b.isMine));
+      else if (ui.category === "official") list = list.filter((b) => b.kind === "official" || b.trust === "official");
       else if (ui.category === "community") list = list.filter((b) => b.kind !== "official" && b.trust !== "official");
       else list = list.filter((b) => b.category === ui.category);
     }
@@ -145,9 +147,12 @@
       onSelectBot,
       onLike,
       onHire,
+      onDelete,
     } = ctx;
     const zh = lang === "zh";
     const bots = marketData?.bots || [];
+    const myCount = bots.filter((b) => b.isMine).length;
+    const liveWritable = Boolean(marketData?.liveWritable);
     const stats = marketData?.stats || { totalBots: bots.length, verifiedBots: 0, totalHires: 0, totalLikes: 0 };
     const filtered = filterAndSort(bots);
     const srcMode = marketData?.sourceMode || "offline";
@@ -184,6 +189,7 @@
                     <div class="mkt-name-row">
                       <span class="mkt-name">${esc(botTitle(b, lang))}</span>
                       <span class="mkt-trust ${trustCls}">${trustLbl}</span>
+                      ${b.isMine ? `<span class="mkt-mine-pill">${zh ? "我发布" : "Mine"}</span>` : ""}
                     </div>
                     <div class="mkt-meta-row">
                       ${engPillHtml(b.agentHint || "claude")}
@@ -201,7 +207,10 @@
                       : `<button type="button" class="mkt-like-btn ${b.liked ? "liked" : ""}" data-mkt-like="${esc(b.id)}">👍 <span>${b.likesCount || 0}</span></button>
                          <span class="mkt-hire-cnt">👥 ${zh ? `已招 ${b.hiresCount || 0}` : `${b.hiresCount || 0} hires`}</span>`}
                   </div>
-                  <button type="button" class="mkt-hire-btn" data-mkt-hire="${esc(b.id)}">⚡ ${zh ? "一键招聘" : "Hire"}</button>
+                  <div style="display:flex;align-items:center;gap:5px">
+                    ${b.isMine && liveWritable && !isOfficial ? `<button type="button" class="mkt-del-btn" data-mkt-del="${esc(b.id)}" title="${zh ? "删除我分享的此 Bot" : "Delete my shared Bot"}">🗑️</button>` : ""}
+                    <button type="button" class="mkt-hire-btn" data-mkt-hire="${esc(b.id)}">⚡ ${zh ? "一键招聘" : "Hire"}</button>
+                  </div>
                 </div>
               </div>`;
           }).join("")}</div>`
@@ -263,7 +272,10 @@
       </div>
 
       <div class="mkt-cats">
-        ${CATS.map((c) => `<button type="button" class="mkt-cat-chip ${ui.category === c.id ? "active" : ""}" data-mcat="${c.id}">${esc(c[lang])}</button>`).join("")}
+        ${CATS.map((c) => {
+          const suffix = c.id === "mine" && myCount > 0 ? ` (${myCount})` : "";
+          return `<button type="button" class="mkt-cat-chip ${ui.category === c.id ? "active" : ""}" data-mcat="${c.id}">${esc(c[lang] + suffix)}</button>`;
+        }).join("")}
       </div>
 
       ${gridHtml}`;
@@ -313,6 +325,27 @@
         e.stopPropagation();
         const b = bots.find((x) => x.id === btn.getAttribute("data-mkt-hire"));
         if (b) await onHire(b);
+      });
+    });
+    container.querySelectorAll("[data-mkt-del]").forEach((btn) => {
+      let armTimer = null;
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const b = bots.find((x) => x.id === btn.getAttribute("data-mkt-del"));
+        if (!b || !onDelete) return;
+        if (!btn.classList.contains("armed")) {
+          btn.classList.add("armed");
+          btn.textContent = zh ? "确认删除?" : "Confirm?";
+          armTimer = setTimeout(() => {
+            btn.classList.remove("armed");
+            btn.textContent = "🗑️";
+          }, 4000);
+          return;
+        }
+        if (armTimer) clearTimeout(armTimer);
+        btn.disabled = true;
+        btn.textContent = "⏳";
+        await onDelete(b);
       });
     });
   }
@@ -452,6 +485,28 @@
       }
     };
 
+    const handleDelete = async (bot) => {
+      const zh = getLang() === "zh";
+      try {
+        await orcaApi.plugin.request("office.marketDelete", { id: bot.id });
+        if (marketData?.bots) {
+          marketData.bots = marketData.bots.filter((x) => x.id !== bot.id);
+          if (marketData.stats) {
+            marketData.stats.totalBots = marketData.bots.length;
+            marketData.stats.communityBots = Math.max(0, Number(marketData.stats.communityBots || 1) - 1);
+          }
+        }
+        updateTopBadge();
+        renderApp();
+        showToast(zh ? `✓ 已彻底删除「${bot.name}」的分享，原链接已失效` : `✓ Deleted "${bot.name}" from Talent Market`, false);
+        void load(true);
+        return true;
+      } catch (err) {
+        showToast(zh ? `删除失败：${err?.message || err}` : `Delete failed: ${err?.message || err}`, true);
+        return false;
+      }
+    };
+
     const handlePrepareLocal = async (botId) => {
       return await orcaApi.plugin.request("office.marketPrepareLocal", { botId });
     };
@@ -496,6 +551,7 @@
         onSelectBot: openDetail,
         onLike: handleLike,
         onHire: handleHire,
+        onDelete: handleDelete,
       });
     };
 
@@ -511,6 +567,7 @@
           onHire: handleHire,
           onCustomizeOfficial: customizeOfficial,
           onReport: handleReport,
+          onDelete: handleDelete,
           onOpenExternal: openExt,
           showToast,
           onClose,

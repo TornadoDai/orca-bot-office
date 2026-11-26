@@ -411,6 +411,18 @@ export default function activate(orca) {
     });
   });
 
+  orca.panels.handle("office.marketDelete", async (input = {}) => {
+    const opts = await readOptions();
+    const clientId = await getOrCreateClientId(orca.storage);
+    const id = encodeURIComponent(String(input.id || ""));
+    if (!id) throw new Error("Bot id is required");
+    return await postMarketAction({
+      apiUrl: opts.marketApiUrl,
+      clientId,
+      pathSuffix: `/api/bots/${id}/delete`,
+    });
+  });
+
   orca.panels.handle("office.sendDecision", async (input = {}) => {
     const botName = String(input.botName || "").trim();
     const body = String(input.body || "").trim();

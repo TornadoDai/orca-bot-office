@@ -506,6 +506,34 @@
   white-space: nowrap;
 }
 .mkt-hire-btn:hover { background: linear-gradient(135deg, rgba(16, 185, 129, 0.44), rgba(6, 182, 212, 0.38)); }
+.mkt-mine-pill {
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(192, 132, 252, 0.48);
+  color: #e9d5ff;
+  white-space: nowrap;
+}
+.mkt-del-btn {
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--rose-soft-border);
+  background: var(--rose-soft-bg);
+  color: var(--rose-text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mkt-del-btn:hover { border-color: rgba(244, 63, 94, 0.72); }
+.mkt-del-btn.armed {
+  background: #e11d48;
+  border-color: #fb7185;
+  color: #fff;
+  font-weight: 800;
+}
 
 /* Cold-Start Onboarding Card */
 .mkt-empty {
@@ -692,4 +720,5 @@
 :root.light .mkt-trust.official { color: #0369a1; background: rgba(14, 165, 233, 0.14); border-color: rgba(14, 165, 233, 0.4); }
 :root.light .mkt-like-btn.liked { color: #be123c; background: rgba(244, 63, 94, 0.12); }
 :root.light .mkt-hire-btn { color: #065f46; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.18)); }
+:root.light .mkt-mine-pill { color: #6b21a8; background: rgba(168, 85, 247, 0.12); border-color: rgba(147, 51, 234, 0.35); }
 :root.light .om-mb-go { color: #047857; }

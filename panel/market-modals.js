@@ -84,7 +84,7 @@
   }
 
   function renderMarketDetailModal(ctx) {
-    const { bot, lang, liveWritable, engPillHtml, onLike, onHire, onCustomizeOfficial, onReport, onOpenExternal, showToast, onClose } = ctx;
+    const { bot, lang, liveWritable, engPillHtml, onLike, onHire, onCustomizeOfficial, onReport, onDelete, onOpenExternal, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     if (!root || !bot) return;
     const zh = lang === "zh";
@@ -118,6 +118,7 @@
               <div class="mkt-name-row">
                 <span class="ic-name">${esc(title)}</span>
                 <span class="mkt-trust ${trustCls}">${trustTxt}</span>
+                ${bot.isMine ? `<span class="mkt-mine-pill">${zh ? "👤 我发布的" : "👤 Mine"}</span>` : ""}
               </div>
               <div class="ic-meta" style="margin-top:4px">
                 ${engPillHtml(bot.agentHint || "claude")}
@@ -148,7 +149,8 @@
               <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
                 <button type="button" class="mkt-btn-ghost" id="mktCopyShareBtn">🔗 ${zh ? "复制分享链接" : "Copy Share Link"}</button>
                 ${bot.marketShareUrl ? `<button type="button" class="mkt-btn-ghost" id="mktOpenPageBtn">🌐 ${zh ? "网页预览" : "Web Preview"}</button>` : ""}
-                ${liveWritable ? `<button type="button" class="mkt-btn-ghost" id="mktReportBtn">🚩 ${zh ? "举报失效/垃圾" : "Report"}</button>` : ""}
+                ${liveWritable && bot.isMine ? `<button type="button" class="mkt-del-btn" id="mktDetailDelBtn">🗑️ ${zh ? "删除我的分享" : "Delete My Share"}</button>` : ""}
+                ${liveWritable && !bot.isMine ? `<button type="button" class="mkt-btn-ghost" id="mktReportBtn">🚩 ${zh ? "举报失效/垃圾" : "Report"}</button>` : ""}
               </div>` : ""}
           </div>
 
@@ -182,6 +184,31 @@
     });
     document.getElementById("mktDetailHireBtn")?.addEventListener("click", async () => { await onHire(bot); onClose(); });
     document.getElementById("mktReportBtn")?.addEventListener("click", async () => { await onReport(bot); onClose(); });
+    const delBtn = document.getElementById("mktDetailDelBtn");
+    if (delBtn && onDelete) {
+      let armTimer = null;
+      delBtn.addEventListener("click", async () => {
+        if (!delBtn.classList.contains("armed")) {
+          delBtn.classList.add("armed");
+          delBtn.textContent = zh ? "⚠️ 再次点击确认彻底删除" : "⚠️ Click again to delete permanently";
+          armTimer = setTimeout(() => {
+            delBtn.classList.remove("armed");
+            delBtn.textContent = zh ? "🗑️ 删除我的分享" : "🗑️ Delete My Share";
+          }, 4500);
+          return;
+        }
+        if (armTimer) clearTimeout(armTimer);
+        delBtn.disabled = true;
+        delBtn.textContent = zh ? "⏳ 正在删除…" : "⏳ Deleting…";
+        const ok = await onDelete(bot);
+        if (ok) onClose();
+        else {
+          delBtn.disabled = false;
+          delBtn.classList.remove("armed");
+          delBtn.textContent = zh ? "🗑️ 删除我的分享" : "🗑️ Delete My Share";
+        }
+      });
+    }
   }
 
   function renderBundleChecklist(container, parts, zh) {
