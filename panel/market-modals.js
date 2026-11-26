@@ -169,8 +169,19 @@
     document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
     document.getElementById("mktCustomizeTplBtn")?.addEventListener("click", () => { onClose(); onCustomizeOfficial?.(bot); });
-    document.getElementById("mktCopyShareBtn")?.addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(shareLink); showToast(zh ? "✓ 已复制分享链接" : "✓ Copied share link", false); } catch {}
+    document.getElementById("mktCopyShareBtn")?.addEventListener("click", async (e) => {
+      const btn = e.currentTarget;
+      const ok = await window.officeCopyText(shareLink);
+      if (ok) {
+        showToast(zh ? "✓ 已复制分享链接" : "✓ Copied share link", false);
+        if (btn) {
+          const prev = btn.textContent;
+          btn.textContent = zh ? "✓ 已复制" : "✓ Copied";
+          setTimeout(() => { btn.textContent = prev; }, 2000);
+        }
+      } else {
+        showToast(zh ? "复制失败，请点击网页预览后复制地址栏" : "Copy failed — open Web Preview to copy URL", true);
+      }
     });
     document.getElementById("mktOpenPageBtn")?.addEventListener("click", () => { if (bot.marketShareUrl) onOpenExternal?.(bot.marketShareUrl); });
     document.getElementById("mktDetailLikeBtn")?.addEventListener("click", async () => {
@@ -310,8 +321,22 @@
     document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
     document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
-    document.getElementById("mktCopyGenBtn")?.addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(shareUrl); showToast(zh ? "✓ 分享链接已复制到剪贴板" : "✓ Share link copied!", false); } catch {}
+    const urlInput = document.getElementById("mktGeneratedUrl");
+    urlInput?.addEventListener("click", () => { try { urlInput.select(); } catch {} });
+    document.getElementById("mktCopyGenBtn")?.addEventListener("click", async (e) => {
+      const btn = e.currentTarget;
+      try { urlInput?.focus(); urlInput?.select(); } catch {}
+      const ok = await window.officeCopyText(shareUrl);
+      if (ok) {
+        showToast(zh ? "✓ 分享链接已复制到剪贴板" : "✓ Share link copied!", false);
+        if (btn) {
+          const prev = btn.textContent;
+          btn.textContent = zh ? "✓ 已复制" : "✓ Copied";
+          setTimeout(() => { btn.textContent = prev; }, 2000);
+        }
+      } else {
+        showToast(zh ? "自动复制受限，已全选链接，请按 ⌘C / Ctrl+C 复制" : "Auto-copy blocked — link selected, press Cmd/Ctrl+C", true);
+      }
     });
     document.getElementById("mktOpenGenBtn")?.addEventListener("click", () => onOpenExternal?.(shareUrl));
   }

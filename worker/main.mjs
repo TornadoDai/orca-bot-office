@@ -19,6 +19,40 @@ import {
 let pollTimer = null;
 let debounceTimer = null;
 
+function copyTextToSystemClipboard(text) {
+  const val = String(text ?? "");
+  if (!val) return Promise.resolve({ ok: false });
+  const candidates =
+    process.platform === "darwin"
+      ? [["pbcopy", []]]
+      : process.platform === "win32"
+        ? [["clip", []]]
+        : [["wl-copy", []], ["xclip", ["-selection", "clipboard"]], ["xsel", ["--clipboard", "--input"]]];
+  return new Promise((resolve) => {
+    const tryNext = (idx) => {
+      if (idx >= candidates.length) return resolve({ ok: false });
+      const [cmd, args] = candidates[idx];
+      let done = false;
+      const finish = (ok) => {
+        if (done) return;
+        done = true;
+        if (ok) resolve({ ok: true, method: cmd });
+        else tryNext(idx + 1);
+      };
+      try {
+        const child = spawn(cmd, args, { stdio: ["pipe", "ignore", "ignore"], env: buildExecEnv() });
+        child.on("error", () => finish(false));
+        child.on("close", (code) => finish(code === 0));
+        child.stdin.on("error", () => finish(false));
+        child.stdin.end(val, "utf8");
+      } catch {
+        finish(false);
+      }
+    };
+    tryNext(0);
+  });
+}
+
 function formatStatusBar(summary) {
   const activeBots = summary.workingBots || 0;
   const totalBots = summary.totalBots || 0;
@@ -421,6 +455,10 @@ export default function activate(orca) {
       clientId,
       pathSuffix: `/api/bots/${id}/delete`,
     });
+  });
+
+  orca.panels.handle("office.copyText", async (input = {}) => {
+    return await copyTextToSystemClipboard(input.text || "");
   });
 
   orca.panels.handle("office.sendDecision", async (input = {}) => {

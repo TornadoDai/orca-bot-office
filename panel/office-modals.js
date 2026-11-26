@@ -205,12 +205,8 @@
     document.getElementById("hireCopyCmdBtn")?.addEventListener("click", async () => {
       const f = readForm();
       const cmd = buildCliOfferCommand(f);
-      try {
-        await navigator.clipboard.writeText(cmd);
-        showToast(tr.hireCopiedCmd, false);
-      } catch {
-        showToast(cmd, false);
-      }
+      const ok = await window.officeCopyText(cmd);
+      showToast(ok ? tr.hireCopiedCmd : cmd, false);
     });
 
     const submitHire = async (mode) => {

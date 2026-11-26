@@ -235,7 +235,8 @@
     document.getElementById("icJumpAttnWorkerBtn")?.addEventListener("click", () => { if (attnWorkerWsId) void openWorkspace(attnWorkerWsId, true); onClose(); });
     document.getElementById("icTasksBtn")?.addEventListener("click", () => { void openTasksView(); onClose(); });
     document.getElementById("icCopyBranch")?.addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(branch); showToast(tr.copiedBranch(branch)); } catch {}
+      const ok = await window.officeCopyText(branch);
+      if (ok) showToast(tr.copiedBranch(branch));
     });
     root.querySelectorAll("[data-ext-url]").forEach((el) => {
       el.addEventListener("click", (e) => { e.preventDefault(); void openExternalUrl(el.getAttribute("data-ext-url")); });

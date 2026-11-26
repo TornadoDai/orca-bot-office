@@ -401,3 +401,37 @@ window.OFFICE_I18N = {
   },
 };
 
+window.officeCopyText = async function officeCopyText(text) {
+  const val = String(text ?? "");
+  if (!val) return false;
+  try {
+    if (window.orca?.plugin?.request) {
+      const res = await window.orca.plugin.request("office.copyText", { text: val });
+      if (res?.ok) return true;
+    }
+  } catch {}
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(val);
+      return true;
+    }
+  } catch {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = val;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return Boolean(ok);
+  } catch {
+    return false;
+  }
+};
+
+
