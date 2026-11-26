@@ -1,7 +1,7 @@
 /**
  * Talent Market Modals:
- * 1. Bot Resume Detail Modal (full pitch, sanitized SOUL preview, copy share link, report, like & 1-click Hire)
- * 2. 1-Click Auto-Fill & Auto-Sanitize Publish Modal (generates live share link immediately!)
+ * 1. Bot Resume Detail Modal (full pitch, sanitized SOUL + optional skills/automations/tools/memory/settings preview)
+ * 2. 1-Click Auto-Fill, Selectable Parts & Auto-Sanitize Publish Modal
  */
 (function () {
   const SHARE_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
@@ -47,14 +47,40 @@
     if (c.ips) parts.push(zh ? `IP ×${c.ips}` : `IPs ×${c.ips}`);
     if (c.phones) parts.push(zh ? `手机号 ×${c.phones}` : `phones ×${c.phones}`);
     if (c.ssh) parts.push(zh ? `SSH 主机 ×${c.ssh}` : `SSH ×${c.ssh}`);
+    const blocked = (redactions.blockedMemoryFiles || []).length;
+    const blockNote = blocked ? (zh ? `，已硬拦截 ${blocked} 个凭据文件` : `, blocked ${blocked} credential file(s)`) : "";
     if (parts.length) {
       return zh
-        ? `已自动脱敏 ${redactions.total} 处敏感信息（${parts.join("、")}），并自动跳过 MEMORY.md、memory/ 与凭据文件。`
-        : `Auto-redacted ${redactions.total} sensitive items (${parts.join(", ")}); skipped MEMORY.md, memory/ & credentials.`;
+        ? `已自动脱敏 ${redactions.total} 处敏感信息（${parts.join("、")}）${blockNote}；记忆默认不勾选。`
+        : `Auto-redacted ${redactions.total} sensitive items (${parts.join(", ")})${blockNote}; memory is off by default.`;
     }
     return zh
-      ? "未检测到敏感凭据，已自动跳过 MEMORY.md、memory/ 与聊天记录。"
-      : "No secrets detected. MEMORY.md, memory/ & chat history are always excluded.";
+      ? `未检测到敏感凭据${blockNote}；记忆默认不勾选，所有勾选内容均自动脱敏。`
+      : `No secrets detected${blockNote}; memory is off by default and all checked items are auto-sanitized.`;
+  }
+
+  function renderBundlePreviewHtml(bot, zh) {
+    const b = bot.bundle || {};
+    const blocks = [];
+    if (bot.soulMd) {
+      blocks.push(`<details class="ic-collapse"><summary class="ic-collapse-sum">📄 ${zh ? "SOUL.md（已脱敏）" : "SOUL.md (sanitized)"}</summary><pre class="mkt-soul-pre">${esc(bot.soulMd)}</pre></details>`);
+    }
+    if ((b.automations || []).length) {
+      blocks.push(`<details class="ic-collapse"><summary class="ic-collapse-sum">⏰ ${zh ? `定时任务 / 自动化 (${b.automations.length})` : `Automations (${b.automations.length})`}</summary><div class="mkt-tpl-specs">${b.automations.map((a) => `<div><b>${esc(a.name)}</b> ${a.rrule ? `<code>${esc(a.rrule)}</code>` : ""}<div style="margin-top:2px;color:var(--muted)">${esc(a.prompt)}</div></div>`).join("")}</div></details>`);
+    }
+    if ((b.skills || []).length) {
+      blocks.push(`<details class="ic-collapse"><summary class="ic-collapse-sum">🧩 ${zh ? `技能 Skills (${b.skills.length})` : `Skills (${b.skills.length})`}</summary>${b.skills.map((s) => `<pre class="mkt-soul-pre"><b>${esc(s.name)}</b>\n${esc(s.content || "")}</pre>`).join("")}</details>`);
+    }
+    if ((b.tools || []).length) {
+      blocks.push(`<details class="ic-collapse"><summary class="ic-collapse-sum">🔧 ${zh ? `工具 / MCP (${b.tools.length})` : `Tools / MCP (${b.tools.length})`}</summary><div class="mkt-tpl-specs">${b.tools.map((t) => `<div><b>${esc(t.name)}</b> [${esc(t.scope || "own")}] ${t.url ? esc(t.url) : ""}</div>`).join("")}</div></details>`);
+    }
+    if ((b.memory || []).length) {
+      blocks.push(`<details class="ic-collapse"><summary class="ic-collapse-sum">🧠 ${zh ? `精选脱敏记忆 (${b.memory.length})` : `Sanitized Memory (${b.memory.length})`}</summary>${b.memory.map((m) => `<pre class="mkt-soul-pre"><b>${esc(m.topic)}</b>\n${esc(m.content)}</pre>`).join("")}</details>`);
+    }
+    if (b.settings && ((b.settings.connectors || []).length || b.settings.setupNote)) {
+      blocks.push(`<div class="mkt-tpl-specs">${(b.settings.connectors || []).length ? `<div><b>${zh ? "建议连接器：" : "Connectors:"}</b>${esc(b.settings.connectors.join(", "))}</div>` : ""}${b.settings.setupNote ? `<div><b>${zh ? "配置说明：" : "Setup Note:"}</b>${esc(b.settings.setupNote)}</div>` : ""}</div>`);
+    }
+    return blocks.length ? `<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">${blocks.join("")}</div>` : "";
   }
 
   function renderMarketDetailModal(ctx) {
@@ -79,13 +105,6 @@
            ${bot.reports ? `<div><b>${zh ? "汇报：" : "Reports:"}</b>${esc(bot.reports)}</div>` : ""}
            ${(bot.connectors || []).length ? `<div><b>${zh ? "建议连接器：" : "Connectors:"}</b>${esc(bot.connectors.join(", "))}</div>` : ""}
          </div>`
-      : "";
-
-    const soulPreviewHtml = bot.soulMd
-      ? `<details class="ic-collapse" style="margin-top:8px">
-           <summary class="ic-collapse-sum">📄 ${zh ? "预览脱敏后的 SOUL.md" : "Preview sanitized SOUL.md"}</summary>
-           <pre class="mkt-soul-pre">${esc(bot.soulMd)}</pre>
-         </details>`
       : "";
 
     const shareLink = bot.shareUrl || bot.marketShareUrl || bot.deepLink || "";
@@ -114,12 +133,8 @@
           <div class="mkt-safety">
             <span>🛡️</span>
             <span>${isOfficial
-              ? (zh
-                  ? "这是 Orca 内置官方岗位模板。点击「直接弹出创建卡」将唤起 Orca 原生创建确认卡，经你同意后才创建。"
-                  : "Official Orca template. Clicking Hire pops Orca's native Create Bot confirmation card.")
-              : (zh
-                  ? "内容已自动脱敏。点击「立即招聘入职」会先弹出 Orca 原生审核/创建确认卡，你可以审查后再确认入职。"
-                  : "Auto-sanitized Bot listing. Clicking Hire pops Orca's native review/create confirmation card.")}</span>
+              ? (zh ? "这是 Orca 内置官方岗位模板。点击「直接弹出创建卡」将唤起 Orca 原生创建确认卡。" : "Official Orca template. Clicking Hire pops Orca's native Create Bot card.")
+              : (zh ? "所有内容均已自动脱敏，可先展开下方各模块审查后再点击「立即招聘入职」。" : "Auto-sanitized bundle. Audit included parts below before hiring.")}</span>
           </div>
 
           <div class="om-form" style="margin-top:10px">
@@ -127,7 +142,7 @@
             <div style="font-size:12.5px;line-height:1.55;color:var(--fg)">${esc(pitch)}</div>
             ${bot.description ? `<div style="font-size:11.5px;line-height:1.6;color:var(--fg-soft);white-space:pre-wrap;margin-top:6px">${esc(bot.description)}</div>` : ""}
             ${specsHtml}
-            ${soulPreviewHtml}
+            ${renderBundlePreviewHtml(bot, zh)}
             ${tagsHtml ? `<div class="mkt-tags" style="margin-top:8px">${tagsHtml}</div>` : ""}
             ${!isOfficial && shareLink ? `
               <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
@@ -165,11 +180,78 @@
         if (sp) sp.textContent = String(bot.likesCount || 0);
       }
     });
-    document.getElementById("mktDetailHireBtn")?.addEventListener("click", async () => {
-      await onHire(bot);
-      onClose();
-    });
+    document.getElementById("mktDetailHireBtn")?.addEventListener("click", async () => { await onHire(bot); onClose(); });
     document.getElementById("mktReportBtn")?.addEventListener("click", async () => { await onReport(bot); onClose(); });
+  }
+
+  function renderBundleChecklist(container, parts, zh) {
+    if (!container) return;
+    const p = parts || {};
+    const skills = p.skills || [];
+    const autos = p.automations || [];
+    const tools = p.tools || [];
+    const mems = p.memory || [];
+    const blocked = p.blockedMemoryFiles || [];
+    const sets = p.settings || {};
+
+    const groups = [];
+    groups.push(`
+      <div class="mkt-bundle-grp">
+        <div class="mkt-bundle-hdr"><span>⏰ ${zh ? "定时任务 & 自动化" : "Schedules & Automations"}</span><small>${autos.length ? (zh ? `共 ${autos.length} 条 · 默认全选` : `${autos.length} found`) : (zh ? "该 Bot 暂无" : "None")}</small></div>
+        ${autos.length ? `<div class="mkt-chk-list">${autos.map((a, i) => `
+          <label class="mkt-chk-row">
+            <input type="checkbox" data-b-auto="${i}" ${a.defaultChecked ? "checked" : ""} />
+            <span class="mkt-chk-main">${esc(a.name)}</span>
+            <span class="mkt-chk-meta">${esc(a.rrule || (zh ? "事件触发" : "event"))}</span>
+          </label>`).join("")}</div>` : ""}
+      </div>`);
+
+    groups.push(`
+      <div class="mkt-bundle-grp">
+        <div class="mkt-bundle-hdr"><span>🧩 ${zh ? "技能 (Skills)" : "Skills"}</span><small>${skills.length ? (zh ? `共 ${skills.length} 个 · 默认全选` : `${skills.length} found`) : (zh ? "该 Bot 暂无" : "None")}</small></div>
+        ${skills.length ? `<div class="mkt-chk-list">${skills.map((s, i) => `
+          <label class="mkt-chk-row">
+            <input type="checkbox" data-b-skill="${i}" ${s.defaultChecked ? "checked" : ""} />
+            <span class="mkt-chk-main">${esc(s.name)}</span>
+            <span class="mkt-chk-meta">${s.chars} ${zh ? "字" : "ch"}</span>
+          </label>`).join("")}</div>` : ""}
+      </div>`);
+
+    groups.push(`
+      <div class="mkt-bundle-grp">
+        <div class="mkt-bundle-hdr"><span>🔧 ${zh ? "工具 / MCP" : "Tools / MCP"}</span><small>${tools.length ? (zh ? `共 ${tools.length} 个（仅保留名称与地址，剥离密钥）` : `${tools.length} found (secrets stripped)`) : (zh ? "该 Bot 暂无" : "None")}</small></div>
+        ${tools.length ? `<div class="mkt-chk-list">${tools.map((t, i) => `
+          <label class="mkt-chk-row">
+            <input type="checkbox" data-b-tool="${i}" ${t.defaultChecked ? "checked" : ""} />
+            <span class="mkt-chk-main">${esc(t.name)}</span>
+            <span class="mkt-chk-meta">${t.scope === "inherited" ? (zh ? "继承 MCP" : "inherited") : (zh ? "自有工具" : "own")}</span>
+          </label>`).join("")}</div>` : ""}
+      </div>`);
+
+    groups.push(`
+      <div class="mkt-bundle-grp">
+        <div class="mkt-bundle-hdr"><span>🧠 ${zh ? "记忆文件（默认不选，按需勾选）" : "Memory Files (Off by default)"}</span><small>${mems.length ? (zh ? `可选 ${mems.length} 份 · 勾选后自动脱敏` : `${mems.length} selectable`) : (zh ? "无非空记忆" : "None")}</small></div>
+        ${blocked.map((f) => `<div class="mkt-blocked-row">🔒 ${zh ? `已自动拦截敏感凭据文件：${esc(f)}（禁止分享）` : `Blocked credential file: ${esc(f)}`}</div>`).join("")}
+        ${mems.length ? `<div class="mkt-chk-list">${mems.map((m, i) => `
+          <label class="mkt-chk-row">
+            <input type="checkbox" data-b-mem="${i}" />
+            <span class="mkt-chk-main">${esc(m.topic)}</span>
+            <span class="mkt-chk-meta">${m.chars}${zh ? "字" : "ch"}${m.redactionsCount ? ` · 🛡️-${m.redactionsCount}` : ""}</span>
+          </label>`).join("")}</div>` : ""}
+      </div>`);
+
+    const connText = (sets.connectors || []).length ? sets.connectors.join(", ") : (zh ? "无额外连接器" : "none");
+    groups.push(`
+      <div class="mkt-bundle-grp">
+        <div class="mkt-bundle-hdr"><span>⚙️ ${zh ? "设置与连接器提示" : "Settings & Connectors"}</span></div>
+        <label class="mkt-chk-row">
+          <input type="checkbox" id="mktIncludeSettings" checked />
+          <span class="mkt-chk-main">${zh ? `包含推荐 Agent (${esc(sets.agent || "claude")}) 与连接器提示 (${esc(connText)})` : `Include Agent (${esc(sets.agent || "claude")}) & connectors (${esc(connText)})`}</span>
+        </label>
+        <input class="om-input" id="mktSetupNoteInput" type="text" maxlength="1500" placeholder="${zh ? "可选：给招聘者的配置说明（如：需先配置 GitHub / Slack 连接器）" : "Optional setup note for anyone hiring this Bot…"}" />
+      </div>`);
+
+    container.innerHTML = groups.join("");
   }
 
   function renderPublishSuccess(root, { name, shareUrl, zh, onOpenExternal, onClose, showToast }) {
@@ -186,7 +268,7 @@
           </div>
           <div class="mkt-redact-ok">
             <span>🛡️</span>
-            <span>${zh ? "已自动脱敏敏感信息并上架到 Bot 人才市场，你可以把下方链接直接发给同事或社区：" : "Sanitized and published to Talent Market! Share this link directly:"}</span>
+            <span>${zh ? "所选模块已全部自动脱敏并上架到 Bot 人才市场，你可以把下方链接直接发给同事或社区：" : "Selected parts sanitized & published! Share this link directly:"}</span>
           </div>
           <div class="mkt-share-box">
             <input class="om-input" id="mktGeneratedUrl" type="text" readonly value="${esc(shareUrl)}" />
@@ -208,7 +290,7 @@
   }
 
   function renderMarketPublishModal(ctx) {
-    const { localBots, lang, liveWritable, apiConfigured, onPrepareLocal, onPublish, onOpenExternal, showToast, onClose } = ctx;
+    const { localBots, lang, liveWritable, apiConfigured, onPrepareLocal, onRandomAvatar, onPublish, onOpenExternal, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     if (!root || root.querySelector('[data-modal-kind="marketPublish"]')) return;
     const zh = lang === "zh";
@@ -218,10 +300,13 @@
       <div class="card-backdrop" id="cardBackdrop">
         <div class="inspector-card om-card" data-modal-kind="marketPublish">
           <div class="ic-head">
-            <img class="mkt-pub-av-prev" id="mktPubAvPrev" src="${esc(bots[0]?.avatarDataUrl || "")}" style="${bots[0]?.avatarDataUrl ? "" : "display:none"}" alt="" />
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+              <img class="mkt-pub-av-prev" id="mktPubAvPrev" src="${esc(bots[0]?.avatarDataUrl || "")}" style="${bots[0]?.avatarDataUrl ? "" : "display:none"}" alt="" />
+              <button type="button" class="mkt-btn-ghost" id="mktShuffleAvBtn" style="padding:1px 6px;font-size:10px" title="${zh ? "随机换一个官方吉祥物头像" : "Shuffle random mascot"}">🎲 ${zh ? "换头像" : "Shuffle"}</button>
+            </div>
             <div class="ic-title-wrap">
               <div class="ic-name">${zh ? "一键分享我的 Bot" : "1-Click Share My Bot"}</div>
-              <div class="ic-meta"><span class="ic-pill">${zh ? "自动识别填写 · 自动脱敏敏感数据 · 直接生成分享链接" : "Auto-fills metadata · Auto-redacts secrets · Generates share link"}</span></div>
+              <div class="ic-meta"><span class="ic-pill">${zh ? "自动识别 · 可勾选技能/定时任务/工具/记忆/设置 · 自动脱敏出链" : "Auto-fill · Pick skills/schedules/tools/memory/settings · Auto-sanitized link"}</span></div>
             </div>
             <button class="ic-close" id="icCloseBtn">×</button>
           </div>
@@ -233,7 +318,7 @@
           <div class="om-form" style="margin-top:8px">
             ${bots.length ? `
               <div class="om-field">
-                <label class="om-lbl">${zh ? "⚡ 选择要分享的本机 Bot（自动识别并脱敏）" : "⚡ Pick a local Bot (auto-fills & sanitizes)"}</label>
+                <label class="om-lbl">${zh ? "⚡ 选择要分享的本机 Bot（自动识别全部模块并脱敏）" : "⚡ Pick a local Bot (auto-detects & sanitizes all parts)"}</label>
                 <select class="om-input" id="mktLocalPick">
                   ${bots.map((b, i) => `<option value="${esc(b.id)}" ${i === 0 ? "selected" : ""}>${esc(b.name)} (${esc(b.agentHint)})</option>`).join("")}
                   <option value="__manual__">${zh ? "— 手动空白填写 —" : "— Fill manually —"}</option>
@@ -242,7 +327,7 @@
 
             <div class="mkt-redact-ok" id="mktRedactBanner">
               <span>🛡️</span>
-              <span id="mktRedactText">${zh ? "正在自动扫描并脱敏敏感数据（MEMORY.md 与凭据文件绝不读取）…" : "Auto-scanning & redacting sensitive data (MEMORY.md & secrets excluded)…"}</span>
+              <span id="mktRedactText">${zh ? "正在扫描 SOUL、技能、定时任务、MCP 工具与记忆…" : "Scanning SOUL, skills, automations, tools & memory…"}</span>
             </div>
 
             <div class="om-field">
@@ -253,6 +338,11 @@
             <div class="om-field">
               <label class="om-lbl">${zh ? "一句话职责亮点 *" : "One-Line Pitch *"}</label>
               <input class="om-input" id="mktPurposeInput" type="text" maxlength="160" placeholder="${zh ? "自动提取，可微调…" : "Auto-extracted from SOUL.md…"}" />
+            </div>
+
+            <div class="om-field">
+              <label class="om-lbl">${zh ? "勾选要一起打包分享的模块（均自动脱敏）" : "Select parts to include in share package (all auto-sanitized)"}</label>
+              <div class="mkt-bundle-box" id="mktBundleBox"></div>
             </div>
 
             <div class="om-field">
@@ -274,11 +364,11 @@
             </div>
 
             <details class="ic-collapse">
-              <summary class="ic-collapse-sum">🛡️ ${zh ? "预览 / 微调脱敏后的 SOUL.md 与可选配置" : "Preview / edit sanitized SOUL.md & options"}</summary>
+              <summary class="ic-collapse-sum">🛡️ ${zh ? "预览 / 微调脱敏后的 SOUL.md、外观与可选 Orca 链接" : "Preview / edit sanitized SOUL.md, look & optional Orca link"}</summary>
               <div class="om-adv-body">
                 <div class="om-field">
-                  <label class="om-lbl">${zh ? "脱敏后的 SOUL.md（公开分享内容，可再删改）" : "Sanitized SOUL.md (public, editable)"}</label>
-                  <textarea class="om-textarea" id="mktSoulInput" rows="6" maxlength="12000"></textarea>
+                  <label class="om-lbl">${zh ? "脱敏后的 SOUL.md（可再删改）" : "Sanitized SOUL.md (editable)"}</label>
+                  <textarea class="om-textarea" id="mktSoulInput" rows="5" maxlength="12000"></textarea>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
                   <div class="om-field">
@@ -316,7 +406,7 @@
     let selectedCat = "dev";
     let pickedAvatarType = "mascot";
     let pickedAvatarValue = "A1";
-    let pickedSkills = [];
+    let activeDraft = null;
 
     const setCat = (catId) => {
       selectedCat = catId || "general";
@@ -325,13 +415,13 @@
 
     const applyDraft = (draft) => {
       if (!draft) return;
+      activeDraft = draft;
       const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ""; };
       setVal("mktNameInput", draft.name);
       setVal("mktPurposeInput", draft.purpose);
       setVal("mktTagsInput", (draft.tags || []).join(", "));
       setVal("mktSoulInput", draft.soulMd);
       setCat(draft.category || "general");
-      pickedSkills = draft.skills || [];
       pickedAvatarType = draft.avatarType || "mascot";
       pickedAvatarValue = draft.avatarValue || "A1";
       const agEl = document.getElementById("mktAgentSelect");
@@ -343,23 +433,53 @@
       const prevEl = document.getElementById("mktPubAvPrev");
       if (prevEl && draft.avatarDataUrl) { prevEl.src = draft.avatarDataUrl; prevEl.style.display = "block"; }
       const redEl = document.getElementById("mktRedactText");
-      if (redEl) redEl.textContent = formatRedactionSummary(draft.redactions, zh);
+      if (redEl) {
+        const avNote = draft.randomizedAvatar
+          ? (zh ? "自定义头像已自动替换为随机官方吉祥物。" : "Custom avatar replaced with a random Orca mascot. ")
+          : "";
+        redEl.textContent = `${avNote}${formatRedactionSummary(draft.redactions, zh)}`;
+      }
+      renderBundleChecklist(document.getElementById("mktBundleBox"), draft.parts, zh);
     };
 
     const loadBotDraft = async (botId) => {
       if (!botId || botId === "__manual__") {
+        activeDraft = null;
+        renderBundleChecklist(document.getElementById("mktBundleBox"), {}, zh);
         const redEl = document.getElementById("mktRedactText");
         if (redEl) redEl.textContent = zh ? "手动填写模式：提交时服务端仍会自动检查并脱敏敏感信息。" : "Manual mode: server still redacts sensitive data on publish.";
         return;
       }
       if (!onPrepareLocal) return;
       try {
-        const draft = await onPrepareLocal(botId);
-        applyDraft(draft);
+        applyDraft(await onPrepareLocal(botId));
       } catch (err) {
         const redEl = document.getElementById("mktRedactText");
         if (redEl) redEl.textContent = String(err?.message || err);
       }
+    };
+
+    const collectSelectedBundle = () => {
+      const p = activeDraft?.parts || {};
+      const pick = (attr, list) =>
+        [...root.querySelectorAll(`[${attr}]:checked`)]
+          .map((el) => list[Number(el.getAttribute(attr))])
+          .filter(Boolean);
+      const skills = pick("data-b-skill", p.skills || []).map(({ name, content }) => ({ name, content }));
+      const automations = pick("data-b-auto", p.automations || []).map(({ name, rrule, prompt, resultsTo }) => ({ name, rrule, prompt, resultsTo }));
+      const tools = pick("data-b-tool", p.tools || []).map(({ name, scope, url, headerNames }) => ({ name, scope, url, headerNames }));
+      const memory = pick("data-b-mem", p.memory || []).map(({ topic, content }) => ({ topic, content }));
+      const incSettings = document.getElementById("mktIncludeSettings")?.checked !== false;
+      const setupNote = String(document.getElementById("mktSetupNoteInput")?.value || "").trim();
+      const settings = incSettings
+        ? {
+            agent: String(document.getElementById("mktAgentSelect")?.value || "claude"),
+            outfit: p.settings?.outfit || "",
+            connectors: p.settings?.connectors || [],
+            setupNote,
+          }
+        : { agent: "", outfit: "", connectors: [], setupNote };
+      return { skills, automations, tools, memory, settings };
     };
 
     document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
@@ -367,6 +487,21 @@
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
     root.querySelectorAll("[data-mcat]").forEach((btn) => btn.addEventListener("click", () => setCat(btn.getAttribute("data-mcat"))));
     document.getElementById("mktLocalPick")?.addEventListener("change", (e) => void loadBotDraft(e.target.value));
+    document.getElementById("mktShuffleAvBtn")?.addEventListener("click", async () => {
+      if (!onRandomAvatar) return;
+      try {
+        const av = await onRandomAvatar();
+        if (!av) return;
+        pickedAvatarType = av.avatarType || "mascot";
+        pickedAvatarValue = av.avatarValue || "A1";
+        const msEl = document.getElementById("mktMascotSelect");
+        const clEl = document.getElementById("mktColorSelect");
+        const prevEl = document.getElementById("mktPubAvPrev");
+        if (msEl && MASCOT_IDS.includes(pickedAvatarValue)) msEl.value = pickedAvatarValue;
+        if (clEl && COLORS.includes(av.avatarColor)) clEl.value = av.avatarColor;
+        if (prevEl && av.avatarDataUrl) { prevEl.src = av.avatarDataUrl; prevEl.style.display = "block"; }
+      } catch {}
+    });
 
     const shareInp = document.getElementById("mktShareInput");
     const statusEl = document.getElementById("mktLinkStatus");
@@ -391,15 +526,17 @@
       if (name.length < 2) { showToast(zh ? "请填写 Bot 名称（至少 2 个字）" : "Enter a Bot name (min 2 chars)", true); return; }
       if (purpose.length < 4) { showToast(zh ? "请填写一句话职责亮点" : "Enter a one-line pitch", true); return; }
 
+      const bundle = collectSelectedBundle();
       const btn = document.getElementById("mktSubmitPubBtn");
-      if (btn) { btn.disabled = true; btn.textContent = zh ? "⏳ 正在脱敏并生成链接…" : "⏳ Generating share link…"; }
+      if (btn) { btn.disabled = true; btn.textContent = zh ? "⏳ 正在脱敏打包并生成链接…" : "⏳ Sanitizing & generating link…"; }
       try {
         const res = await onPublish({
           shareUrl,
           name,
           purpose,
           soulMd: String(document.getElementById("mktSoulInput")?.value || "").trim(),
-          skills: pickedSkills,
+          skills: bundle.skills.map((s) => s.name),
+          bundle,
           category: selectedCat,
           tags: String(document.getElementById("mktTagsInput")?.value || "").trim(),
           agentHint: String(document.getElementById("mktAgentSelect")?.value || "claude"),
@@ -421,12 +558,8 @@
       }
     });
 
-    if (bots.length) {
-      void loadBotDraft(bots[0].id);
-    } else {
-      const redEl = document.getElementById("mktRedactText");
-      if (redEl) redEl.textContent = zh ? "填写信息后点击下方按钮，自动脱敏并直接生成公开分享链接。" : "Fill in details and click below to auto-sanitize and generate a share link.";
-    }
+    if (bots.length) void loadBotDraft(bots[0].id);
+    else renderBundleChecklist(document.getElementById("mktBundleBox"), {}, zh);
   }
 
   window.OfficeMarketModals = { renderMarketDetailModal, renderMarketPublishModal };

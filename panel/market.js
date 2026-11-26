@@ -169,6 +169,13 @@
               ? (zh ? "🏛️ 官方模板" : "🏛️ Official")
               : isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community");
             const tags = (b.tags || []).slice(0, 4).map((t) => `<span class="mkt-tag">#${esc(t)}</span>`).join("");
+            const bd = b.bundle || {};
+            const bpills = [
+              (bd.automations || []).length ? `⏰ ${bd.automations.length}${zh ? "定时" : " auto"}` : "",
+              (bd.skills || []).length ? `🧩 ${bd.skills.length}${zh ? "技能" : " skill"}` : "",
+              (bd.tools || []).length ? `🔧 ${bd.tools.length}${zh ? "工具" : " tool"}` : "",
+              (bd.memory || []).length ? `🧠 ${bd.memory.length}${zh ? "记忆" : " mem"}` : "",
+            ].filter(Boolean).map((x) => `<span class="mkt-bpill">${x}</span>`).join("");
             return `
               <div class="mkt-card ${isVer ? "is-verified" : ""}" data-mkt-card="${esc(b.id)}">
                 <div class="mkt-card-head">
@@ -185,6 +192,7 @@
                   </div>
                 </div>
                 <div class="mkt-pitch">${esc(botPitch(b, lang))}</div>
+                ${bpills ? `<div class="mkt-bundle-pills">${bpills}</div>` : ""}
                 ${tags ? `<div class="mkt-tags">${tags}</div>` : ""}
                 <div class="mkt-card-foot">
                   <div class="mkt-metrics">
@@ -405,6 +413,7 @@
             doesText: bot.doesText || "",
             reports: bot.reports || "",
             soulMd: bot.soulMd || "",
+            bundle: bot.bundle || null,
             lang,
           });
           if (isRecipe && bot.id) {
@@ -445,6 +454,9 @@
 
     const handlePrepareLocal = async (botId) => {
       return await orcaApi.plugin.request("office.marketPrepareLocal", { botId });
+    };
+    const handleRandomAvatar = async () => {
+      return await orcaApi.plugin.request("office.marketRandomAvatar", {});
     };
 
     const handlePublish = async (payload) => {
@@ -512,6 +524,7 @@
           liveWritable: Boolean(marketData?.liveWritable),
           apiConfigured: Boolean(marketData?.apiConfigured),
           onPrepareLocal: handlePrepareLocal,
+          onRandomAvatar: handleRandomAvatar,
           onPublish: handlePublish,
           onOpenExternal: openExt,
           showToast,

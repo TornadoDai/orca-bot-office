@@ -7,7 +7,7 @@ import {
   openOrcaBotShareDeepLink,
   postMarketAction,
 } from "./orca-market.mjs";
-import { prepareLocalBotShareDraft } from "./orca-sanitizer.mjs";
+import { buildRandomMascotAvatar, prepareLocalBotShareDraft } from "./orca-sanitizer.mjs";
 import {
   buildExecEnv,
   collectOfficeSnapshot,
@@ -214,6 +214,7 @@ export default function activate(orca) {
     const doesText = String(input.doesText || "").trim();
     const reports = String(input.reports || "").trim();
     const soulMd = String(input.soulMd || "").trim().slice(0, 3500);
+    const bundle = input.bundle && typeof input.bundle === "object" ? input.bundle : null;
     const isZh = input.lang === "zh";
     if (!hrBotName) throw new Error("hrBotName is required");
 
@@ -227,6 +228,21 @@ export default function activate(orca) {
       if (watches) lines.push(`${isZh ? "关注/监听" : "Watches"}: ${watches}`);
       if (doesText) lines.push(`${isZh ? "负责执行" : "Does"}: ${doesText}`);
       if (reports) lines.push(`${isZh ? "汇报方式" : "Reports"}: ${reports}`);
+      if (bundle?.automations?.length) {
+        lines.push(`${isZh ? "附带定时任务" : "Included Automations"}: ${bundle.automations.map((a) => `${a.name} (${a.rrule})`).join("; ")}`);
+      }
+      if (bundle?.skills?.length) {
+        lines.push(`${isZh ? "附带技能" : "Included Skills"}: ${bundle.skills.map((s) => s.name).join(", ")}`);
+      }
+      if (bundle?.tools?.length) {
+        lines.push(`${isZh ? "附带工具/MCP" : "Included Tools"}: ${bundle.tools.map((t) => t.name).join(", ")}`);
+      }
+      if (bundle?.memory?.length) {
+        lines.push(`${isZh ? "附带脱敏记忆参考" : "Included Memory Playbooks"}: ${bundle.memory.map((m) => m.topic).join(", ")}`);
+      }
+      if (bundle?.settings?.setupNote) {
+        lines.push(`${isZh ? "配置说明" : "Setup Note"}: ${bundle.settings.setupNote}`);
+      }
       if (soulMd) {
         lines.push("");
         lines.push(isZh ? "参考 SOUL.md（已脱敏）：" : "Reference SOUL.md (sanitized):");
@@ -356,11 +372,15 @@ export default function activate(orca) {
     return await postMarketAction({ apiUrl: opts.marketApiUrl, clientId, pathSuffix: `/api/bots/${id}/like` });
   });
 
+  orca.panels.handle("office.marketRandomAvatar", async () => {
+    return buildRandomMascotAvatar(orcaBin);
+  });
+
   orca.panels.handle("office.marketPrepareLocal", async (input = {}) => {
     const extraBotPaths = Array.isArray(latestSnapshot?.bots)
       ? latestSnapshot.bots.map((b) => b.path).filter(Boolean)
       : [];
-    return prepareLocalBotShareDraft({
+    return await prepareLocalBotShareDraft({
       botId: input.botId,
       orcaBin,
       extraBotPaths,

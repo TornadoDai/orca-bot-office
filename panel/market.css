@@ -601,7 +601,75 @@
   gap: 6px;
   align-items: center;
 }
+.mkt-bundle-box {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+}
+.mkt-bundle-grp {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mkt-bundle-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--fg-strong);
+}
+.mkt-bundle-hdr small { font-weight: 600; color: var(--muted); }
+.mkt-chk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 118px;
+  overflow: auto;
+}
+.mkt-chk-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: var(--modal-row);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--fg-soft);
+  cursor: pointer;
+}
+.mkt-chk-row:hover { border-color: rgba(52, 211, 153, 0.45); }
+.mkt-chk-row input { accent-color: #34d399; margin: 0; flex-shrink: 0; }
+.mkt-chk-main { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); font-weight: 600; }
+.mkt-chk-meta { font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+.mkt-blocked-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  font-size: 10.5px;
+  background: var(--rose-soft-bg);
+  border: 1px solid var(--rose-soft-border);
+  color: var(--rose-text);
+}
+.mkt-bundle-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.mkt-bpill {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--cyan-fg);
+}
 :root.light .mkt-redact-ok { color: #065f46; background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.38); }
+:root.light .mkt-bpill { color: #0369a1; background: rgba(14, 165, 233, 0.12); }
 
 /* Light Theme Adjustments */
 :root.light .mkt-lobby {

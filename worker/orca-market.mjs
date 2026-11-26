@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { renderEmojiAvatarDataUrl, renderMascotAvatarDataUrl } from "./orca-avatars.mjs";
 import { collectOfficialMarketTemplates } from "./orca-official-templates.mjs";
+import { buildRandomMascotAvatar } from "./orca-sanitizer.mjs";
 
 const SHARE_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const ORCA_SHARE_HOSTS = new Set(["app.orca.dev", "share.orca.dev", "share.onorca.dev"]);
@@ -128,22 +129,26 @@ export function collectLocalPublishProfiles(orcaBin, extraBotPaths = []) {
       const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
       if (!meta.name) continue;
       const rawAv = typeof meta.avatar === "string" ? meta.avatar.trim() : "";
-      let avatarType = "mascot";
-      let avatarValue = "A1";
+      let avatarType, avatarValue, avatarColor, avatarDataUrl;
       if (rawAv.startsWith("mascot:")) {
+        avatarType = "mascot";
         avatarValue = rawAv.slice("mascot:".length) || "A1";
+        avatarColor =
+          typeof meta.avatarColor === "string" && /^#[0-9a-f]{6}$/i.test(meta.avatarColor.trim())
+            ? meta.avatarColor.trim().toLowerCase()
+            : "#b3dbf4";
+        avatarDataUrl = renderMascotAvatarDataUrl(avatarValue, avatarColor, orcaBin);
       } else if (rawAv && !rawAv.startsWith("upload:")) {
         avatarType = "emoji";
         avatarValue = rawAv;
+        avatarColor =
+          typeof meta.avatarColor === "string" && /^#[0-9a-f]{6}$/i.test(meta.avatarColor.trim())
+            ? meta.avatarColor.trim().toLowerCase()
+            : "#334155";
+        avatarDataUrl = renderEmojiAvatarDataUrl(avatarValue, avatarColor);
+      } else {
+        ({ avatarType, avatarValue, avatarColor, avatarDataUrl } = buildRandomMascotAvatar(orcaBin));
       }
-      const avatarColor =
-        typeof meta.avatarColor === "string" && /^#[0-9a-f]{6}$/i.test(meta.avatarColor.trim())
-          ? meta.avatarColor.trim().toLowerCase()
-          : "#b3dbf4";
-      const avatarDataUrl =
-        avatarType === "emoji"
-          ? renderEmojiAvatarDataUrl(avatarValue, avatarColor)
-          : renderMascotAvatarDataUrl(avatarValue, avatarColor, orcaBin);
       profiles.push({
         id: meta.id || path.basename(folder),
         name: String(meta.name).slice(0, 48),
