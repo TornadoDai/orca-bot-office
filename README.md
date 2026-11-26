@@ -1,12 +1,15 @@
 # Bot Office — Orca Plugin
 
-An ultra-lightweight **2.5D Side-Scrolling Stacked Office Tower & Grouped Workbench** for Orca's right sidebar. Bots needing your decision ride upstairs to queue in the furnished **Decision & Report Suite** beneath a live real-time wall clock, while every team gets its own bright modern studio floor with crisp full-bodied sprites, unmistakable agent engine badges (`Claude`, `agy`, `Codex`, `Pi`), non-conflicting top-left teal branch-chat badges (`⑂N`), sleek luminous message streams, and a categorized Magpie-style SVG analytics dashboard.
+An ultra-lightweight **2.5D Illustrated Office Tower + Built-In Bot Talent Market** for Orca's right sidebar. Discover, upvote, and 1-click hire **24 official Orca Bot templates** and community-shared Bots straight into your office tower — or 1-click share your own Bot with automatic secret redaction, selectable bundles (schedules, skills, MCP tools, memory, settings), and instant self-delete. Meanwhile, Bots needing your decision queue in the furnished **Decision & Report Suite**, idle workers relax with coffee/TV/music, and a categorized SVG analytics dashboard tracks delivery, tokens, and runtime health.
 
 [中文说明](#中文说明)
 
-![Bot Office — 2.5D Office Tower & Categorized Dashboard](./assets/screenshot.png)
+![Bot Office — 2.5D Office Tower & Built-In Bot Talent Market](./assets/screenshot.png)
 
 ## Gallery
+
+### 1-Click Auto-Sanitized Sharing, Bundle Picker & Light-Theme Resume Audit
+![Bot Talent Market — 1-Click Sanitized Share Bundle Picker & Light-Theme Bot Resume Detail](./assets/preview-market.png)
 
 ### Categorized Dashboard, 12-Panel Switch Drawer & Magpie-Style Usage Charts
 ![Categorized Dashboard — 28-Day Heatmap, 24h Peak Hours, Branch Activity, Automations & Orca Diagnostics](./assets/preview-analytics.png)
@@ -16,7 +19,10 @@ An ultra-lightweight **2.5D Side-Scrolling Stacked Office Tower & Grouped Workbe
 
 ## Features
 
-- **Illustrated 2.5D Modern Office Tower (`<canvas>`)**: Warm painted high-rise office backdrops (furnished executive briefing suite with a **live real-time circular wall clock**, glass-partitioned startup studios with twilight skylines, whiteboards, water coolers, printers, bookshelves, and a cozy `1F` espresso café lounge) cached offscreen with 3D-shaded oak workstations.
+- **🏪 Built-In Bot Talent Market ("Plugin-within-a-Plugin")**: Prominent glowing top-bar entry, collapsible lobby showcase banner, and `+ Hire` bridge. Pre-populated with all **24 official Orca Bot templates** (bilingual EN/ZH) alongside live community listings (Cloudflare Worker + D1 with multi-CDN read-only fallback).
+  - **1-Click Auto-Fill & Privacy Sanitizer**: Pick any local Bot to auto-extract its `SOUL.md`, **Schedules & Automations**, **Skills**, **MCP Tools** (secrets stripped), optional **Memory files** (off by default, credential files like `memory/credentials.md` hard-blocked), and **Settings**. Automatically redacts keys/tokens/emails/IPs/local paths locally and on the server, replaces custom uploaded avatars with a random official Orca mascot (+ `🎲 Shuffle`), and generates an instant shareable link (`/s/<code>`).
+  - **Native Safe Hire, Upvotes & Self-Delete**: Audit every included module before clicking **Hire** (launches Orca's native Create Bot card or `orca://bots/share/<id>`), upvote favorites, and manage or permanently delete your own shared Bots anytime under **Published by Me**.
+- **Illustrated 2.5D Modern Office Tower (`<canvas>`)**: Warm painted high-rise office backdrops (furnished executive briefing suite with a **live real-time circular wall clock**, glass-partitioned startup studios with twilight skylines, and a cozy `1F` espresso café lounge), native rendering of all **20 official Orca mascots**, grounded bottom-up floor stacking, and 5 playful idle-worker slacking activities (coffee, phone, TV, music, nap).
 - **Interactive Decision-First Card (`TOP` Report Queue)**: Any Bot or teammate synced with Orca's native `Needs you` items queues in front of the unlabeled executive desk (empty chair by default, or optional custom avatar via `ownerAvatarMode` / `ownerAvatarPath`) holding a report clipboard. Click to view the **exact active decision context** (full `--after` pagination matching `item.question.eventId`, clickable URLs, zero scroll clutter), pick options, and hit **Enter** to route your answer straight back to that Bot's item chat.
 - **In-Office Bot Hiring (`+ Hire`) & Clickable Executive Chair**: Click **`+ Hire`** in the top bar to recruit a new Bot through your HR/Creator Bot — supporting both **Direct Create Card** (`orca bot create --offer`) and **Discuss with HR First**. Click the **TOP floor executive chair** directly anytime to switch between **Empty Chair**, **Silhouette**, or **Custom Image** (with built-in local image upload).
 - **Native Light & Dark Themes**: Automatically follows Orca's Light and Dark color schemes across the floor cards, SVG analytics charts, tables, and inspector modal.
@@ -51,21 +57,27 @@ Or in Orca: **Settings → Plugins → Install from Git** with `https://github.c
 | `dashShowAutomations` | `true` | Dashboard: show automation schedule & recent runs |
 | `dashShowLinkedRefs` | `true` | Dashboard: show team PR / MR / Issue rollup |
 | `dashShowDiagnostics` | `true` | Dashboard: show Orca memory & process diagnostics |
+| `marketApiUrl` | built-in Worker URL | Custom Talent Market API URL (leave empty to use the built-in Cloudflare Worker + CDN mirror) |
 | `language` | `auto` | UI language (`auto`, `en`, `zh`) |
 
 ---
 
 ## 中文说明
 
-挂在 Orca 右侧栏的**超轻量 2.5D 横版平面分层「AI 总部大楼」+ 分组工作台插件（Bot 工位）**。
+挂在 Orca 右侧栏的**超轻量 2.5D 写字楼「AI 总部大楼」+ 内置「Bot 人才市场」插件**。
 
-![AI 总部大楼 — 2.5D 楼层与分类仪表盘](./assets/screenshot.png)
+![AI 总部大楼 — 2.5D 楼层与内置 Bot 人才市场](./assets/screenshot.png)
+
+![Bot 人才市场 — 一键脱敏打包分享、模块勾选与浅色简历详情](./assets/preview-market.png)
 
 ![分类仪表盘 — 28 天热力图、24 小时峰值、分支聊天、定时任务与 Orca 诊断](./assets/preview-analytics.png)
 
 ![浅色主题 — 卡片内直接决策回复与浅色仪表盘](./assets/preview-light-decision.png)
 
-- **真实立体感现代写字楼插画分层**：采用 2.5D 精绘暖光写字楼室内实景底图，顶层为精装「决策汇报区」（配备**实时走时的正圆挂钟**、藏青金边地毯、候场沙发茶几与胡桃木矮柜台灯），下层为玻璃隔断研发工作室与 1F 意式咖啡吧台，静态背景离屏缓存零渲染负担。
+- **🏪 内置 Bot 人才市场（插件里的插件）**：顶部高亮入口 + 大厅可折叠推荐栏 + `+ 招新` 弹窗直达，内置全部 **24 个 Orca 官方岗位模板**与实时社区分享（Cloudflare Worker + D1，内置多 CDN 只读镜像回退）。
+  - **一键自动识别、可选打包与自动脱敏**：选中本机 Bot 自动提取并脱敏 `SOUL.md`、**定时任务/自动化**、**技能（Skills）**、**工具/MCP**（自动剥离密钥）、**记忆文件**（默认不勾选，自动硬拦截 `credentials.md` 等敏感凭据文件）与**设置提示**；自定义上传头像自动随机替换为 19 个 Orca 官方吉祥物（支持 `🎲 换头像`），一键生成公开分享链接（`/s/<code>`）。
+  - **安全审查、点赞与本人彻底删除**：招聘前可展开审查全部脱敏配置，点击「一键招聘」唤起 Orca 原生创建卡；支持「👤 我发布的」筛选与本人两步确认彻底删除（原链接立即 404 失效）。
+- **真实立体感现代写字楼插画分层**：采用 2.5D 精绘暖光写字楼室内实景底图，完整渲染全部 **20 个 Orca 官方吉祥物**，支持落地式自下而上排桌与 5 种空闲 Worker 摸鱼彩蛋（喝咖啡、刷手机、看电视、听歌、打盹）；顶层为配备**实时走时挂钟**的精装决策汇报区，静态背景离屏缓存零渲染负担。
 - **顶层「决策汇报区」+ 卡片内直接决策回复**：中央设置无文字原木工位（默认空椅隐形，可在插件设置里自定义头像 `ownerAvatarMode` / `ownerAvatarPath`），所有待决策 Bot 整齐在前方排队汇报；点开卡片精确翻页（`--after`）匹配当前最新待决策事件，完整呈现未截断上下文与可点选项，支持直接点选或回车把答复发回对应 Bot 聊天继续推进。
 - **办公室内直接招新（`+ 招新`）& 汇报区工位点选换形象**：顶栏新增 **`+ 招新`** 按钮，可选择负责招聘的 HR Bot，同时支持**「直接出创建卡」**与**「和 HR 先聊需求」**两种方式；直接点击顶层汇报区**中央皮椅/办公桌**即可随时切换「空椅隐形 / 极淡剪影 / 上传任意本地头像图片」，无需再去设置页手填路径。
 - **原生浅色 / 深色双主题**：顶栏、楼层卡片、仪表盘 SVG 图表与详情卡片全部响应 Orca 浅色与深色主题切换。

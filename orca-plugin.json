@@ -4,19 +4,24 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.16.5",
-  "description": "Ultra-lightweight illustrated 2.5D office tower, interactive in-card decision replies & SVG team workload analytics dashboard in Orca's right sidebar.",
+  "version": "0.16.6",
+  "description": "2.5D illustrated office tower + built-in Bot Talent Market (24 official templates, 1-click sanitized bundle sharing, upvotes & native hire), interactive decision replies, and SVG team analytics dashboard.",
   "license": "MIT",
   "icon": "assets/icon.png",
   "cover": {
     "path": "assets/cover.webp",
-    "alt": "Bot Office 2.5D illustrated office tower with real-time wall clock, executive briefing suite and categorized SVG analytics dashboard"
+    "alt": "Bot Office 2.5D illustrated office tower with official Orca mascots, idle slacking animations, and built-in Bot Talent Market store"
   },
   "screenshots": [
     {
       "path": "assets/screenshot.png",
-      "alt": "Bot Office illustrated 2.5D modern office tower with real-time circular wall clock, furnished executive briefing suite and categorized SVG analytics dashboard",
-      "caption": "2.5D illustrated office tower + categorized SVG team workload & Magpie-style usage dashboard"
+      "alt": "Bot Office illustrated 2.5D office tower alongside the flagship built-in Bot Talent Market with 24 official templates and community bots",
+      "caption": "2.5D illustrated office tower + built-in Bot Talent Market (official templates & community shares)"
+    },
+    {
+      "path": "assets/preview-market.png",
+      "alt": "1-Click Share My Bot modal with selectable schedules, skills, tools and auto-redacted memory alongside Light-theme Bot Resume Detail modal",
+      "caption": "1-click sanitized Bot sharing (selectable schedules/skills/tools/memory) + Light-theme resume audit & self-delete"
     },
     {
       "path": "assets/preview-analytics.png",
