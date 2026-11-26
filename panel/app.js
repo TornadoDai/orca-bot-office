@@ -471,7 +471,7 @@ function renderModal() {
   if (marketCtrl.renderModalIfMatch(openCard, closeModal)) return;
   if (openCard?.kind === "hire") {
     window.OfficeModals.renderHireModal({
-      snapshot, tr: t(), hireBot, showToast,
+      snapshot, tr: t(), hireBot, showToast, prefill: openCard.prefill || null,
       onOpenMarket: () => { viewMode = "market"; render(); void marketCtrl.load(false); },
       onClose: closeModal,
     });
@@ -714,9 +714,9 @@ async function loadAnalytics(force = false) {
 }
 
 const marketCtrl = window.OfficeMarket.createController({
-  orcaApi, getLang, engPillHtml, showToast,
+  orcaApi, getLang, getSnapshot: () => snapshot, hireBot, engPillHtml, showToast,
   setViewMode: (m) => { viewMode = m; render(); },
-  openLocalHire: () => { openCard = { kind: "hire" }; renderModal(); },
+  openLocalHire: (prefill = null) => { openCard = { kind: "hire", prefill }; renderModal(); },
   setOpenCard: (c) => { openCard = c; renderModal(); },
   renderApp: () => render(),
 });

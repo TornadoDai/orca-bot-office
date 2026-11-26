@@ -4,13 +4,14 @@
 (function () {
   const CATS = [
     { id: "all", zh: "全部岗位", en: "All Roles" },
-    { id: "verified", zh: "✓ 官方精选", en: "✓ Verified" },
+    { id: "community", zh: "🌐 社区分享", en: "🌐 Community" },
+    { id: "official", zh: "🏛️ Orca 官方模板", en: "🏛️ Orca Official" },
     { id: "dev", zh: "研发与审查", en: "Dev & Review" },
     { id: "ops", zh: "运维与排障", en: "Ops & Debug" },
     { id: "release", zh: "发布与自动化", en: "Release & Auto" },
     { id: "productivity", zh: "效率与日常", en: "Productivity" },
-    { id: "research", zh: "调研与内容", en: "Research" },
-    { id: "general", zh: "通用", en: "General" },
+    { id: "research", zh: "规划与文档", en: "Planning & Docs" },
+    { id: "general", zh: "客服与工单", en: "Support & Triage" },
   ];
 
   const ui = {
@@ -25,27 +26,37 @@
   function esc(s) {
     return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
+  function botTitle(b, lang) { return lang === "zh" ? (b.nameZh || b.name) : (b.nameEn || b.name); }
+  function botPitch(b, lang) { return lang === "zh" ? (b.purposeZh || b.purpose) : (b.purposeEn || b.purpose); }
 
-  function filterAndSort(bots) {
+  function filterAndSort(bots, lang = "zh") {
     let list = Array.isArray(bots) ? [...bots] : [];
     if (ui.category !== "all") {
-      list = ui.category === "verified"
-        ? list.filter((b) => b.trust === "verified" || b.featured)
-        : list.filter((b) => b.category === ui.category);
+      if (ui.category === "official") list = list.filter((b) => b.kind === "official" || b.trust === "official");
+      else if (ui.category === "community") list = list.filter((b) => b.kind !== "official" && b.trust !== "official");
+      else list = list.filter((b) => b.category === ui.category);
     }
     const q = ui.q.trim().toLowerCase();
     if (q) {
       list = list.filter((b) =>
-        `${b.name} ${b.purpose} ${b.description || ""} ${b.authorName || ""} ${b.agentHint || ""} ${(b.tags || []).join(" ")}`
+        `${b.name} ${b.nameZh || ""} ${b.nameEn || ""} ${b.purpose} ${b.purposeZh || ""} ${b.purposeEn || ""} ${b.description || ""} ${b.authorName || ""} ${b.agentHint || ""} ${(b.tags || []).join(" ")}`
           .toLowerCase()
           .includes(q)
       );
     }
     list.sort((a, b) => {
-      if (ui.sort === "newest") return (b.createdAt || 0) - (a.createdAt || 0);
-      if (ui.sort === "likes") return ((b.likesCount || 0) - (a.likesCount || 0)) || ((b.hiresCount || 0) - (a.hiresCount || 0));
-      const sa = (a.featured ? 12 : 0) + (a.trust === "verified" ? 6 : 0) + (a.hiresCount || 0) * 2 + (a.likesCount || 0) * 3;
-      const sb = (b.featured ? 12 : 0) + (b.trust === "verified" ? 6 : 0) + (b.hiresCount || 0) * 2 + (b.likesCount || 0) * 3;
+      const aComm = a.kind !== "official" && a.trust !== "official";
+      const bComm = b.kind !== "official" && b.trust !== "official";
+      if (ui.sort === "newest") {
+        if (aComm !== bComm) return aComm ? -1 : 1;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      }
+      if (ui.sort === "likes") {
+        if (aComm !== bComm) return aComm ? -1 : 1;
+        return ((b.likesCount || 0) - (a.likesCount || 0)) || ((b.hiresCount || 0) - (a.hiresCount || 0));
+      }
+      const sa = (aComm ? 20 : 0) + (a.featured ? 12 : 0) + (a.trust === "verified" ? 6 : 0) + (a.hiresCount || 0) * 2 + (a.likesCount || 0) * 3;
+      const sb = (bComm ? 20 : 0) + (b.featured ? 12 : 0) + (b.trust === "verified" ? 6 : 0) + (b.hiresCount || 0) * 2 + (b.likesCount || 0) * 3;
       return (sb - sa) || ((b.createdAt || 0) - (a.createdAt || 0));
     });
     return list;
@@ -79,8 +90,8 @@
             <button type="button" class="mkt-mini-card" data-lobby-bot="${esc(b.id)}">
               <img class="mkt-mini-av" src="${esc(b.avatarDataUrl)}" alt="" />
               <div class="mkt-mini-info">
-                <div class="mkt-mini-name">${b.trust === "verified" ? "✓ " : ""}${esc(b.name)}</div>
-                <div class="mkt-mini-pitch">${esc(b.purpose)}</div>
+                <div class="mkt-mini-name">${b.trust === "official" ? "🏛️ " : (b.trust === "verified" ? "✓ " : "")}${esc(botTitle(b, lang))}</div>
+                <div class="mkt-mini-pitch">${esc(botPitch(b, lang))}</div>
               </div>
               <span style="font-size:10px;color:#6ee7b7;font-weight:800;flex-shrink:0">⚡</span>
             </button>`).join("")}</div>`
@@ -151,7 +162,12 @@
       ? `<div class="mkt-empty"><div class="mkt-empty-icon">⏳</div><div class="mkt-empty-title">${zh ? "正在加载 Bot 人才市场…" : "Loading Talent Market…"}</div></div>`
       : filtered.length
         ? `<div class="mkt-grid">${filtered.map((b) => {
+            const isOfficial = b.kind === "official" || b.trust === "official";
             const isVer = b.trust === "verified";
+            const trustCls = isOfficial ? "official" : (isVer ? "verified" : "community");
+            const trustLbl = isOfficial
+              ? (zh ? "🏛️ 官方模板" : "🏛️ Official")
+              : isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community");
             const tags = (b.tags || []).slice(0, 4).map((t) => `<span class="mkt-tag">#${esc(t)}</span>`).join("");
             return `
               <div class="mkt-card ${isVer ? "is-verified" : ""}" data-mkt-card="${esc(b.id)}">
@@ -159,8 +175,8 @@
                   <img class="mkt-av" src="${esc(b.avatarDataUrl)}" alt="" />
                   <div class="mkt-head-info">
                     <div class="mkt-name-row">
-                      <span class="mkt-name">${esc(b.name)}</span>
-                      <span class="mkt-trust ${isVer ? "verified" : "community"}">${isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community")}</span>
+                      <span class="mkt-name">${esc(botTitle(b, lang))}</span>
+                      <span class="mkt-trust ${trustCls}">${trustLbl}</span>
                     </div>
                     <div class="mkt-meta-row">
                       ${engPillHtml(b.agentHint || "claude")}
@@ -168,12 +184,14 @@
                     </div>
                   </div>
                 </div>
-                <div class="mkt-pitch">${esc(b.purpose)}</div>
+                <div class="mkt-pitch">${esc(botPitch(b, lang))}</div>
                 ${tags ? `<div class="mkt-tags">${tags}</div>` : ""}
                 <div class="mkt-card-foot">
                   <div class="mkt-metrics">
-                    <button type="button" class="mkt-like-btn ${b.liked ? "liked" : ""}" data-mkt-like="${esc(b.id)}">👍 <span>${b.likesCount || 0}</span></button>
-                    <span class="mkt-hire-cnt">👥 ${zh ? `已招 ${b.hiresCount || 0}` : `${b.hiresCount || 0} hires`}</span>
+                    ${isOfficial
+                      ? `<span class="mkt-hire-cnt">🏛️ ${zh ? "Orca 原生内置" : "Built-in template"}</span>`
+                      : `<button type="button" class="mkt-like-btn ${b.liked ? "liked" : ""}" data-mkt-like="${esc(b.id)}">👍 <span>${b.likesCount || 0}</span></button>
+                         <span class="mkt-hire-cnt">👥 ${zh ? `已招 ${b.hiresCount || 0}` : `${b.hiresCount || 0} hires`}</span>`}
                   </div>
                   <button type="button" class="mkt-hire-btn" data-mkt-hire="${esc(b.id)}">⚡ ${zh ? "一键招聘" : "Hire"}</button>
                 </div>
@@ -292,7 +310,7 @@
   }
 
   function createController(deps) {
-    const { orcaApi, getLang, engPillHtml, showToast, setViewMode, openLocalHire, setOpenCard, renderApp } = deps;
+    const { orcaApi, getLang, getSnapshot, hireBot, engPillHtml, showToast, setViewMode, openLocalHire, setOpenCard, renderApp } = deps;
     let marketData = null;
     let loading = false;
 
@@ -338,8 +356,60 @@
       }
     };
 
+    const pickCreatorBot = () => {
+      const snap = getSnapshot?.();
+      const list = snap?.bots || [];
+      if (!list.length) return null;
+      const cfg = snap?.settings?.hrBotName || "";
+      if (cfg) {
+        const hit = list.find((b) => b.name.toLowerCase() === cfg.toLowerCase());
+        if (hit) return hit;
+      }
+      return list.find((b) => /creator|hr|recruit|人力|招聘|创建/i.test(`${b.name || ""} ${b.specialty || ""}`))
+        || list.find((b) => b.state === "working")
+        || list[0];
+    };
+
+    const customizeOfficial = (bot) => {
+      const lang = getLang();
+      openLocalHire({
+        template: bot.templateId || "",
+        name: botTitle(bot, lang),
+        purpose: botPitch(bot, lang),
+        watches: bot.watches || "",
+        doesText: bot.doesText || "",
+        reports: bot.reports || "",
+      });
+    };
+
     const handleHire = async (bot) => {
-      const zh = getLang() === "zh";
+      const lang = getLang();
+      const zh = lang === "zh";
+      if (bot.kind === "official" || bot.trust === "official") {
+        const creator = pickCreatorBot();
+        if (!creator || !hireBot) {
+          customizeOfficial(bot);
+          return;
+        }
+        try {
+          await hireBot({
+            hrBotName: creator.name,
+            hrWorktreeId: creator.worktreeId || "",
+            mode: "offer",
+            template: bot.templateId || "",
+            name: botTitle(bot, lang),
+            purpose: botPitch(bot, lang),
+            watches: bot.watches || "",
+            doesText: bot.doesText || "",
+            reports: bot.reports || "",
+            lang,
+          });
+          showToast(zh ? `⚡ 已交由 ${creator.name} 弹出「${botTitle(bot, lang)}」原生创建卡` : `⚡ Asked ${creator.name} to pop Create Bot card for "${botTitle(bot, lang)}"`, false);
+        } catch (err) {
+          showToast(zh ? `发起创建失败：${err?.message || err}` : `Failed to launch create card: ${err?.message || err}`, true);
+        }
+        return;
+      }
       try {
         await orcaApi.plugin.request("office.marketHire", { id: bot.id, shareId: bot.shareId, shareUrl: bot.shareUrl });
         bot.hiresCount = Number(bot.hiresCount || 0) + 1;
@@ -412,6 +482,7 @@
           engPillHtml,
           onLike: handleLike,
           onHire: handleHire,
+          onCustomizeOfficial: customizeOfficial,
           onReport: handleReport,
           showToast,
           onClose,

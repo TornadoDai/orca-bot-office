@@ -38,12 +38,28 @@
   }
 
   function renderMarketDetailModal(ctx) {
-    const { bot, lang, liveWritable, engPillHtml, onLike, onHire, onReport, showToast, onClose } = ctx;
+    const { bot, lang, liveWritable, engPillHtml, onLike, onHire, onCustomizeOfficial, onReport, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     if (!root || !bot) return;
     const zh = lang === "zh";
+    const isOfficial = bot.kind === "official" || bot.trust === "official";
     const isVer = bot.trust === "verified";
+    const title = zh ? (bot.nameZh || bot.name) : (bot.nameEn || bot.name);
+    const pitch = zh ? (bot.purposeZh || bot.purpose) : (bot.purposeEn || bot.purpose);
+    const trustCls = isOfficial ? "official" : (isVer ? "verified" : "community");
+    const trustTxt = isOfficial
+      ? (zh ? "🏛️ Orca 官方模板" : "🏛️ Orca Official")
+      : isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community");
     const tagsHtml = (bot.tags || []).map((tg) => `<span class="mkt-tag">#${esc(tg)}</span>`).join("");
+
+    const officialSpecsHtml = isOfficial
+      ? `<div class="mkt-tpl-specs">
+           ${bot.watches ? `<div><b>${zh ? "关注：" : "Watches:"}</b>${esc(bot.watches)}</div>` : ""}
+           ${bot.doesText ? `<div><b>${zh ? "负责：" : "Does:"}</b>${esc(bot.doesText)}</div>` : ""}
+           ${bot.reports ? `<div><b>${zh ? "汇报：" : "Reports:"}</b>${esc(bot.reports)}</div>` : ""}
+           ${(bot.connectors || []).length ? `<div><b>${zh ? "建议连接器：" : "Connectors:"}</b>${esc(bot.connectors.join(", "))}</div>` : ""}
+         </div>`
+      : "";
 
     root.innerHTML = `
       <div class="card-backdrop" id="cardBackdrop">
@@ -52,13 +68,15 @@
             <img class="mkt-av" src="${esc(bot.avatarDataUrl)}" alt="" />
             <div class="ic-title-wrap">
               <div class="mkt-name-row">
-                <span class="ic-name">${esc(bot.name)}</span>
-                <span class="mkt-trust ${isVer ? "verified" : "community"}">${isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community")}</span>
+                <span class="ic-name">${esc(title)}</span>
+                <span class="mkt-trust ${trustCls}">${trustTxt}</span>
               </div>
               <div class="ic-meta" style="margin-top:4px">
                 ${engPillHtml(bot.agentHint || "claude")}
                 <span class="ic-pill">by ${esc(bot.authorName || "Community")}</span>
-                <span class="ic-pill">👥 ${zh ? `已招 ${bot.hiresCount || 0} 次` : `${bot.hiresCount || 0} hires`}</span>
+                ${isOfficial
+                  ? `<span class="ic-pill">template: ${esc(bot.templateId)}</span>`
+                  : `<span class="ic-pill">👥 ${zh ? `已招 ${bot.hiresCount || 0} 次` : `${bot.hiresCount || 0} hires`}</span>`}
               </div>
             </div>
             <button class="ic-close" id="icCloseBtn">×</button>
@@ -66,26 +84,35 @@
 
           <div class="mkt-safety">
             <span>🛡️</span>
-            <span>${zh
-              ? "点击「立即招聘」将直接唤起 Orca 原生审核窗口，你可以完整查看该 Bot 的 SOUL、Skills、工具与权限后再确认入职。"
-              : "Clicking Hire opens Orca's native Share Review dialog so you inspect its SOUL, skills, tools & permissions before creating."}</span>
+            <span>${isOfficial
+              ? (zh
+                  ? "这是 Orca 内置官方岗位模板。点击「直接弹出创建卡」将通过本机 Bot 唤起 Orca 原生创建确认卡，点击确认后才真正创建。"
+                  : "Official built-in Orca Bot template. Clicking Hire pops Orca's native Create Bot confirmation card — nothing is created until you approve.")
+              : (zh
+                  ? "点击「立即招聘」将直接唤起 Orca 原生审核窗口，你可以完整查看该 Bot 的 SOUL、Skills、工具与权限后再确认入职。"
+                  : "Clicking Hire opens Orca's native Share Review dialog so you inspect its SOUL, skills, tools & permissions before creating.")}</span>
           </div>
 
           <div class="om-form" style="margin-top:10px">
             <div class="ic-section-title">${zh ? "岗位职责" : "Role & Purpose"}</div>
-            <div style="font-size:12.5px;line-height:1.55;color:var(--fg)">${esc(bot.purpose)}</div>
+            <div style="font-size:12.5px;line-height:1.55;color:var(--fg)">${esc(pitch)}</div>
             ${bot.description ? `<div style="font-size:11.5px;line-height:1.6;color:var(--fg-soft);white-space:pre-wrap;margin-top:6px">${esc(bot.description)}</div>` : ""}
+            ${officialSpecsHtml}
             ${tagsHtml ? `<div class="mkt-tags" style="margin-top:8px">${tagsHtml}</div>` : ""}
-            <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
-              <button type="button" class="mkt-btn-ghost" id="mktCopyShareBtn">🔗 ${zh ? "复制 Orca 分享链接" : "Copy Share Link"}</button>
-              ${liveWritable ? `<button type="button" class="mkt-btn-ghost" id="mktReportBtn">🚩 ${zh ? "举报失效/垃圾" : "Report Broken/Spam"}</button>` : ""}
-            </div>
+            ${!isOfficial ? `
+              <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
+                <button type="button" class="mkt-btn-ghost" id="mktCopyShareBtn">🔗 ${zh ? "复制 Orca 分享链接" : "Copy Share Link"}</button>
+                ${liveWritable ? `<button type="button" class="mkt-btn-ghost" id="mktReportBtn">🚩 ${zh ? "举报失效/垃圾" : "Report Broken/Spam"}</button>` : ""}
+              </div>` : ""}
           </div>
 
           <div class="ic-actions om-actions">
             <button type="button" class="ic-btn secondary" id="icDismissBtn">${zh ? "关闭" : "Close"}</button>
-            <button type="button" class="mkt-like-btn ${bot.liked ? "liked" : ""}" id="mktDetailLikeBtn">👍 <span>${bot.likesCount || 0}</span></button>
-            <button type="button" class="mkt-btn-primary" id="mktDetailHireBtn">⚡ ${zh ? "立即招聘入职" : "Hire into Orca"}</button>
+            ${isOfficial
+              ? `<button type="button" class="mkt-btn-ghost" id="mktCustomizeTplBtn">⚙️ ${zh ? "定制参数后招入" : "Customize First"}</button>
+                 <button type="button" class="mkt-btn-primary" id="mktDetailHireBtn">⚡ ${zh ? "直接弹出创建卡" : "Hire Template"}</button>`
+              : `<button type="button" class="mkt-like-btn ${bot.liked ? "liked" : ""}" id="mktDetailLikeBtn">👍 <span>${bot.likesCount || 0}</span></button>
+                 <button type="button" class="mkt-btn-primary" id="mktDetailHireBtn">⚡ ${zh ? "立即招聘入职" : "Hire into Orca"}</button>`}
           </div>
         </div>
       </div>`;
@@ -93,6 +120,10 @@
     document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
     document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
+    document.getElementById("mktCustomizeTplBtn")?.addEventListener("click", () => {
+      onClose();
+      onCustomizeOfficial?.(bot);
+    });
     document.getElementById("mktCopyShareBtn")?.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(bot.shareUrl || bot.deepLink);
@@ -110,6 +141,7 @@
     });
     document.getElementById("mktDetailHireBtn")?.addEventListener("click", async () => {
       await onHire(bot);
+      if (isOfficial) onClose();
     });
     document.getElementById("mktReportBtn")?.addEventListener("click", async () => {
       await onReport(bot);

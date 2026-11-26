@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { renderEmojiAvatarDataUrl, renderMascotAvatarDataUrl } from "./orca-avatars.mjs";
+import { collectOfficialMarketTemplates } from "./orca-official-templates.mjs";
 
 const SHARE_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const ORCA_SHARE_HOSTS = new Set(["app.orca.dev", "share.orca.dev", "share.onorca.dev"]);
@@ -202,12 +203,17 @@ export async function fetchMarketCatalog({ apiUrl = "", clientId = "", orcaBin =
     }
   }
 
-  const bots = enrichMarketBots(data?.bots || [], orcaBin);
-  const stats = data?.stats || {
+  const communityBots = enrichMarketBots(data?.bots || [], orcaBin).map((b) => ({ ...b, kind: "community" }));
+  const officialBots = collectOfficialMarketTemplates(orcaBin);
+  const bots = [...communityBots, ...officialBots];
+  const rawStats = data?.stats || {};
+  const stats = {
     totalBots: bots.length,
-    verifiedBots: bots.filter((b) => b.trust === "verified").length,
-    totalHires: bots.reduce((a, b) => a + Number(b.hiresCount || 0), 0),
-    totalLikes: bots.reduce((a, b) => a + Number(b.likesCount || 0), 0),
+    communityBots: communityBots.length,
+    officialBots: officialBots.length,
+    verifiedBots: communityBots.filter((b) => b.trust === "verified").length + officialBots.length,
+    totalHires: Number(rawStats.totalHires || 0),
+    totalLikes: Number(rawStats.totalLikes || 0),
   };
 
   const payload = {

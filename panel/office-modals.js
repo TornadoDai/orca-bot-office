@@ -67,10 +67,11 @@
   }
 
   function renderHireModal(ctx) {
-    const { snapshot, tr, hireBot, showToast, onOpenMarket, onClose } = ctx;
+    const { snapshot, tr, hireBot, showToast, onOpenMarket, prefill, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     if (root?.querySelector('[data-modal-kind="hire"]')) return;
     const bots = snapshot?.bots || [];
+    const pf = prefill || {};
     const defaultBot = detectDefaultCreatorBot(bots, snapshot?.settings?.hrBotName || "");
     const lang = tr.title === "AI 总部大楼" ? "zh" : "en";
 
@@ -109,10 +110,10 @@
             ${onOpenMarket ? `
               <button type="button" class="om-market-bridge" id="hireOpenMarketBtn">
                 <div>
-                  <div class="om-mb-title">🏪 ${lang === "zh" ? "不想从零配？逛逛 Bot 人才市场" : "Skip setup — browse Bot Talent Market"}</div>
-                  <div class="om-mb-sub">${lang === "zh" ? "一键招聘社区现成 Bot，原生安全审核直接入职" : "1-click hire ready-made community Bots via Orca Share Review"}</div>
+                  <div class="om-mb-title">💡 ${lang === "zh" ? "提示：可以直接从「Bot 人才市场」一键招聘！" : "Tip: You can 1-click hire ready-made Bots from Talent Market!"}</div>
+                  <div class="om-mb-sub">${lang === "zh" ? "已内置 24 套 Orca 官方岗位模板 + 社区现成 Bot，不用从零写职责" : "24 official Orca role templates + community shared Bots ready to hire"}</div>
                 </div>
-                <span class="om-mb-go">${lang === "zh" ? "去逛逛 →" : "Browse →"}</span>
+                <span class="om-mb-go">🏪 ${lang === "zh" ? "去人才市场 →" : "Talent Market →"}</span>
               </button>` : ""}
             ${botSelectSection}
 
@@ -170,7 +171,15 @@
         </div>
       </div>`;
 
-    let selectedTpl = "";
+    let selectedTpl = pf.template || "";
+    if (pf.name) { const el = document.getElementById("hireNameInput"); if (el) el.value = pf.name; }
+    if (pf.purpose) { const el = document.getElementById("hirePurposeInput"); if (el) el.value = pf.purpose; }
+    if (pf.watches) { const el = document.getElementById("hireWatchesInput"); if (el) el.value = pf.watches; }
+    if (pf.doesText) { const el = document.getElementById("hireDoesInput"); if (el) el.value = pf.doesText; }
+    if (pf.reports) { const el = document.getElementById("hireReportsInput"); if (el) el.value = pf.reports; }
+    if (selectedTpl) {
+      root.querySelectorAll("[data-tpl]").forEach((b) => b.classList.toggle("active", (b.getAttribute("data-tpl") || "") === selectedTpl));
+    }
     document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
     document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
