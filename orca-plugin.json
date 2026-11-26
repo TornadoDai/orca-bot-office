@@ -139,7 +139,7 @@
         "key": "marketApiUrl",
         "title": "Talent Market API URL (Cloudflare Worker or custom registry; auto-falls back to CDN mirror)",
         "type": "string",
-        "default": ""
+        "default": "https://orca-bot-market.tornadodai.workers.dev"
       },
       {
         "key": "dashShowTokenDetails",

@@ -7,6 +7,7 @@ import { renderEmojiAvatarDataUrl, renderMascotAvatarDataUrl } from "./orca-avat
 
 const SHARE_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const ORCA_SHARE_HOSTS = new Set(["app.orca.dev", "share.orca.dev", "share.onorca.dev"]);
+const DEFAULT_MARKET_API_URL = "https://orca-bot-market.tornadodai.workers.dev";
 const DEFAULT_MIRROR_URLS = [
   "https://cdn.jsdelivr.net/gh/TornadoDai/orca-bot-market@main/registry.json",
   "https://tornadodai.github.io/orca-bot-market/registry.json",
@@ -155,7 +156,7 @@ export function collectLocalPublishProfiles(orcaBin, extraBotPaths = []) {
 }
 
 export async function fetchMarketCatalog({ apiUrl = "", clientId = "", orcaBin = "", force = false, extraBotPaths = [] }) {
-  const cleanApi = String(apiUrl || "").trim().replace(/\/+$/, "");
+  const cleanApi = (String(apiUrl || "").trim() || DEFAULT_MARKET_API_URL).replace(/\/+$/, "");
   const now = Date.now();
   if (!force && marketCache.payload && marketCache.apiUrl === cleanApi && now - marketCache.fetchedAt < 45000) {
     return { ...marketCache.payload, localBots: collectLocalPublishProfiles(orcaBin, extraBotPaths) };
@@ -224,7 +225,7 @@ export async function fetchMarketCatalog({ apiUrl = "", clientId = "", orcaBin =
 }
 
 export async function postMarketAction({ apiUrl, clientId, pathSuffix, body = null }) {
-  const cleanApi = String(apiUrl || "").trim().replace(/\/+$/, "");
+  const cleanApi = (String(apiUrl || "").trim() || DEFAULT_MARKET_API_URL).replace(/\/+$/, "");
   if (!cleanApi) {
     throw new Error("Market API URL is not configured yet (set marketApiUrl in Bot Office settings).");
   }
