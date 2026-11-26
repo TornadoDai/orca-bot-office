@@ -42,6 +42,7 @@ export default function activate(orca) {
   let lastBroadcastHash = "";
   let refreshing = null;
   let resolvedPluginKey = null;
+  let lastLoggedErrors = "";
 
   async function readOptions() {
     const interval = Number((await orca.settings?.get?.("refreshIntervalSeconds").catch(() => 25)) || 25);
@@ -113,6 +114,11 @@ export default function activate(orca) {
           hrBotName: opts.hrBotName,
           dashModules: opts.dashModules,
         };
+        const errorText = (snap.errors || []).join("\n");
+        if (errorText && errorText !== lastLoggedErrors) {
+          orca.log?.(`bot-office refresh errors (orca CLI: ${orcaBin}):\n${errorText}`);
+        }
+        lastLoggedErrors = errorText;
         const hash = computeSnapshotHash(snap);
         const changed = hash !== lastBroadcastHash;
         latestSnapshot = snap;

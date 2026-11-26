@@ -22,14 +22,25 @@ const STATE_PRIORITY = {
 export function locateOrcaBinary(env = process.env) {
   const isWin = process.platform === "win32";
   const exe = isWin ? "orca.exe" : "orca";
+  // Orca starts plugin workers with a trimmed environment (no LOCALAPPDATA on
+  // Windows), so derive the install dir from homedir and from the worker's own
+  // executable (the worker runs inside Orca.exe with ELECTRON_RUN_AS_NODE=1).
+  const localAppData = env.LOCALAPPDATA || (isWin ? path.join(os.homedir(), "AppData", "Local") : null);
   const candidates = [
     env.ORCA_CLI_COMMAND,
     process.platform === "darwin" ? "/Applications/Orca.app/Contents/Resources/bin/orca" : null,
     process.platform === "darwin" ? path.join(os.homedir(), "Applications/Orca.app/Contents/Resources/bin/orca") : null,
+    isWin ? path.join(path.dirname(process.execPath), "resources", "bin", exe) : null,
     "/usr/local/bin/orca",
     "/opt/homebrew/bin/orca",
     path.join(os.homedir(), ".local", "bin", exe),
-    isWin && env.LOCALAPPDATA ? path.join(env.LOCALAPPDATA, "Programs", "Orca", "resources", "bin", exe) : null,
+    isWin && localAppData ? path.join(localAppData, "Programs", "Orca", "resources", "bin", exe) : null,
+    // Resolve PATH ourselves: a bare "orca.exe" makes Windows search the parent
+    // process's directory first, which finds the Orca.exe app, not the CLI.
+    ...String(env.PATH || env.Path || "")
+      .split(path.delimiter)
+      .filter(Boolean)
+      .map((dir) => path.join(dir, exe)),
   ].filter(Boolean);
   for (const bin of candidates) {
     if (fs.existsSync(bin)) return bin;
@@ -45,19 +56,41 @@ export function buildExecEnv() {
       ? []
       : ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin", "/usr/sbin", "/sbin"];
   const parts = [...basePath.split(sep).filter(Boolean), ...extra];
-  return {
+  const env = {
     ...process.env,
     PATH: [...new Set(parts)].join(sep),
     HOME: process.env.HOME || os.homedir(),
   };
+  if (process.platform === "win32") {
+    // The worker env has no APPDATA, and without it the orca CLI cannot find
+    // the runtime ("APPDATA is not set ... runtime metadata path").
+    env.APPDATA = env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+    env.LOCALAPPDATA = env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+  }
+  return env;
 }
 
 export async function runOrcaJson(orcaBin, args, timeoutMs = 9000) {
-  const { stdout } = await execFileAsync(orcaBin, [...args, "--json"], {
-    timeout: timeoutMs,
-    maxBuffer: 8 * 1024 * 1024,
-    env: buildExecEnv(),
-  });
+  let stdout;
+  try {
+    ({ stdout } = await execFileAsync(orcaBin, [...args, "--json"], {
+      timeout: timeoutMs,
+      maxBuffer: 8 * 1024 * 1024,
+      env: buildExecEnv(),
+    }));
+  } catch (err) {
+    // With --json the CLI reports its error on stdout and exits non-zero.
+    let cliError = null;
+    try {
+      cliError = JSON.parse(err?.stdout || "")?.error;
+    } catch {
+      // not JSON; keep the exec error
+    }
+    if (cliError?.message) {
+      throw new Error(`orca ${args.join(" ")}: ${cliError.code ? `${cliError.code}: ` : ""}${cliError.message}`);
+    }
+    throw err;
+  }
   const parsed = JSON.parse(stdout);
   if (!parsed?.ok) {
     throw new Error(parsed?.error?.message || `orca ${args.join(" ")} failed`);

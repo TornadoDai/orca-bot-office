@@ -222,7 +222,9 @@ function renderTower(bots) {
   if (!bots.length) {
     towerMgr.pause();
     const hasAny = (snapshot?.bots || []).length > 0;
-    root.innerHTML = `<div class="empty-card"><div class="empty-title">${esc(hasAny ? tr.emptyFilter : tr.emptyTitle)}</div><div class="empty-sub">${esc(hasAny ? "" : tr.emptySub)}</div></div>`;
+    const loadError = (snapshot?.errors || [])[0];
+    const sub = hasAny ? "" : loadError ? `⚠ ${String(loadError).split("\n")[0]}` : tr.emptySub;
+    root.innerHTML = `<div class="empty-card"><div class="empty-title">${esc(hasAny ? tr.emptyFilter : tr.emptyTitle)}</div><div class="empty-sub">${esc(sub)}</div></div>`;
     return;
   }
 
