@@ -69,6 +69,7 @@
   function renderHireModal(ctx) {
     const { snapshot, tr, hireBot, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
+    if (root?.querySelector('[data-modal-kind="hire"]')) return;
     const bots = snapshot?.bots || [];
     const defaultBot = detectDefaultCreatorBot(bots, snapshot?.settings?.hrBotName || "");
     const lang = tr.title === "AI 总部大楼" ? "zh" : "en";
@@ -94,7 +95,7 @@
 
     root.innerHTML = `
       <div class="card-backdrop" id="cardBackdrop">
-        <div class="inspector-card om-card">
+        <div class="inspector-card om-card" data-modal-kind="hire">
           <div class="ic-head">
             <div class="ic-av om-av">🧑‍💼</div>
             <div class="ic-title-wrap">
@@ -244,6 +245,7 @@
   function renderOwnerAvatarModal(ctx) {
     const { snapshot, avatars, tr, saveOwnerAvatar, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
+    if (root?.querySelector('[data-modal-kind="ownerDesk"]')) return;
     const lang = tr.title === "AI 总部大楼" ? "zh" : "en";
     let currentMode = snapshot?.settings?.ownerAvatarMode || "empty";
     let previewUrl = avatars?.__owner__ || "";
@@ -256,7 +258,7 @@
 
       root.innerHTML = `
         <div class="card-backdrop" id="cardBackdrop">
-          <div class="inspector-card om-card om-wide">
+          <div class="inspector-card om-card om-wide" data-modal-kind="ownerDesk">
             <div class="ic-head">
               <div class="ic-av om-av">${headPreview}</div>
               <div class="ic-title-wrap">

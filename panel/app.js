@@ -702,7 +702,7 @@ function render() {
     bindDomClickHandlers(guestBar);
   }
 
-  if (openCard) renderModal();
+  if (openCard && !document.getElementById("modalRoot")?.contains(document.activeElement)) renderModal();
 }
 
 async function loadAll(force = false) {
