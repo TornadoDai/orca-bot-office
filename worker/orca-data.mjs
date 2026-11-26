@@ -6,7 +6,6 @@ import path from "node:path";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const AVATAR_CACHE_DIR = path.join(os.tmpdir(), "orca-bot-office-avatars");
 
 const STATE_PRIORITY = {
   blocked: 0,
@@ -659,79 +658,4 @@ export async function collectOfficeSnapshot(orcaBin, { showStandalone = true, fo
   };
 
   return { updatedAt: Date.now(), errors, summary, decisionList, mailLinks, bots, standalone };
-}
-
-const avatarMemoryCache = new Map();
-
-async function toTinyAvatarDataUrl(imgPath, cacheKey, mtimeMs) {
-  const cached = avatarMemoryCache.get(cacheKey);
-  if (cached && cached.mtimeMs === mtimeMs) return cached.dataUrl;
-
-  if (process.platform === "darwin") {
-    try {
-      fs.mkdirSync(AVATAR_CACHE_DIR, { recursive: true });
-      const outJpg = path.join(AVATAR_CACHE_DIR, `${cacheKey}.jpg`);
-      await execFileAsync(
-        "sips",
-        ["-s", "format", "jpeg", "-s", "formatOptions", "76", "-Z", "128", imgPath, "--out", outJpg],
-        { timeout: 4000, env: buildExecEnv() }
-      );
-      const dataUrl = `data:image/jpeg;base64,${fs.readFileSync(outJpg).toString("base64")}`;
-      avatarMemoryCache.set(cacheKey, { mtimeMs, dataUrl });
-      return dataUrl;
-    } catch {
-      // Fall through to raw check
-    }
-  }
-
-  try {
-    const raw = fs.readFileSync(imgPath);
-    if (raw.length > 320 * 1024) return null;
-    const ext = path.extname(imgPath).toLowerCase();
-    const mime = ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : ext === ".webp" ? "image/webp" : "image/png";
-    const dataUrl = `data:${mime};base64,${raw.toString("base64")}`;
-    avatarMemoryCache.set(cacheKey, { mtimeMs, dataUrl });
-    return dataUrl;
-  } catch {
-    return null;
-  }
-}
-
-export async function collectBotAvatars(ownerAvatarPath = "") {
-  const orcaHome = process.env.ORCA_HOME || path.join(os.homedir(), ".orca");
-  const botsRoot = path.join(orcaHome, "bots");
-  const avatars = {};
-  if (fs.existsSync(botsRoot)) {
-    const dirs = fs.readdirSync(botsRoot, { withFileTypes: true }).filter((d) => d.isDirectory());
-    await mapWithConcurrency(dirs, 3, async (dir) => {
-      const folder = path.join(botsRoot, dir.name);
-      const metaPath = path.join(folder, "bot.json");
-      if (!fs.existsSync(metaPath)) return;
-      const imgPath = ["avatar.png", "avatar.jpg", "avatar.jpeg", "avatar.webp"]
-        .map((f) => path.join(folder, f))
-        .find((p) => fs.existsSync(p));
-      if (!imgPath) return;
-      try {
-        const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
-        const stat = fs.statSync(imgPath);
-        const key = String(meta.id || dir.name).replace(/[^a-zA-Z0-9_-]/g, "_");
-        const dataUrl = await toTinyAvatarDataUrl(imgPath, key, stat.mtimeMs);
-        if (dataUrl && meta.id) avatars[meta.id] = dataUrl;
-        if (dataUrl && meta.name) avatars[meta.name] = dataUrl;
-      } catch {
-        // Ignore unreadable folder
-      }
-    });
-  }
-  const custom = String(ownerAvatarPath || "").trim().replace(/^~(?=\/)/, os.homedir());
-  if (custom && fs.existsSync(custom)) {
-    try {
-      const stat = fs.statSync(custom);
-      const dataUrl = await toTinyAvatarDataUrl(custom, "__owner_custom__", stat.mtimeMs);
-      if (dataUrl) avatars.__owner__ = dataUrl;
-    } catch {
-      // Ignore unreadable custom avatar
-    }
-  }
-  return avatars;
 }

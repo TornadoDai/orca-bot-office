@@ -529,10 +529,14 @@
 
     setAvatars(avatarsMap) {
       const map = avatarsMap || {};
-      if (!map.__owner__ && this.avatarImgs.has("__owner__")) {
-        this.avatarImgs.delete("__owner__");
-        this.scenes.forEach((s) => s.drawDynamic());
+      let removed = false;
+      for (const key of [...this.avatarImgs.keys()]) {
+        if (!map[key]) {
+          this.avatarImgs.delete(key);
+          removed = true;
+        }
       }
+      if (removed) this.scenes.forEach((s) => s.drawDynamic());
       for (const [key, src] of Object.entries(map)) {
         if (!src) continue;
         const prev = this.avatarImgs.get(key);

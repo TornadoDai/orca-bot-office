@@ -710,7 +710,7 @@ async function loadAll(force = false) {
   try {
     const [snap, avs] = await Promise.all([
       orcaApi.plugin.request("office.getSnapshot", { force }),
-      Object.keys(avatars).length ? Promise.resolve(avatars) : orcaApi.plugin.request("office.getAvatars", {}),
+      (!force && Object.keys(avatars).length) ? Promise.resolve(avatars) : orcaApi.plugin.request("office.getAvatars", {}),
     ]);
     if (avs) { avatars = avs; towerMgr.setAvatars(avs); }
     if (snap) { snapshot = snap; detectNewDecisions(snap); }

@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import { collectOfficeAnalytics } from "./orca-analytics.mjs";
+import { collectBotAvatars } from "./orca-avatars.mjs";
 import {
   buildExecEnv,
-  collectBotAvatars,
   collectOfficeSnapshot,
   computeSnapshotHash,
   locateOrcaBinary,
@@ -160,7 +160,14 @@ export default function activate(orca) {
 
   orca.panels.handle("office.getAvatars", async () => {
     const opts = await readOptions();
-    const avs = await collectBotAvatars(opts.ownerAvatarPath);
+    const extraBotPaths = Array.isArray(latestSnapshot?.bots)
+      ? latestSnapshot.bots.map((b) => b.path).filter(Boolean)
+      : [];
+    const avs = await collectBotAvatars({
+      orcaBin,
+      ownerAvatarPath: opts.ownerAvatarPath,
+      extraBotPaths,
+    });
     const storedOwner = await orca.storage?.get?.("ownerAvatarDataUrl").catch(() => null);
     if (typeof storedOwner === "string" && storedOwner.startsWith("data:image/")) {
       avs.__owner__ = storedOwner;
