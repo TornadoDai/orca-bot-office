@@ -722,3 +722,56 @@
 :root.light .mkt-hire-btn { color: #065f46; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.18)); }
 :root.light .mkt-mine-pill { color: #6b21a8; background: rgba(168, 85, 247, 0.12); border-color: rgba(147, 51, 234, 0.35); }
 :root.light .om-mb-go { color: #047857; }
+
+/* Bot Squad (Multi-Bot Team Pack) */
+.mkt-card.is-team {
+  border-color: rgba(129, 140, 248, 0.45);
+  background: linear-gradient(155deg, rgba(99, 102, 241, 0.09), var(--card) 52%);
+}
+.mkt-stack-avs { display: flex; align-items: center; flex-shrink: 0; padding-right: 4px; }
+.mkt-stack-av {
+  width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--card); margin-left: -10px; background: var(--card-sub);
+}
+.mkt-stack-av:first-child { margin-left: 0; }
+.mkt-stack-more {
+  margin-left: -8px; width: 24px; height: 24px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9.5px; font-weight: 800; background: #4f46e5; color: #fff; border: 2px solid var(--card);
+}
+.mkt-team-badge {
+  font-size: 9.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 999px;
+  background: rgba(99, 102, 241, 0.22); border: 1px solid rgba(129, 140, 248, 0.55);
+  color: #c7d2fe; white-space: nowrap;
+}
+.mkt-team-names { display: flex; gap: 4px; flex-wrap: wrap; }
+.mkt-mode-seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 3px;
+  margin-top: 8px; border-radius: 9px; background: var(--card-sub); border: 1px solid var(--border);
+}
+.mkt-mode-btn {
+  padding: 6px 8px; border-radius: 7px; border: 0; background: transparent;
+  color: var(--fg-soft); font-size: 11.5px; font-weight: 700; cursor: pointer;
+}
+.mkt-mode-btn.active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.26), rgba(99, 102, 241, 0.26));
+  color: var(--fg-strong); box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.5);
+}
+.mkt-collab-box {
+  margin-top: 8px; padding: 8px 10px; border-radius: 9px;
+  background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(129, 140, 248, 0.35);
+}
+.mkt-team-mcard {
+  padding: 8px 9px; border-radius: 10px; background: var(--card-sub); border: 1px solid var(--border);
+}
+.mkt-team-mhead, .mkt-team-mchk { display: flex; align-items: flex-start; gap: 8px; width: 100%; cursor: pointer; }
+.mkt-team-mchk input { accent-color: #34d399; margin-top: 4px; flex-shrink: 0; }
+.mkt-team-mtitle { flex: 1; min-width: 0; }
+.mkt-team-toggles {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; padding-top: 5px;
+  border-top: 1px dashed var(--border); font-size: 10.5px; color: var(--fg-soft);
+}
+.mkt-team-toggles label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.mkt-team-toggles input { accent-color: #34d399; margin: 0; }
+:root.light .mkt-team-badge { color: #3730a3; background: rgba(99, 102, 241, 0.14); border-color: rgba(99, 102, 241, 0.38); }
+:root.light .mkt-collab-box { background: rgba(99, 102, 241, 0.08); }

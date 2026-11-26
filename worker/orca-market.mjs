@@ -64,30 +64,44 @@ async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 6000) {
   }
 }
 
+function resolveAvatarDataUrl(avType, avVal, avColor, orcaBin) {
+  if (avType === "emoji") {
+    return renderEmojiAvatarDataUrl(avVal || "🤖", avColor || "#334155") || "";
+  }
+  return (
+    renderMascotAvatarDataUrl(avVal || "A1", avColor || "#b3dbf4", orcaBin) ||
+    renderEmojiAvatarDataUrl("🤖", avColor || "#334155") ||
+    ""
+  );
+}
+
 function enrichMarketBots(bots, orcaBin) {
   const list = Array.isArray(bots) ? bots : [];
   return list.map((b) => {
-    const isOrcaLink = b.shareMode === "orca_link" || (Boolean(b.shareId) && !String(b.shareId).startsWith("mkt:"));
+    const isTeam = b.packType === "team" || b.shareMode === "team" || (Array.isArray(b.bundle?.members) && b.bundle.members.length >= 2);
+    const isOrcaLink = !isTeam && (b.shareMode === "orca_link" || (Boolean(b.shareId) && !String(b.shareId).startsWith("mkt:")));
     const shareId = isOrcaLink ? (parseOrcaBotShareId(b.shareId || b.shareUrl) || "") : "";
-    let avatarDataUrl = "";
-    if (b.avatarType === "emoji") {
-      avatarDataUrl = renderEmojiAvatarDataUrl(b.avatarValue || "🤖", b.avatarColor || "#334155") || "";
-    } else {
-      avatarDataUrl =
-        renderMascotAvatarDataUrl(b.avatarValue || "A1", b.avatarColor || "#b3dbf4", orcaBin) ||
-        renderEmojiAvatarDataUrl("🤖", b.avatarColor || "#334155") ||
-        "";
-    }
+    const avatarDataUrl = resolveAvatarDataUrl(b.avatarType, b.avatarValue, b.avatarColor, orcaBin);
     const shareCode = b.shareCode || b.id || "";
     const marketShareUrl = b.marketShareUrl || (shareCode ? `${DEFAULT_MARKET_API_URL}/s/${shareCode}` : "");
+    const bundle = b.bundle && typeof b.bundle === "object" ? { ...b.bundle } : {};
+    if (isTeam && Array.isArray(bundle.members)) {
+      bundle.members = bundle.members.map((m) => ({
+        ...m,
+        avatarDataUrl: resolveAvatarDataUrl(m.avatarType, m.avatarValue, m.avatarColor, orcaBin),
+      }));
+    }
     return {
       ...b,
-      shareMode: shareId ? "orca_link" : "recipe",
+      packType: isTeam ? "team" : "bot",
+      memberCount: isTeam ? (bundle.members?.length || Number(b.memberCount || 2)) : 1,
+      shareMode: isTeam ? "team" : (shareId ? "orca_link" : "recipe"),
       shareId,
       shareUrl: shareId ? `https://app.orca.dev/bots/share/${shareId}` : marketShareUrl,
       marketShareUrl,
       deepLink: shareId ? `orca://bots/share/${shareId}` : "",
       avatarDataUrl,
+      bundle,
     };
   });
 }

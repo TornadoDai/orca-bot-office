@@ -249,11 +249,38 @@ export default function activate(orca) {
     const reports = String(input.reports || "").trim();
     const soulMd = String(input.soulMd || "").trim().slice(0, 3500);
     const bundle = input.bundle && typeof input.bundle === "object" ? input.bundle : null;
+    const teamMembers = Array.isArray(input.teamMembers) ? input.teamMembers.slice(0, 6) : [];
+    const collaboration = String(input.collaboration || "").trim().slice(0, 1500);
     const isZh = input.lang === "zh";
     if (!hrBotName) throw new Error("hrBotName is required");
 
     const lines = [];
-    if (mode === "offer") {
+    if (mode === "team" && teamMembers.length) {
+      lines.push(
+        isZh
+          ? `【Owner 在 Bot Office 人才市场招入了一个 Bot 组合小队（共 ${teamMembers.length} 位）】`
+          : `[Owner hired a Bot Squad (${teamMembers.length} Bots) from Bot Talent Market]`
+      );
+      if (name) lines.push(`${isZh ? "小队名称" : "Squad Name"}: ${name}`);
+      if (purpose) lines.push(`${isZh ? "小队目标" : "Squad Purpose"}: ${purpose}`);
+      if (collaboration) lines.push(`${isZh ? "协作分工与交接流程" : "Collaboration & Handoff"}: ${collaboration}`);
+      lines.push("");
+      teamMembers.forEach((m, idx) => {
+        lines.push(`--- ${idx + 1}. ${m.name}${m.role ? ` (${m.role})` : ""} [${m.agentHint || "claude"}] ---`);
+        if (m.purpose) lines.push(`${isZh ? "职责" : "Purpose"}: ${m.purpose}`);
+        if (m.automations?.length) lines.push(`${isZh ? "定时任务" : "Automations"}: ${m.automations.map((a) => `${a.name} (${a.rrule})`).join("; ")}`);
+        if (m.skills?.length) lines.push(`${isZh ? "技能" : "Skills"}: ${m.skills.map((s) => s.name).join(", ")}`);
+        if (m.tools?.length) lines.push(`${isZh ? "工具/MCP" : "Tools"}: ${m.tools.map((t) => t.name).join(", ")}`);
+        if (m.memory?.length) lines.push(`${isZh ? "记忆参考" : "Memory"}: ${m.memory.map((x) => x.topic).join(", ")}`);
+        if (m.soulMd) lines.push(`SOUL:\n${String(m.soulMd).slice(0, 1200)}`);
+        lines.push("");
+      });
+      lines.push(
+        isZh
+          ? "请按以上小队成员清单，依次执行 `orca bot create --offer` 为每位成员弹出 Orca 原生创建确认卡片，并在说明中标注他们之间的小队协作分工（无需用 orchestration reply 回复 Bot Office）。"
+          : "Please sequentially run `orca bot create --offer` for each selected squad member above so the owner gets native Create Bot cards, noting their cross-bot collaboration roles (do not run orchestration reply back to Bot Office)."
+      );
+    } else if (mode === "offer") {
       lines.push(isZh ? "【Owner 在 Bot Office 发起了新 Bot 创建请求（直接出创建卡）】" : "[Owner requested a new Bot from Bot Office — Direct Create Card]");
       if (name) lines.push(`${isZh ? "名称" : "Name"}: ${name}`);
       if (purpose) lines.push(`${isZh ? "一句话职责" : "Purpose"}: ${purpose}`);

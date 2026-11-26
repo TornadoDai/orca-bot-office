@@ -88,6 +88,7 @@
     const root = document.getElementById("modalRoot");
     if (!root || !bot) return;
     const zh = lang === "zh";
+    const isTeam = bot.packType === "team" || bot.shareMode === "team";
     const isOfficial = bot.kind === "official" || bot.trust === "official";
     const isVer = bot.trust === "verified";
     const title = zh ? (bot.nameZh || bot.name) : (bot.nameEn || bot.name);
@@ -97,6 +98,10 @@
       ? (zh ? "🏛️ Orca 官方模板" : "🏛️ Orca Official")
       : isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community");
     const tagsHtml = (bot.tags || []).map((tg) => `<span class="mkt-tag">#${esc(tg)}</span>`).join("");
+    const teamMembers = isTeam && Array.isArray(bot.bundle?.members) ? bot.bundle.members : [];
+    const headAvHtml = isTeam && teamMembers.length
+      ? `<div class="mkt-stack-avs">${teamMembers.slice(0, 3).map((m) => `<img class="mkt-stack-av" src="${esc(m.avatarDataUrl || bot.avatarDataUrl)}" alt="" />`).join("")}${teamMembers.length > 3 ? `<span class="mkt-stack-more">+${teamMembers.length - 3}</span>` : ""}</div>`
+      : `<img class="mkt-av" src="${esc(bot.avatarDataUrl)}" alt="" />`;
 
     const specsHtml = (bot.watches || bot.doesText || bot.reports || (bot.connectors || []).length)
       ? `<div class="mkt-tpl-specs">
@@ -113,15 +118,16 @@
       <div class="card-backdrop" id="cardBackdrop">
         <div class="inspector-card om-card" data-modal-kind="marketDetail">
           <div class="ic-head">
-            <img class="mkt-av" src="${esc(bot.avatarDataUrl)}" alt="" />
+            ${headAvHtml}
             <div class="ic-title-wrap">
               <div class="mkt-name-row">
                 <span class="ic-name">${esc(title)}</span>
+                ${isTeam ? `<span class="mkt-team-badge">👥 ${zh ? `${teamMembers.length}人小队` : `${teamMembers.length}-Bot Squad`}</span>` : ""}
                 <span class="mkt-trust ${trustCls}">${trustTxt}</span>
                 ${bot.isMine ? `<span class="mkt-mine-pill">${zh ? "👤 我发布的" : "👤 Mine"}</span>` : ""}
               </div>
               <div class="ic-meta" style="margin-top:4px">
-                ${engPillHtml(bot.agentHint || "claude")}
+                ${isTeam ? `<span class="ic-pill">${esc([...new Set(teamMembers.map((m) => m.agentHint || "claude"))].join(" + "))}</span>` : engPillHtml(bot.agentHint || "claude")}
                 <span class="ic-pill">by ${esc(bot.authorName || "Community")}</span>
                 ${isOfficial
                   ? `<span class="ic-pill">template: ${esc(bot.templateId)}</span>`
@@ -135,15 +141,17 @@
             <span>🛡️</span>
             <span>${isOfficial
               ? (zh ? "这是 Orca 内置官方岗位模板。点击「直接弹出创建卡」将唤起 Orca 原生创建确认卡。" : "Official Orca template. Clicking Hire pops Orca's native Create Bot card.")
-              : (zh ? "所有内容均已自动脱敏，可先展开下方各模块审查后再点击「立即招聘入职」。" : "Auto-sanitized bundle. Audit included parts below before hiring.")}</span>
+              : isTeam
+                ? (zh ? "小队所有成员均已自动脱敏。你可以勾选整队或只勾部分成员，点击招入后会逐个弹出 Orca 原生创建确认卡。" : "All squad members are auto-sanitized. Pick the whole squad or select specific members — Orca pops native confirmation cards for each.")
+                : (zh ? "所有内容均已自动脱敏，可先展开下方各模块审查后再点击「立即招聘入职」。" : "Auto-sanitized bundle. Audit included parts below before hiring.")}</span>
           </div>
 
           <div class="om-form" style="margin-top:10px">
-            <div class="ic-section-title">${zh ? "岗位职责" : "Role & Purpose"}</div>
+            <div class="ic-section-title">${isTeam ? (zh ? "小队目标" : "Squad Goal") : (zh ? "岗位职责" : "Role & Purpose")}</div>
             <div style="font-size:12.5px;line-height:1.55;color:var(--fg)">${esc(pitch)}</div>
             ${bot.description ? `<div style="font-size:11.5px;line-height:1.6;color:var(--fg-soft);white-space:pre-wrap;margin-top:6px">${esc(bot.description)}</div>` : ""}
             ${specsHtml}
-            ${renderBundlePreviewHtml(bot, zh)}
+            ${isTeam && window.OfficeMarketTeam ? window.OfficeMarketTeam.renderTeamDetailSection(bot, zh, engPillHtml) : renderBundlePreviewHtml(bot, zh)}
             ${tagsHtml ? `<div class="mkt-tags" style="margin-top:8px">${tagsHtml}</div>` : ""}
             ${!isOfficial && shareLink ? `
               <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
@@ -193,7 +201,15 @@
         if (sp) sp.textContent = String(bot.likesCount || 0);
       }
     });
-    document.getElementById("mktDetailHireBtn")?.addEventListener("click", async () => { await onHire(bot); onClose(); });
+    const hireBtnEl = document.getElementById("mktDetailHireBtn");
+    const getTeamSelected = isTeam && window.OfficeMarketTeam
+      ? window.OfficeMarketTeam.bindTeamDetailSelection(root, bot, zh, hireBtnEl)
+      : null;
+    hireBtnEl?.addEventListener("click", async () => {
+      if (getTeamSelected) await onHire(bot, getTeamSelected());
+      else await onHire(bot);
+      onClose();
+    });
     document.getElementById("mktReportBtn")?.addEventListener("click", async () => { await onReport(bot); onClose(); });
     const delBtn = document.getElementById("mktDetailDelBtn");
     if (delBtn && onDelete) {
@@ -367,9 +383,14 @@
             ? (apiConfigured ? "当前处于 CDN 离线镜像只读模式，请检查网络或代理后再发布。" : "尚未配置人才市场 API 地址。")
             : (apiConfigured ? "Read-only CDN mirror mode — check network/proxy to publish." : "Market API URL not configured.")}</span></div>` : ""}
 
+          <div class="mkt-mode-seg" id="mktPubModeSeg">
+            <button type="button" class="mkt-mode-btn active" data-pub-mode="bot">🤖 ${zh ? "单个 Bot" : "Single Bot"}</button>
+            <button type="button" class="mkt-mode-btn" data-pub-mode="team">👥 ${zh ? "Bot 组合 / 小队 (2–6位)" : "Bot Squad (2–6 Bots)"}</button>
+          </div>
+
           <div class="om-form" style="margin-top:8px">
             ${bots.length ? `
-              <div class="om-field">
+              <div class="om-field mkt-single-only">
                 <label class="om-lbl">${zh ? "⚡ 选择要分享的本机 Bot（自动识别全部模块并脱敏）" : "⚡ Pick a local Bot (auto-detects & sanitizes all parts)"}</label>
                 <select class="om-input" id="mktLocalPick">
                   ${bots.map((b, i) => `<option value="${esc(b.id)}" ${i === 0 ? "selected" : ""}>${esc(b.name)} (${esc(b.agentHint)})</option>`).join("")}
@@ -383,16 +404,18 @@
             </div>
 
             <div class="om-field">
-              <label class="om-lbl">${zh ? "Bot 名称 *" : "Bot Name *"}</label>
+              <label class="om-lbl" id="mktNameLbl">${zh ? "Bot 名称 *" : "Bot Name *"}</label>
               <input class="om-input" id="mktNameInput" type="text" maxlength="48" placeholder="${zh ? "自动生成，可微调" : "Auto-filled, editable"}" />
             </div>
 
             <div class="om-field">
-              <label class="om-lbl">${zh ? "一句话职责亮点 *" : "One-Line Pitch *"}</label>
+              <label class="om-lbl" id="mktPurposeLbl">${zh ? "一句话职责亮点 *" : "One-Line Pitch *"}</label>
               <input class="om-input" id="mktPurposeInput" type="text" maxlength="160" placeholder="${zh ? "自动提取，可微调…" : "Auto-extracted from SOUL.md…"}" />
             </div>
 
-            <div class="om-field">
+            <div id="mktTeamWrap" style="display:none"></div>
+
+            <div class="om-field mkt-single-only">
               <label class="om-lbl">${zh ? "勾选要一起打包分享的模块（均自动脱敏）" : "Select parts to include in share package (all auto-sanitized)"}</label>
               <div class="mkt-bundle-box" id="mktBundleBox"></div>
             </div>
@@ -415,7 +438,7 @@
               </div>
             </div>
 
-            <details class="ic-collapse">
+            <details class="ic-collapse mkt-single-only">
               <summary class="ic-collapse-sum">🛡️ ${zh ? "预览 / 微调脱敏后的 SOUL.md、外观与可选 Orca 链接" : "Preview / edit sanitized SOUL.md, look & optional Orca link"}</summary>
               <div class="om-adv-body">
                 <div class="om-field">
@@ -455,10 +478,58 @@
         </div>
       </div>`;
 
+    let pubMode = "bot";
+    let teamPublisher = null;
     let selectedCat = "dev";
     let pickedAvatarType = "mascot";
     let pickedAvatarValue = "A1";
     let activeDraft = null;
+
+    const switchPubMode = (nextMode) => {
+      pubMode = nextMode === "team" ? "team" : "bot";
+      root.querySelectorAll("[data-pub-mode]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-pub-mode") === pubMode));
+      root.querySelectorAll(".mkt-single-only").forEach((el) => { el.style.display = pubMode === "bot" ? "" : "none"; });
+      const teamWrap = document.getElementById("mktTeamWrap");
+      if (teamWrap) teamWrap.style.display = pubMode === "team" ? "block" : "none";
+      const nameLbl = document.getElementById("mktNameLbl");
+      const purpLbl = document.getElementById("mktPurposeLbl");
+      const submitEl = document.getElementById("mktSubmitPubBtn");
+      if (nameLbl) nameLbl.textContent = pubMode === "team" ? (zh ? "Bot 组合名称 *" : "Bot Squad Name *") : (zh ? "Bot 名称 *" : "Bot Name *");
+      if (purpLbl) purpLbl.textContent = pubMode === "team" ? (zh ? "组合适用场景与亮点 *" : "Squad Use-Case & Highlights *") : (zh ? "一句话职责亮点 *" : "One-Line Pitch *");
+      if (submitEl) submitEl.textContent = pubMode === "team" ? (zh ? "⚡ 一键生成组合分享链接并上架" : "⚡ Generate Squad Link & Publish") : (zh ? "⚡ 一键生成分享链接并上架" : "⚡ Generate Share Link & Publish");
+      if (pubMode === "team" && teamWrap && !teamPublisher && window.OfficeMarketTeam) {
+        const nameInp = document.getElementById("mktNameInput");
+        const purpInp = document.getElementById("mktPurposeInput");
+        if (nameInp && (!activeDraft || nameInp.value === activeDraft.name)) nameInp.value = "";
+        if (purpInp && (!activeDraft || purpInp.value === activeDraft.purpose)) purpInp.value = "";
+        teamPublisher = window.OfficeMarketTeam.mountTeamPublisher(teamWrap, {
+          localBots: bots,
+          zh,
+          onPrepareLocal,
+          onRandomAvatar,
+          formatRedactionSummary,
+          onSummaryChange: ({ drafts, totalRedacted, allBlocked, randCount }) => {
+            const redEl = document.getElementById("mktRedactText");
+            if (redEl) {
+              const bits = [];
+              if (randCount) bits.push(zh ? `${randCount} 位自定义头像已随机替换为官方吉祥物` : `${randCount} custom avatar(s) randomized`);
+              bits.push(zh ? `已扫描 ${drafts.length} 位成员并自动脱敏 ${totalRedacted} 处敏感信息` : `Scanned ${drafts.length} members, auto-redacted ${totalRedacted} items`);
+              if (allBlocked.length) bits.push(zh ? `已硬拦截 ${allBlocked.length} 个凭据文件` : `blocked ${allBlocked.length} credential file(s)`);
+              redEl.textContent = bits.join("；") + "。";
+            }
+            if (nameInp && !nameInp.value.trim() && drafts.length >= 2) {
+              nameInp.value = zh ? `${drafts.slice(0, 2).map((d) => d.name).join(" + ")} 协作小队` : `${drafts.slice(0, 2).map((d) => d.name).join(" + ")} Squad`;
+            }
+            if (purpInp && !purpInp.value.trim() && drafts.length >= 2) {
+              purpInp.value = zh
+                ? `由 ${drafts.map((d) => d.name).join("、")} 组成的 ${drafts.length} 人 AI 协作小队，分工明确一键入职。`
+                : `${drafts.length}-Bot collaborating squad (${drafts.map((d) => d.name).join(", ")}) ready for 1-click hire.`;
+            }
+          },
+        });
+      }
+    };
+    root.querySelectorAll("[data-pub-mode]").forEach((btn) => btn.addEventListener("click", () => switchPubMode(btn.getAttribute("data-pub-mode"))));
 
     const setCat = (catId) => {
       selectedCat = catId || "general";
@@ -568,21 +639,37 @@
     });
 
     document.getElementById("mktSubmitPubBtn")?.addEventListener("click", async () => {
-      const shareUrl = String(shareInp?.value || "").trim();
-      if (shareUrl && !parseShareId(shareUrl)) {
-        showToast(zh ? "可选 Orca 分享链接格式无效，请修正或留空" : "Invalid optional Orca link — fix or leave blank", true);
-        return;
-      }
       const name = String(document.getElementById("mktNameInput")?.value || "").trim();
       const purpose = String(document.getElementById("mktPurposeInput")?.value || "").trim();
-      if (name.length < 2) { showToast(zh ? "请填写 Bot 名称（至少 2 个字）" : "Enter a Bot name (min 2 chars)", true); return; }
-      if (purpose.length < 4) { showToast(zh ? "请填写一句话职责亮点" : "Enter a one-line pitch", true); return; }
+      if (name.length < 2) { showToast(zh ? "请填写名称（至少 2 个字）" : "Enter a name (min 2 chars)", true); return; }
+      if (purpose.length < 4) { showToast(zh ? "请填写一句话亮点介绍" : "Enter a one-line pitch", true); return; }
 
-      const bundle = collectSelectedBundle();
-      const btn = document.getElementById("mktSubmitPubBtn");
-      if (btn) { btn.disabled = true; btn.textContent = zh ? "⏳ 正在脱敏打包并生成链接…" : "⏳ Sanitizing & generating link…"; }
-      try {
-        const res = await onPublish({
+      let payload;
+      if (pubMode === "team") {
+        if (!teamPublisher) { showToast(zh ? "请先选择 2–6 位小队成员" : "Select 2–6 squad members", true); return; }
+        try {
+          const tp = teamPublisher.getTeamPayload();
+          payload = {
+            ...tp,
+            name,
+            purpose,
+            category: selectedCat,
+            tags: String(document.getElementById("mktTagsInput")?.value || "").trim(),
+            authorName: String(document.getElementById("mktAuthorInput")?.value || "").trim() || "Community",
+          };
+        } catch (err) {
+          showToast(String(err?.message || err), true);
+          return;
+        }
+      } else {
+        const shareUrl = String(shareInp?.value || "").trim();
+        if (shareUrl && !parseShareId(shareUrl)) {
+          showToast(zh ? "可选 Orca 分享链接格式无效，请修正或留空" : "Invalid optional Orca link — fix or leave blank", true);
+          return;
+        }
+        const bundle = collectSelectedBundle();
+        payload = {
+          packType: "bot",
           shareUrl,
           name,
           purpose,
@@ -596,7 +683,13 @@
           avatarValue: pickedAvatarType === "mascot" ? String(document.getElementById("mktMascotSelect")?.value || "A1") : pickedAvatarValue,
           avatarColor: String(document.getElementById("mktColorSelect")?.value || "#b3dbf4"),
           authorName: String(document.getElementById("mktAuthorInput")?.value || "").trim() || "Community",
-        });
+        };
+      }
+
+      const btn = document.getElementById("mktSubmitPubBtn");
+      if (btn) { btn.disabled = true; btn.textContent = zh ? "⏳ 正在脱敏打包并生成链接…" : "⏳ Sanitizing & generating link…"; }
+      try {
+        const res = await onPublish(payload);
         const generatedUrl = res?.shareUrl || res?.marketShareUrl || res?.bot?.shareUrl || "";
         if (generatedUrl) {
           renderPublishSuccess(root, { name, shareUrl: generatedUrl, zh, onOpenExternal, onClose, showToast });
@@ -606,7 +699,10 @@
         }
       } catch (err) {
         showToast(String(err?.message || err), true);
-        if (btn) { btn.disabled = false; btn.textContent = zh ? "⚡ 一键生成分享链接并上架" : "⚡ Generate Share Link & Publish"; }
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = pubMode === "team" ? (zh ? "⚡ 一键生成组合分享链接并上架" : "⚡ Generate Squad Link & Publish") : (zh ? "⚡ 一键生成分享链接并上架" : "⚡ Generate Share Link & Publish");
+        }
       }
     });
 

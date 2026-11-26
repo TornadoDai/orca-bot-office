@@ -4,7 +4,7 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.16.6",
+  "version": "0.17.0",
   "description": "2.5D illustrated office tower + built-in Bot Talent Market (24 official templates, 1-click sanitized bundle sharing, upvotes & native hire), interactive decision replies, and SVG team analytics dashboard.",
   "license": "MIT",
   "icon": "assets/icon.png",

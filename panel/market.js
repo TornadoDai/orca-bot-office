@@ -4,6 +4,7 @@
 (function () {
   const CATS = [
     { id: "all", zh: "全部岗位", en: "All Roles" },
+    { id: "team", zh: "👥 团队组合", en: "👥 Bot Squads" },
     { id: "mine", zh: "👤 我发布的", en: "👤 Published by Me" },
     { id: "community", zh: "🌐 社区分享", en: "🌐 Community" },
     { id: "official", zh: "🏛️ Orca 官方模板", en: "🏛️ Orca Official" },
@@ -33,7 +34,8 @@
   function filterAndSort(bots, lang = "zh") {
     let list = Array.isArray(bots) ? [...bots] : [];
     if (ui.category !== "all") {
-      if (ui.category === "mine") list = list.filter((b) => Boolean(b.isMine));
+      if (ui.category === "team") list = list.filter((b) => b.packType === "team" || b.shareMode === "team");
+      else if (ui.category === "mine") list = list.filter((b) => Boolean(b.isMine));
       else if (ui.category === "official") list = list.filter((b) => b.kind === "official" || b.trust === "official");
       else if (ui.category === "community") list = list.filter((b) => b.kind !== "official" && b.trust !== "official");
       else list = list.filter((b) => b.category === ui.category);
@@ -152,6 +154,7 @@
     const zh = lang === "zh";
     const bots = marketData?.bots || [];
     const myCount = bots.filter((b) => b.isMine).length;
+    const teamCount = bots.filter((b) => b.packType === "team" || b.shareMode === "team").length;
     const liveWritable = Boolean(marketData?.liveWritable);
     const stats = marketData?.stats || { totalBots: bots.length, verifiedBots: 0, totalHires: 0, totalLikes: 0 };
     const filtered = filterAndSort(bots);
@@ -167,6 +170,7 @@
       ? `<div class="mkt-empty"><div class="mkt-empty-icon">⏳</div><div class="mkt-empty-title">${zh ? "正在加载 Bot 人才市场…" : "Loading Talent Market…"}</div></div>`
       : filtered.length
         ? `<div class="mkt-grid">${filtered.map((b) => {
+            const isTeam = b.packType === "team" || b.shareMode === "team";
             const isOfficial = b.kind === "official" || b.trust === "official";
             const isVer = b.trust === "verified";
             const trustCls = isOfficial ? "official" : (isVer ? "verified" : "community");
@@ -175,29 +179,42 @@
               : isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community");
             const tags = (b.tags || []).slice(0, 4).map((t) => `<span class="mkt-tag">#${esc(t)}</span>`).join("");
             const bd = b.bundle || {};
+            const members = Array.isArray(bd.members) ? bd.members : [];
+            const sumAuto = isTeam ? members.reduce((s, m) => s + (m.automations || []).length, 0) : (bd.automations || []).length;
+            const sumSkill = isTeam ? members.reduce((s, m) => s + (m.skills || []).length, 0) : (bd.skills || []).length;
+            const sumTool = isTeam ? members.reduce((s, m) => s + (m.tools || []).length, 0) : (bd.tools || []).length;
+            const sumMem = isTeam ? members.reduce((s, m) => s + (m.memory || []).length, 0) : (bd.memory || []).length;
             const bpills = [
-              (bd.automations || []).length ? `⏰ ${bd.automations.length}${zh ? "定时" : " auto"}` : "",
-              (bd.skills || []).length ? `🧩 ${bd.skills.length}${zh ? "技能" : " skill"}` : "",
-              (bd.tools || []).length ? `🔧 ${bd.tools.length}${zh ? "工具" : " tool"}` : "",
-              (bd.memory || []).length ? `🧠 ${bd.memory.length}${zh ? "记忆" : " mem"}` : "",
+              sumAuto ? `⏰ ${sumAuto}${zh ? "定时" : " auto"}` : "",
+              sumSkill ? `🧩 ${sumSkill}${zh ? "技能" : " skill"}` : "",
+              sumTool ? `🔧 ${sumTool}${zh ? "工具" : " tool"}` : "",
+              sumMem ? `🧠 ${sumMem}${zh ? "记忆" : " mem"}` : "",
             ].filter(Boolean).map((x) => `<span class="mkt-bpill">${x}</span>`).join("");
+            const avHtml = isTeam && members.length
+              ? `<div class="mkt-stack-avs">${members.slice(0, 3).map((m) => `<img class="mkt-stack-av" src="${esc(m.avatarDataUrl || b.avatarDataUrl)}" alt="" />`).join("")}${members.length > 3 ? `<span class="mkt-stack-more">+${members.length - 3}</span>` : ""}</div>`
+              : `<img class="mkt-av" src="${esc(b.avatarDataUrl)}" alt="" />`;
+            const teamNamesRow = isTeam && members.length
+              ? `<div class="mkt-team-names">${members.map((m) => `<span class="mkt-tag">🤖 ${esc(m.name)}</span>`).join("")}</div>`
+              : "";
             return `
-              <div class="mkt-card ${isVer ? "is-verified" : ""}" data-mkt-card="${esc(b.id)}">
+              <div class="mkt-card ${isVer ? "is-verified" : ""} ${isTeam ? "is-team" : ""}" data-mkt-card="${esc(b.id)}">
                 <div class="mkt-card-head">
-                  <img class="mkt-av" src="${esc(b.avatarDataUrl)}" alt="" />
+                  ${avHtml}
                   <div class="mkt-head-info">
                     <div class="mkt-name-row">
                       <span class="mkt-name">${esc(botTitle(b, lang))}</span>
+                      ${isTeam ? `<span class="mkt-team-badge">👥 ${zh ? `${members.length}人小队` : `${members.length}-Bot Squad`}</span>` : ""}
                       <span class="mkt-trust ${trustCls}">${trustLbl}</span>
                       ${b.isMine ? `<span class="mkt-mine-pill">${zh ? "我发布" : "Mine"}</span>` : ""}
                     </div>
                     <div class="mkt-meta-row">
-                      ${engPillHtml(b.agentHint || "claude")}
+                      ${isTeam ? `<span class="ic-pill">${esc([...new Set(members.map((m) => m.agentHint || "claude"))].join(" + "))}</span>` : engPillHtml(b.agentHint || "claude")}
                       <span>by ${esc(b.authorName || "Community")}</span>
                     </div>
                   </div>
                 </div>
                 <div class="mkt-pitch">${esc(botPitch(b, lang))}</div>
+                ${teamNamesRow}
                 ${bpills ? `<div class="mkt-bundle-pills">${bpills}</div>` : ""}
                 ${tags ? `<div class="mkt-tags">${tags}</div>` : ""}
                 <div class="mkt-card-foot">
@@ -209,7 +226,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:5px">
                     ${b.isMine && liveWritable && !isOfficial ? `<button type="button" class="mkt-del-btn" data-mkt-del="${esc(b.id)}" title="${zh ? "删除我分享的此 Bot" : "Delete my shared Bot"}">🗑️</button>` : ""}
-                    <button type="button" class="mkt-hire-btn" data-mkt-hire="${esc(b.id)}">⚡ ${zh ? "一键招聘" : "Hire"}</button>
+                    <button type="button" class="mkt-hire-btn" data-mkt-hire="${esc(b.id)}">⚡ ${isTeam ? (zh ? "招入小队" : "Hire Squad") : (zh ? "一键招聘" : "Hire")}</button>
                   </div>
                 </div>
               </div>`;
@@ -273,7 +290,7 @@
 
       <div class="mkt-cats">
         ${CATS.map((c) => {
-          const suffix = c.id === "mine" && myCount > 0 ? ` (${myCount})` : "";
+          const suffix = c.id === "mine" && myCount > 0 ? ` (${myCount})` : (c.id === "team" && teamCount > 0 ? ` (${teamCount})` : "");
           return `<button type="button" class="mkt-cat-chip ${ui.category === c.id ? "active" : ""}" data-mcat="${c.id}">${esc(c[lang] + suffix)}</button>`;
         }).join("")}
       </div>
@@ -324,7 +341,9 @@
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const b = bots.find((x) => x.id === btn.getAttribute("data-mkt-hire"));
-        if (b) await onHire(b);
+        if (!b) return;
+        if (b.packType === "team" || b.shareMode === "team") { onSelectBot(b); return; }
+        await onHire(b);
       });
     });
     container.querySelectorAll("[data-mkt-del]").forEach((btn) => {
@@ -423,9 +442,43 @@
       });
     };
 
-    const handleHire = async (bot) => {
+    const handleHire = async (bot, selectedMembers = null) => {
       const lang = getLang();
       const zh = lang === "zh";
+      const isTeam = bot.packType === "team" || bot.shareMode === "team";
+      if (isTeam) {
+        const members = Array.isArray(selectedMembers) && selectedMembers.length ? selectedMembers : (bot.bundle?.members || []);
+        const creator = pickCreatorBot();
+        if (!creator || !hireBot || !members.length) {
+          showToast(zh ? "请先在 Orca 中创建一个 Bot 后再一键招入小队" : "Create at least one Bot first to dispatch squad hiring", true);
+          return;
+        }
+        try {
+          await hireBot({
+            hrBotName: creator.name,
+            hrWorktreeId: creator.worktreeId || "",
+            mode: "team",
+            name: botTitle(bot, lang),
+            purpose: botPitch(bot, lang),
+            collaboration: bot.bundle?.collaboration || "",
+            teamMembers: members,
+            lang,
+          });
+          if (bot.id) {
+            void orcaApi.plugin.request("office.marketHire", { id: bot.id }).catch(() => {});
+            bot.hiresCount = Number(bot.hiresCount || 0) + 1;
+            if (marketData?.stats) marketData.stats.totalHires = Number(marketData.stats.totalHires || 0) + 1;
+            renderApp();
+          }
+          showToast(
+            zh ? `⚡ 已交由 ${creator.name} 依次弹出小队「${bot.name}」的 ${members.length} 张原生创建卡` : `⚡ Asked ${creator.name} to pop ${members.length} Create Bot cards for "${bot.name}"`,
+            false
+          );
+        } catch (err) {
+          showToast(zh ? `招入小队失败：${err?.message || err}` : `Squad hire failed: ${err?.message || err}`, true);
+        }
+        return;
+      }
       const isOfficial = bot.kind === "official" || bot.trust === "official";
       const isRecipe = !isOfficial && (!bot.shareId || bot.shareMode === "recipe");
       if (isOfficial || isRecipe) {
