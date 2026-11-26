@@ -385,7 +385,9 @@
     const handleHire = async (bot) => {
       const lang = getLang();
       const zh = lang === "zh";
-      if (bot.kind === "official" || bot.trust === "official") {
+      const isOfficial = bot.kind === "official" || bot.trust === "official";
+      const isRecipe = !isOfficial && (!bot.shareId || bot.shareMode === "recipe");
+      if (isOfficial || isRecipe) {
         const creator = pickCreatorBot();
         if (!creator || !hireBot) {
           customizeOfficial(bot);
@@ -396,14 +398,21 @@
             hrBotName: creator.name,
             hrWorktreeId: creator.worktreeId || "",
             mode: "offer",
-            template: bot.templateId || "",
+            template: isOfficial ? (bot.templateId || "") : "",
             name: botTitle(bot, lang),
             purpose: botPitch(bot, lang),
             watches: bot.watches || "",
             doesText: bot.doesText || "",
             reports: bot.reports || "",
+            soulMd: bot.soulMd || "",
             lang,
           });
+          if (isRecipe && bot.id) {
+            void orcaApi.plugin.request("office.marketHire", { id: bot.id }).catch(() => {});
+            bot.hiresCount = Number(bot.hiresCount || 0) + 1;
+            if (marketData?.stats) marketData.stats.totalHires = Number(marketData.stats.totalHires || 0) + 1;
+            renderApp();
+          }
           showToast(zh ? `⚡ 已交由 ${creator.name} 弹出「${botTitle(bot, lang)}」原生创建卡` : `⚡ Asked ${creator.name} to pop Create Bot card for "${botTitle(bot, lang)}"`, false);
         } catch (err) {
           showToast(zh ? `发起创建失败：${err?.message || err}` : `Failed to launch create card: ${err?.message || err}`, true);
@@ -434,9 +443,14 @@
       }
     };
 
+    const handlePrepareLocal = async (botId) => {
+      return await orcaApi.plugin.request("office.marketPrepareLocal", { botId });
+    };
+
     const handlePublish = async (payload) => {
-      await orcaApi.plugin.request("office.marketPublish", payload);
-      await load(true);
+      const res = await orcaApi.plugin.request("office.marketPublish", payload);
+      void load(true);
+      return res;
     };
 
     const openDetail = (bot) => setOpenCard({ kind: "marketDetail", bot });
@@ -474,6 +488,7 @@
     };
 
     const renderModalIfMatch = (openCard, onClose) => {
+      const openExt = (u) => orcaApi?.shell?.openExternal?.(u)?.catch?.(() => {});
       if (openCard?.kind === "marketDetail") {
         window.OfficeMarketModals.renderMarketDetailModal({
           bot: openCard.bot,
@@ -484,6 +499,7 @@
           onHire: handleHire,
           onCustomizeOfficial: customizeOfficial,
           onReport: handleReport,
+          onOpenExternal: openExt,
           showToast,
           onClose,
         });
@@ -495,7 +511,9 @@
           lang: getLang(),
           liveWritable: Boolean(marketData?.liveWritable),
           apiConfigured: Boolean(marketData?.apiConfigured),
+          onPrepareLocal: handlePrepareLocal,
           onPublish: handlePublish,
+          onOpenExternal: openExt,
           showToast,
           onClose,
         });

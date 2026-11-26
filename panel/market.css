@@ -569,6 +569,39 @@
 .mkt-link-status.bad { color: #fb7185; }
 .mkt-pub-av-row { display: flex; align-items: center; gap: 10px; }
 .mkt-pub-av-prev { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-strong); flex-shrink: 0; }
+.mkt-redact-ok {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 1.45;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.38);
+  color: #a7f3d0;
+}
+.mkt-soul-pre {
+  margin: 6px 0 0;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--modal-sub);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--fg-soft);
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.mkt-share-box {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+:root.light .mkt-redact-ok { color: #065f46; background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.38); }
 
 /* Light Theme Adjustments */
 :root.light .mkt-lobby {

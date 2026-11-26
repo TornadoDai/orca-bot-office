@@ -7,6 +7,7 @@ import {
   openOrcaBotShareDeepLink,
   postMarketAction,
 } from "./orca-market.mjs";
+import { prepareLocalBotShareDraft } from "./orca-sanitizer.mjs";
 import {
   buildExecEnv,
   collectOfficeSnapshot,
@@ -212,6 +213,7 @@ export default function activate(orca) {
     const watches = String(input.watches || "").trim();
     const doesText = String(input.doesText || "").trim();
     const reports = String(input.reports || "").trim();
+    const soulMd = String(input.soulMd || "").trim().slice(0, 3500);
     const isZh = input.lang === "zh";
     if (!hrBotName) throw new Error("hrBotName is required");
 
@@ -225,6 +227,11 @@ export default function activate(orca) {
       if (watches) lines.push(`${isZh ? "关注/监听" : "Watches"}: ${watches}`);
       if (doesText) lines.push(`${isZh ? "负责执行" : "Does"}: ${doesText}`);
       if (reports) lines.push(`${isZh ? "汇报方式" : "Reports"}: ${reports}`);
+      if (soulMd) {
+        lines.push("");
+        lines.push(isZh ? "参考 SOUL.md（已脱敏）：" : "Reference SOUL.md (sanitized):");
+        lines.push(soulMd);
+      }
       lines.push("");
       lines.push(
         isZh
@@ -349,10 +356,22 @@ export default function activate(orca) {
     return await postMarketAction({ apiUrl: opts.marketApiUrl, clientId, pathSuffix: `/api/bots/${id}/like` });
   });
 
+  orca.panels.handle("office.marketPrepareLocal", async (input = {}) => {
+    const extraBotPaths = Array.isArray(latestSnapshot?.bots)
+      ? latestSnapshot.bots.map((b) => b.path).filter(Boolean)
+      : [];
+    return prepareLocalBotShareDraft({
+      botId: input.botId,
+      orcaBin,
+      extraBotPaths,
+    });
+  });
+
   orca.panels.handle("office.marketHire", async (input = {}) => {
     const opts = await readOptions();
-    const opened = openOrcaBotShareDeepLink(input.shareId || input.shareUrl);
-    if (opts.marketApiUrl && input.id) {
+    const hasOrcaShare = Boolean(input.shareId);
+    const opened = hasOrcaShare ? openOrcaBotShareDeepLink(input.shareId) : { ok: true, mode: "recipe" };
+    if (input.id) {
       const clientId = await getOrCreateClientId(orca.storage);
       const id = encodeURIComponent(String(input.id));
       void postMarketAction({ apiUrl: opts.marketApiUrl, clientId, pathSuffix: `/api/bots/${id}/hire` }).catch(() => {});

@@ -66,7 +66,8 @@ async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 6000) {
 function enrichMarketBots(bots, orcaBin) {
   const list = Array.isArray(bots) ? bots : [];
   return list.map((b) => {
-    const shareId = parseOrcaBotShareId(b.shareId || b.shareUrl) || "";
+    const isOrcaLink = b.shareMode === "orca_link" || (Boolean(b.shareId) && !String(b.shareId).startsWith("mkt:"));
+    const shareId = isOrcaLink ? (parseOrcaBotShareId(b.shareId || b.shareUrl) || "") : "";
     let avatarDataUrl = "";
     if (b.avatarType === "emoji") {
       avatarDataUrl = renderEmojiAvatarDataUrl(b.avatarValue || "🤖", b.avatarColor || "#334155") || "";
@@ -76,10 +77,14 @@ function enrichMarketBots(bots, orcaBin) {
         renderEmojiAvatarDataUrl("🤖", b.avatarColor || "#334155") ||
         "";
     }
+    const shareCode = b.shareCode || b.id || "";
+    const marketShareUrl = b.marketShareUrl || (shareCode ? `${DEFAULT_MARKET_API_URL}/s/${shareCode}` : "");
     return {
       ...b,
+      shareMode: shareId ? "orca_link" : "recipe",
       shareId,
-      shareUrl: shareId ? `https://app.orca.dev/bots/share/${shareId}` : "",
+      shareUrl: shareId ? `https://app.orca.dev/bots/share/${shareId}` : marketShareUrl,
+      marketShareUrl,
       deepLink: shareId ? `orca://bots/share/${shareId}` : "",
       avatarDataUrl,
     };

@@ -1,7 +1,7 @@
 /**
  * Talent Market Modals:
- * 1. Bot Resume Detail Modal (full pitch, safety notice, copy share link, report, like & 1-click Hire)
- * 2. 10-Second Publish Modal (auto-fill from local Orca Bots + live share link validation)
+ * 1. Bot Resume Detail Modal (full pitch, sanitized SOUL preview, copy share link, report, like & 1-click Hire)
+ * 2. 1-Click Auto-Fill & Auto-Sanitize Publish Modal (generates live share link immediately!)
  */
 (function () {
   const SHARE_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
@@ -16,8 +16,8 @@
     { id: "ops", zh: "运维与排障", en: "Ops & Debug" },
     { id: "release", zh: "发布与自动化", en: "Release & Auto" },
     { id: "productivity", zh: "效率与日常", en: "Productivity" },
-    { id: "research", zh: "调研与内容", en: "Research" },
-    { id: "general", zh: "通用岗位", en: "General" },
+    { id: "research", zh: "规划与文档", en: "Planning & Docs" },
+    { id: "general", zh: "客服与工单", en: "Support & Triage" },
   ];
 
   function esc(s) {
@@ -37,8 +37,28 @@
     return null;
   }
 
+  function formatRedactionSummary(redactions, zh) {
+    if (!redactions) return "";
+    const c = redactions.counts || {};
+    const parts = [];
+    if (c.secrets) parts.push(zh ? `密钥/Token ×${c.secrets}` : `secrets ×${c.secrets}`);
+    if (c.paths) parts.push(zh ? `本机路径 ×${c.paths}` : `paths ×${c.paths}`);
+    if (c.emails) parts.push(zh ? `邮箱 ×${c.emails}` : `emails ×${c.emails}`);
+    if (c.ips) parts.push(zh ? `IP ×${c.ips}` : `IPs ×${c.ips}`);
+    if (c.phones) parts.push(zh ? `手机号 ×${c.phones}` : `phones ×${c.phones}`);
+    if (c.ssh) parts.push(zh ? `SSH 主机 ×${c.ssh}` : `SSH ×${c.ssh}`);
+    if (parts.length) {
+      return zh
+        ? `已自动脱敏 ${redactions.total} 处敏感信息（${parts.join("、")}），并自动跳过 MEMORY.md、memory/ 与凭据文件。`
+        : `Auto-redacted ${redactions.total} sensitive items (${parts.join(", ")}); skipped MEMORY.md, memory/ & credentials.`;
+    }
+    return zh
+      ? "未检测到敏感凭据，已自动跳过 MEMORY.md、memory/ 与聊天记录。"
+      : "No secrets detected. MEMORY.md, memory/ & chat history are always excluded.";
+  }
+
   function renderMarketDetailModal(ctx) {
-    const { bot, lang, liveWritable, engPillHtml, onLike, onHire, onCustomizeOfficial, onReport, showToast, onClose } = ctx;
+    const { bot, lang, liveWritable, engPillHtml, onLike, onHire, onCustomizeOfficial, onReport, onOpenExternal, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     if (!root || !bot) return;
     const zh = lang === "zh";
@@ -52,7 +72,7 @@
       : isVer ? (zh ? "✓ 官方精选" : "✓ Verified") : (zh ? "社区分享" : "Community");
     const tagsHtml = (bot.tags || []).map((tg) => `<span class="mkt-tag">#${esc(tg)}</span>`).join("");
 
-    const officialSpecsHtml = isOfficial
+    const specsHtml = (bot.watches || bot.doesText || bot.reports || (bot.connectors || []).length)
       ? `<div class="mkt-tpl-specs">
            ${bot.watches ? `<div><b>${zh ? "关注：" : "Watches:"}</b>${esc(bot.watches)}</div>` : ""}
            ${bot.doesText ? `<div><b>${zh ? "负责：" : "Does:"}</b>${esc(bot.doesText)}</div>` : ""}
@@ -60,6 +80,15 @@
            ${(bot.connectors || []).length ? `<div><b>${zh ? "建议连接器：" : "Connectors:"}</b>${esc(bot.connectors.join(", "))}</div>` : ""}
          </div>`
       : "";
+
+    const soulPreviewHtml = bot.soulMd
+      ? `<details class="ic-collapse" style="margin-top:8px">
+           <summary class="ic-collapse-sum">📄 ${zh ? "预览脱敏后的 SOUL.md" : "Preview sanitized SOUL.md"}</summary>
+           <pre class="mkt-soul-pre">${esc(bot.soulMd)}</pre>
+         </details>`
+      : "";
+
+    const shareLink = bot.shareUrl || bot.marketShareUrl || bot.deepLink || "";
 
     root.innerHTML = `
       <div class="card-backdrop" id="cardBackdrop">
@@ -86,23 +115,25 @@
             <span>🛡️</span>
             <span>${isOfficial
               ? (zh
-                  ? "这是 Orca 内置官方岗位模板。点击「直接弹出创建卡」将通过本机 Bot 唤起 Orca 原生创建确认卡，点击确认后才真正创建。"
-                  : "Official built-in Orca Bot template. Clicking Hire pops Orca's native Create Bot confirmation card — nothing is created until you approve.")
+                  ? "这是 Orca 内置官方岗位模板。点击「直接弹出创建卡」将唤起 Orca 原生创建确认卡，经你同意后才创建。"
+                  : "Official Orca template. Clicking Hire pops Orca's native Create Bot confirmation card.")
               : (zh
-                  ? "点击「立即招聘」将直接唤起 Orca 原生审核窗口，你可以完整查看该 Bot 的 SOUL、Skills、工具与权限后再确认入职。"
-                  : "Clicking Hire opens Orca's native Share Review dialog so you inspect its SOUL, skills, tools & permissions before creating.")}</span>
+                  ? "内容已自动脱敏。点击「立即招聘入职」会先弹出 Orca 原生审核/创建确认卡，你可以审查后再确认入职。"
+                  : "Auto-sanitized Bot listing. Clicking Hire pops Orca's native review/create confirmation card.")}</span>
           </div>
 
           <div class="om-form" style="margin-top:10px">
             <div class="ic-section-title">${zh ? "岗位职责" : "Role & Purpose"}</div>
             <div style="font-size:12.5px;line-height:1.55;color:var(--fg)">${esc(pitch)}</div>
             ${bot.description ? `<div style="font-size:11.5px;line-height:1.6;color:var(--fg-soft);white-space:pre-wrap;margin-top:6px">${esc(bot.description)}</div>` : ""}
-            ${officialSpecsHtml}
+            ${specsHtml}
+            ${soulPreviewHtml}
             ${tagsHtml ? `<div class="mkt-tags" style="margin-top:8px">${tagsHtml}</div>` : ""}
-            ${!isOfficial ? `
+            ${!isOfficial && shareLink ? `
               <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
-                <button type="button" class="mkt-btn-ghost" id="mktCopyShareBtn">🔗 ${zh ? "复制 Orca 分享链接" : "Copy Share Link"}</button>
-                ${liveWritable ? `<button type="button" class="mkt-btn-ghost" id="mktReportBtn">🚩 ${zh ? "举报失效/垃圾" : "Report Broken/Spam"}</button>` : ""}
+                <button type="button" class="mkt-btn-ghost" id="mktCopyShareBtn">🔗 ${zh ? "复制分享链接" : "Copy Share Link"}</button>
+                ${bot.marketShareUrl ? `<button type="button" class="mkt-btn-ghost" id="mktOpenPageBtn">🌐 ${zh ? "网页预览" : "Web Preview"}</button>` : ""}
+                ${liveWritable ? `<button type="button" class="mkt-btn-ghost" id="mktReportBtn">🚩 ${zh ? "举报失效/垃圾" : "Report"}</button>` : ""}
               </div>` : ""}
           </div>
 
@@ -120,16 +151,11 @@
     document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
     document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
-    document.getElementById("mktCustomizeTplBtn")?.addEventListener("click", () => {
-      onClose();
-      onCustomizeOfficial?.(bot);
-    });
+    document.getElementById("mktCustomizeTplBtn")?.addEventListener("click", () => { onClose(); onCustomizeOfficial?.(bot); });
     document.getElementById("mktCopyShareBtn")?.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(bot.shareUrl || bot.deepLink);
-        showToast(zh ? "✓ 已复制 Orca 分享链接" : "✓ Copied Orca share link", false);
-      } catch {}
+      try { await navigator.clipboard.writeText(shareLink); showToast(zh ? "✓ 已复制分享链接" : "✓ Copied share link", false); } catch {}
     });
+    document.getElementById("mktOpenPageBtn")?.addEventListener("click", () => { if (bot.marketShareUrl) onOpenExternal?.(bot.marketShareUrl); });
     document.getElementById("mktDetailLikeBtn")?.addEventListener("click", async () => {
       await onLike(bot);
       const btn = document.getElementById("mktDetailLikeBtn");
@@ -141,16 +167,48 @@
     });
     document.getElementById("mktDetailHireBtn")?.addEventListener("click", async () => {
       await onHire(bot);
-      if (isOfficial) onClose();
-    });
-    document.getElementById("mktReportBtn")?.addEventListener("click", async () => {
-      await onReport(bot);
       onClose();
     });
+    document.getElementById("mktReportBtn")?.addEventListener("click", async () => { await onReport(bot); onClose(); });
+  }
+
+  function renderPublishSuccess(root, { name, shareUrl, zh, onOpenExternal, onClose, showToast }) {
+    root.innerHTML = `
+      <div class="card-backdrop" id="cardBackdrop">
+        <div class="inspector-card om-card" data-modal-kind="marketPublish">
+          <div class="ic-head">
+            <div class="ic-av om-av">🎉</div>
+            <div class="ic-title-wrap">
+              <div class="ic-name">${zh ? "分享链接已生成并上架！" : "Share Link Created & Listed!"}</div>
+              <div class="ic-meta"><span class="ic-pill">${esc(name)}</span></div>
+            </div>
+            <button class="ic-close" id="icCloseBtn">×</button>
+          </div>
+          <div class="mkt-redact-ok">
+            <span>🛡️</span>
+            <span>${zh ? "已自动脱敏敏感信息并上架到 Bot 人才市场，你可以把下方链接直接发给同事或社区：" : "Sanitized and published to Talent Market! Share this link directly:"}</span>
+          </div>
+          <div class="mkt-share-box">
+            <input class="om-input" id="mktGeneratedUrl" type="text" readonly value="${esc(shareUrl)}" />
+            <button type="button" class="mkt-btn-primary" id="mktCopyGenBtn">📋 ${zh ? "复制链接" : "Copy"}</button>
+          </div>
+          <div class="ic-actions om-actions">
+            <button type="button" class="mkt-btn-ghost" id="mktOpenGenBtn">🌐 ${zh ? "浏览器预览" : "Open Page"}</button>
+            <button type="button" class="ic-btn secondary" id="icDismissBtn">${zh ? "完成" : "Done"}</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
+    document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
+    document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
+    document.getElementById("mktCopyGenBtn")?.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(shareUrl); showToast(zh ? "✓ 分享链接已复制到剪贴板" : "✓ Share link copied!", false); } catch {}
+    });
+    document.getElementById("mktOpenGenBtn")?.addEventListener("click", () => onOpenExternal?.(shareUrl));
   }
 
   function renderMarketPublishModal(ctx) {
-    const { localBots, lang, liveWritable, apiConfigured, onPublish, showToast, onClose } = ctx;
+    const { localBots, lang, liveWritable, apiConfigured, onPrepareLocal, onPublish, onOpenExternal, showToast, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     if (!root || root.querySelector('[data-modal-kind="marketPublish"]')) return;
     const zh = lang === "zh";
@@ -160,46 +218,45 @@
       <div class="card-backdrop" id="cardBackdrop">
         <div class="inspector-card om-card" data-modal-kind="marketPublish">
           <div class="ic-head">
-            <div class="ic-av om-av">🚀</div>
+            <img class="mkt-pub-av-prev" id="mktPubAvPrev" src="${esc(bots[0]?.avatarDataUrl || "")}" style="${bots[0]?.avatarDataUrl ? "" : "display:none"}" alt="" />
             <div class="ic-title-wrap">
-              <div class="ic-name">${zh ? "分享我的 Bot 到人才市场" : "Publish Bot to Talent Market"}</div>
-              <div class="ic-meta"><span class="ic-pill">${zh ? "只需粘贴 Orca 分享链接 · 10 秒上架" : "Paste your Orca Share Bot link · live in seconds"}</span></div>
+              <div class="ic-name">${zh ? "一键分享我的 Bot" : "1-Click Share My Bot"}</div>
+              <div class="ic-meta"><span class="ic-pill">${zh ? "自动识别填写 · 自动脱敏敏感数据 · 直接生成分享链接" : "Auto-fills metadata · Auto-redacts secrets · Generates share link"}</span></div>
             </div>
             <button class="ic-close" id="icCloseBtn">×</button>
           </div>
 
           ${!liveWritable ? `<div class="mkt-safety"><span>⚠️</span><span>${zh
-            ? (apiConfigured ? "当前处于 CDN 离线镜像只读模式（无法连通实时 API），请检查网络或代理后再发布。" : "尚未配置人才市场实时 API 地址（请在插件设置填入 marketApiUrl，部署完 Cloudflare Worker 即可一键发布）。")
-            : (apiConfigured ? "Currently in read-only CDN mirror mode. Check network/proxy to publish." : "Market API URL not configured yet (set marketApiUrl in plugin settings after deploying your Worker).")}</span></div>` : ""}
+            ? (apiConfigured ? "当前处于 CDN 离线镜像只读模式，请检查网络或代理后再发布。" : "尚未配置人才市场 API 地址。")
+            : (apiConfigured ? "Read-only CDN mirror mode — check network/proxy to publish." : "Market API URL not configured.")}</span></div>` : ""}
 
           <div class="om-form" style="margin-top:8px">
             ${bots.length ? `
               <div class="om-field">
-                <label class="om-lbl">${zh ? "⚡ 一键从本机 Bot 自动回填信息（可选）" : "⚡ Auto-fill from a local Bot (optional)"}</label>
+                <label class="om-lbl">${zh ? "⚡ 选择要分享的本机 Bot（自动识别并脱敏）" : "⚡ Pick a local Bot (auto-fills & sanitizes)"}</label>
                 <select class="om-input" id="mktLocalPick">
-                  <option value="">${zh ? "— 手动填写 —" : "— Fill manually —"}</option>
-                  ${bots.map((b, i) => `<option value="${i}">${esc(b.name)} (${esc(b.agentHint)})</option>`).join("")}
+                  ${bots.map((b, i) => `<option value="${esc(b.id)}" ${i === 0 ? "selected" : ""}>${esc(b.name)} (${esc(b.agentHint)})</option>`).join("")}
+                  <option value="__manual__">${zh ? "— 手动空白填写 —" : "— Fill manually —"}</option>
                 </select>
               </div>` : ""}
 
-            <div class="om-field">
-              <label class="om-lbl">${zh ? "Orca 分享链接 *" : "Orca Share Bot Link *"}</label>
-              <input class="om-input" id="mktShareInput" type="text" placeholder="https://app.orca.dev/bots/share/... 或 orca://bots/share/..." />
-              <div class="mkt-link-status" id="mktLinkStatus"></div>
+            <div class="mkt-redact-ok" id="mktRedactBanner">
+              <span>🛡️</span>
+              <span id="mktRedactText">${zh ? "正在自动扫描并脱敏敏感数据（MEMORY.md 与凭据文件绝不读取）…" : "Auto-scanning & redacting sensitive data (MEMORY.md & secrets excluded)…"}</span>
             </div>
 
             <div class="om-field">
               <label class="om-lbl">${zh ? "Bot 名称 *" : "Bot Name *"}</label>
-              <input class="om-input" id="mktNameInput" type="text" maxlength="48" placeholder="${zh ? "例如：PR 审查专家 / 线上排障小助手" : "e.g. PR Reviewer Pro / Incident Triage"}" />
+              <input class="om-input" id="mktNameInput" type="text" maxlength="48" placeholder="${zh ? "自动生成，可微调" : "Auto-filled, editable"}" />
             </div>
 
             <div class="om-field">
               <label class="om-lbl">${zh ? "一句话职责亮点 *" : "One-Line Pitch *"}</label>
-              <input class="om-input" id="mktPurposeInput" type="text" maxlength="160" placeholder="${zh ? "说明它最擅长解决什么问题…" : "What problem does this Bot nail?"}" />
+              <input class="om-input" id="mktPurposeInput" type="text" maxlength="160" placeholder="${zh ? "自动提取，可微调…" : "Auto-extracted from SOUL.md…"}" />
             </div>
 
             <div class="om-field">
-              <label class="om-lbl">${zh ? "岗位分类" : "Category"}</label>
+              <label class="om-lbl">${zh ? "岗位分类（已自动匹配）" : "Category (auto-matched)"}</label>
               <div class="om-chips" id="mktCatChips">
                 ${CATS.map((c, i) => `<button type="button" class="om-chip ${i === 0 ? "active" : ""}" data-mcat="${c.id}">${esc(c[lang])}</button>`).join("")}
               </div>
@@ -207,7 +264,7 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               <div class="om-field">
-                <label class="om-lbl">${zh ? "标签（逗号分隔）" : "Tags (comma-separated)"}</label>
+                <label class="om-lbl">${zh ? "标签（自动提取）" : "Tags (auto-extracted)"}</label>
                 <input class="om-input" id="mktTagsInput" type="text" placeholder="pr, ci, k8s" />
               </div>
               <div class="om-field">
@@ -217,35 +274,33 @@
             </div>
 
             <details class="ic-collapse">
-              <summary class="ic-collapse-sum">${zh ? "更多外观与详细介绍（吉祥物 / Agent / 说明）" : "Appearance & Detailed Notes (Mascot / Agent / Bio)"}</summary>
+              <summary class="ic-collapse-sum">🛡️ ${zh ? "预览 / 微调脱敏后的 SOUL.md 与可选配置" : "Preview / edit sanitized SOUL.md & options"}</summary>
               <div class="om-adv-body">
+                <div class="om-field">
+                  <label class="om-lbl">${zh ? "脱敏后的 SOUL.md（公开分享内容，可再删改）" : "Sanitized SOUL.md (public, editable)"}</label>
+                  <textarea class="om-textarea" id="mktSoulInput" rows="6" maxlength="12000"></textarea>
+                </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
                   <div class="om-field">
                     <label class="om-lbl">${zh ? "推荐 Agent" : "Agent"}</label>
                     <select class="om-input" id="mktAgentSelect">
-                      <option value="claude">Claude</option>
-                      <option value="antigravity">Antigravity</option>
-                      <option value="codex">Codex</option>
-                      <option value="pi">Pi</option>
-                      <option value="gemini">Gemini</option>
+                      <option value="claude">Claude</option><option value="antigravity">Antigravity</option>
+                      <option value="codex">Codex</option><option value="pi">Pi</option><option value="gemini">Gemini</option>
                     </select>
                   </div>
                   <div class="om-field">
                     <label class="om-lbl">${zh ? "吉祥物" : "Mascot"}</label>
-                    <select class="om-input" id="mktMascotSelect">
-                      ${MASCOT_IDS.map((m) => `<option value="${m}">${m}</option>`).join("")}
-                    </select>
+                    <select class="om-input" id="mktMascotSelect">${MASCOT_IDS.map((m) => `<option value="${m}">${m}</option>`).join("")}</select>
                   </div>
                   <div class="om-field">
                     <label class="om-lbl">${zh ? "底色" : "Color"}</label>
-                    <select class="om-input" id="mktColorSelect">
-                      ${COLORS.map((c) => `<option value="${c}">${c}</option>`).join("")}
-                    </select>
+                    <select class="om-input" id="mktColorSelect">${COLORS.map((c) => `<option value="${c}">${c}</option>`).join("")}</select>
                   </div>
                 </div>
                 <div class="om-field">
-                  <label class="om-lbl">${zh ? "详细使用说明（可选）" : "Detailed Setup / Usage Notes (optional)"}</label>
-                  <textarea class="om-textarea" id="mktDescInput" rows="3" maxlength="1200" placeholder="${zh ? "适配仓库类型、依赖的连接器或 Skills 说明…" : "Best suited workflows, required connectors or skills…"}"></textarea>
+                  <label class="om-lbl">${zh ? "关联 Orca 官方 Share 链接（可选，留空自动生成分享链接）" : "Optional Orca Share Link (leave blank to auto-generate)"}</label>
+                  <input class="om-input" id="mktShareInput" type="text" placeholder="https://app.orca.dev/bots/share/..." />
+                  <div class="mkt-link-status" id="mktLinkStatus"></div>
                 </div>
               </div>
             </details>
@@ -253,7 +308,7 @@
 
           <div class="ic-actions om-actions">
             <button type="button" class="ic-btn secondary" id="icDismissBtn">${zh ? "取消" : "Cancel"}</button>
-            <button type="button" class="mkt-btn-primary" id="mktSubmitPubBtn" ${liveWritable ? "" : "disabled"}>🚀 ${zh ? "立即上架到人才市场" : "Publish Now"}</button>
+            <button type="button" class="mkt-btn-primary" id="mktSubmitPubBtn" ${liveWritable ? "" : "disabled"}>⚡ ${zh ? "一键生成分享链接并上架" : "Generate Share Link & Publish"}</button>
           </div>
         </div>
       </div>`;
@@ -261,17 +316,57 @@
     let selectedCat = "dev";
     let pickedAvatarType = "mascot";
     let pickedAvatarValue = "A1";
+    let pickedSkills = [];
+
+    const setCat = (catId) => {
+      selectedCat = catId || "general";
+      root.querySelectorAll("[data-mcat]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-mcat") === selectedCat));
+    };
+
+    const applyDraft = (draft) => {
+      if (!draft) return;
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ""; };
+      setVal("mktNameInput", draft.name);
+      setVal("mktPurposeInput", draft.purpose);
+      setVal("mktTagsInput", (draft.tags || []).join(", "));
+      setVal("mktSoulInput", draft.soulMd);
+      setCat(draft.category || "general");
+      pickedSkills = draft.skills || [];
+      pickedAvatarType = draft.avatarType || "mascot";
+      pickedAvatarValue = draft.avatarValue || "A1";
+      const agEl = document.getElementById("mktAgentSelect");
+      if (agEl && [...agEl.options].some((o) => o.value === draft.agentHint)) agEl.value = draft.agentHint;
+      const msEl = document.getElementById("mktMascotSelect");
+      if (msEl && pickedAvatarType === "mascot" && MASCOT_IDS.includes(pickedAvatarValue)) msEl.value = pickedAvatarValue;
+      const clEl = document.getElementById("mktColorSelect");
+      if (clEl && COLORS.includes(draft.avatarColor)) clEl.value = draft.avatarColor;
+      const prevEl = document.getElementById("mktPubAvPrev");
+      if (prevEl && draft.avatarDataUrl) { prevEl.src = draft.avatarDataUrl; prevEl.style.display = "block"; }
+      const redEl = document.getElementById("mktRedactText");
+      if (redEl) redEl.textContent = formatRedactionSummary(draft.redactions, zh);
+    };
+
+    const loadBotDraft = async (botId) => {
+      if (!botId || botId === "__manual__") {
+        const redEl = document.getElementById("mktRedactText");
+        if (redEl) redEl.textContent = zh ? "手动填写模式：提交时服务端仍会自动检查并脱敏敏感信息。" : "Manual mode: server still redacts sensitive data on publish.";
+        return;
+      }
+      if (!onPrepareLocal) return;
+      try {
+        const draft = await onPrepareLocal(botId);
+        applyDraft(draft);
+      } catch (err) {
+        const redEl = document.getElementById("mktRedactText");
+        if (redEl) redEl.textContent = String(err?.message || err);
+      }
+    };
 
     document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
     document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
-
-    root.querySelectorAll("[data-mcat]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        selectedCat = btn.getAttribute("data-mcat") || "general";
-        root.querySelectorAll("[data-mcat]").forEach((b) => b.classList.toggle("active", b === btn));
-      });
-    });
+    root.querySelectorAll("[data-mcat]").forEach((btn) => btn.addEventListener("click", () => setCat(btn.getAttribute("data-mcat"))));
+    document.getElementById("mktLocalPick")?.addEventListener("change", (e) => void loadBotDraft(e.target.value));
 
     const shareInp = document.getElementById("mktShareInput");
     const statusEl = document.getElementById("mktLinkStatus");
@@ -279,51 +374,32 @@
       const val = shareInp.value.trim();
       if (!val) { statusEl.textContent = ""; statusEl.className = "mkt-link-status"; return; }
       const sid = parseShareId(val);
-      if (sid) {
-        statusEl.textContent = zh ? `✓ 识别到有效 Orca 分享 ID：${sid}` : `✓ Valid Orca share ID: ${sid}`;
-        statusEl.className = "mkt-link-status ok";
-      } else {
-        statusEl.textContent = zh ? "✕ 请粘贴 Orca 的 Share Bot 链接（app.orca.dev/bots/share/...）" : "✕ Paste a valid Orca Share Bot link (app.orca.dev/bots/share/...)";
-        statusEl.className = "mkt-link-status bad";
-      }
-    });
-
-    document.getElementById("mktLocalPick")?.addEventListener("change", (e) => {
-      const idx = e.target.value;
-      if (idx === "") return;
-      const b = bots[Number(idx)];
-      if (!b) return;
-      const nameEl = document.getElementById("mktNameInput");
-      const purpEl = document.getElementById("mktPurposeInput");
-      const agEl = document.getElementById("mktAgentSelect");
-      const msEl = document.getElementById("mktMascotSelect");
-      const clEl = document.getElementById("mktColorSelect");
-      if (nameEl) nameEl.value = b.name || "";
-      if (purpEl && b.purpose) purpEl.value = b.purpose;
-      if (agEl && [...agEl.options].some((o) => o.value === b.agentHint)) agEl.value = b.agentHint;
-      pickedAvatarType = b.avatarType || "mascot";
-      pickedAvatarValue = b.avatarValue || "A1";
-      if (msEl && pickedAvatarType === "mascot" && MASCOT_IDS.includes(pickedAvatarValue)) msEl.value = pickedAvatarValue;
-      if (clEl && COLORS.includes(b.avatarColor)) clEl.value = b.avatarColor;
+      statusEl.textContent = sid
+        ? (zh ? `✓ 识别到 Orca 分享 ID：${sid}` : `✓ Valid Orca share ID: ${sid}`)
+        : (zh ? "✕ 格式无效（留空可自动生成分享链接）" : "✕ Invalid format (leave empty to auto-generate)");
+      statusEl.className = `mkt-link-status ${sid ? "ok" : "bad"}`;
     });
 
     document.getElementById("mktSubmitPubBtn")?.addEventListener("click", async () => {
       const shareUrl = String(shareInp?.value || "").trim();
-      const shareId = parseShareId(shareUrl);
+      if (shareUrl && !parseShareId(shareUrl)) {
+        showToast(zh ? "可选 Orca 分享链接格式无效，请修正或留空" : "Invalid optional Orca link — fix or leave blank", true);
+        return;
+      }
       const name = String(document.getElementById("mktNameInput")?.value || "").trim();
       const purpose = String(document.getElementById("mktPurposeInput")?.value || "").trim();
-      if (!shareId) { showToast(zh ? "请先粘贴有效的 Orca 分享链接" : "Please enter a valid Orca share link", true); shareInp?.focus(); return; }
       if (name.length < 2) { showToast(zh ? "请填写 Bot 名称（至少 2 个字）" : "Enter a Bot name (min 2 chars)", true); return; }
-      if (purpose.length < 4) { showToast(zh ? "请填写一句话职责亮点" : "Enter a one-line purpose", true); return; }
+      if (purpose.length < 4) { showToast(zh ? "请填写一句话职责亮点" : "Enter a one-line pitch", true); return; }
 
       const btn = document.getElementById("mktSubmitPubBtn");
-      if (btn) btn.disabled = true;
+      if (btn) { btn.disabled = true; btn.textContent = zh ? "⏳ 正在脱敏并生成链接…" : "⏳ Generating share link…"; }
       try {
-        await onPublish({
+        const res = await onPublish({
           shareUrl,
           name,
           purpose,
-          description: String(document.getElementById("mktDescInput")?.value || "").trim(),
+          soulMd: String(document.getElementById("mktSoulInput")?.value || "").trim(),
+          skills: pickedSkills,
           category: selectedCat,
           tags: String(document.getElementById("mktTagsInput")?.value || "").trim(),
           agentHint: String(document.getElementById("mktAgentSelect")?.value || "claude"),
@@ -332,15 +408,25 @@
           avatarColor: String(document.getElementById("mktColorSelect")?.value || "#b3dbf4"),
           authorName: String(document.getElementById("mktAuthorInput")?.value || "").trim() || "Community",
         });
-        showToast(zh ? `✓「${name}」已成功上架到人才市场！` : `✓ "${name}" published to Talent Market!`, false);
-        onClose();
+        const generatedUrl = res?.shareUrl || res?.marketShareUrl || res?.bot?.shareUrl || "";
+        if (generatedUrl) {
+          renderPublishSuccess(root, { name, shareUrl: generatedUrl, zh, onOpenExternal, onClose, showToast });
+        } else {
+          showToast(zh ? `✓「${name}」已上架到人才市场！` : `✓ "${name}" published!`, false);
+          onClose();
+        }
       } catch (err) {
         showToast(String(err?.message || err), true);
-        if (btn) btn.disabled = false;
+        if (btn) { btn.disabled = false; btn.textContent = zh ? "⚡ 一键生成分享链接并上架" : "⚡ Generate Share Link & Publish"; }
       }
     });
 
-    shareInp?.focus();
+    if (bots.length) {
+      void loadBotDraft(bots[0].id);
+    } else {
+      const redEl = document.getElementById("mktRedactText");
+      if (redEl) redEl.textContent = zh ? "填写信息后点击下方按钮，自动脱敏并直接生成公开分享链接。" : "Fill in details and click below to auto-sanitize and generate a share link.";
+    }
   }
 
   window.OfficeMarketModals = { renderMarketDetailModal, renderMarketPublishModal };
