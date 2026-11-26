@@ -111,7 +111,7 @@ function loadMascotAssetIndex(orcaBin = "") {
   return cachedMascotIndex;
 }
 
-function renderMascotAvatarDataUrl(mascotId, avatarColor, orcaBin = "") {
+export function renderMascotAvatarDataUrl(mascotId, avatarColor, orcaBin = "") {
   const bg = normalizeHexColor(avatarColor, DEFAULT_MASCOT_BG);
   const cacheKey = `mascot:${mascotId}:${bg}`;
   const cached = avatarMemoryCache.get(cacheKey);
@@ -148,7 +148,7 @@ function renderMascotAvatarDataUrl(mascotId, avatarColor, orcaBin = "") {
   return null;
 }
 
-function renderEmojiAvatarDataUrl(emoji, avatarColor) {
+export function renderEmojiAvatarDataUrl(emoji, avatarColor) {
   const bg = normalizeHexColor(avatarColor, "#334155");
   const cacheKey = `emoji:${emoji}:${bg}`;
   const cached = avatarMemoryCache.get(cacheKey);

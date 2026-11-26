@@ -467,43 +467,23 @@ function findCardTarget() {
 }
 
 function renderModal() {
+  const closeModal = () => { openCard = null; renderModal(); };
+  if (marketCtrl.renderModalIfMatch(openCard, closeModal)) return;
   if (openCard?.kind === "hire") {
     window.OfficeModals.renderHireModal({
-      snapshot,
-      tr: t(),
-      hireBot,
-      showToast,
-      onClose: () => { openCard = null; renderModal(); },
+      snapshot, tr: t(), hireBot, showToast,
+      onOpenMarket: () => { viewMode = "market"; render(); void marketCtrl.load(false); },
+      onClose: closeModal,
     });
     return;
   }
   if (openCard?.kind === "ownerDesk") {
-    window.OfficeModals.renderOwnerAvatarModal({
-      snapshot,
-      avatars,
-      tr: t(),
-      saveOwnerAvatar,
-      showToast,
-      onClose: () => { openCard = null; renderModal(); },
-    });
+    window.OfficeModals.renderOwnerAvatarModal({ snapshot, avatars, tr: t(), saveOwnerAvatar, showToast, onClose: closeModal });
     return;
   }
   window.OfficeInspector.renderModal({
-    target: findCardTarget(),
-    avatars,
-    tr: t(),
-    now: Date.now(),
-    engPillHtml,
-    miniRobotBadgeHtml,
-    isStalled,
-    fmtDur,
-    relTime,
-    openWorkspace,
-    openTasksView,
-    openExternalUrl,
-    sendDecision,
-    showToast,
-    onClose: () => { openCard = null; renderModal(); },
+    target: findCardTarget(), avatars, tr: t(), now: Date.now(), engPillHtml, miniRobotBadgeHtml, isStalled, fmtDur, relTime,
+    openWorkspace, openTasksView, openExternalUrl, sendDecision, showToast, onClose: closeModal,
     onSwitchWorker: (wid) => { openCard = { kind: "worker", worktreeId: wid }; renderModal(); },
     onRerender: () => renderModal(),
   });
@@ -618,6 +598,8 @@ function render() {
   document.getElementById("viewOfficeBtn").classList.toggle("active", viewMode === "office");
   document.getElementById("viewDashBtn").classList.toggle("active", viewMode === "dashboard");
   document.getElementById("viewListBtn").classList.toggle("active", viewMode === "list");
+  document.getElementById("viewMarketBtn")?.classList.toggle("active", viewMode === "market");
+  marketCtrl.updateTopBadge();
 
   if (!snapshot) return;
   const s = snapshot.summary || {};
@@ -634,35 +616,32 @@ function render() {
   const officeWrap = document.getElementById("officeView");
   const dashWrap = document.getElementById("dashView");
   const listWrap = document.getElementById("listView");
+  const marketWrap = document.getElementById("marketView");
   const legendEl = document.getElementById("legendBar");
 
-  if (viewMode === "dashboard") {
-    officeWrap.style.display = "none";
-    listWrap.style.display = "none";
-    dashWrap.style.display = "block";
-    legendEl.style.display = "none";
+  if (viewMode === "market") {
+    officeWrap.style.display = "none"; dashWrap.style.display = "none"; listWrap.style.display = "none";
+    marketWrap.style.display = "flex"; legendEl.style.display = "none";
+    towerMgr.pause();
+    marketCtrl.renderView();
+  } else if (viewMode === "dashboard") {
+    officeWrap.style.display = "none"; listWrap.style.display = "none"; marketWrap.style.display = "none";
+    dashWrap.style.display = "block"; legendEl.style.display = "none";
     towerMgr.pause();
     dashWrap.innerHTML = window.OfficeDashboard.renderDashboardHtml(
-      analytics,
-      avatars,
-      engPillHtml,
-      tr,
-      { engineFilter, searchQuery, activeOnly },
+      analytics, avatars, engPillHtml, tr, { engineFilter, searchQuery, activeOnly },
       { modules: getMergedDashMods(), category: dashCategory, switchOpen: dashSwitchOpen, relTime }
     );
     bindDomClickHandlers(dashWrap);
   } else if (viewMode === "list") {
-    officeWrap.style.display = "none";
-    dashWrap.style.display = "none";
-    listWrap.style.display = "block";
-    legendEl.style.display = "flex";
+    officeWrap.style.display = "none"; dashWrap.style.display = "none"; marketWrap.style.display = "none";
+    listWrap.style.display = "block"; legendEl.style.display = "flex";
     towerMgr.pause();
     renderListView(bots);
   } else {
-    officeWrap.style.display = "block";
-    dashWrap.style.display = "none";
-    listWrap.style.display = "none";
-    legendEl.style.display = "flex";
+    officeWrap.style.display = "block"; dashWrap.style.display = "none"; listWrap.style.display = "none";
+    marketWrap.style.display = "none"; legendEl.style.display = "flex";
+    marketCtrl.renderLobby();
     renderTower(bots);
   }
 
@@ -734,16 +713,26 @@ async function loadAnalytics(force = false) {
   }
 }
 
-document.getElementById("viewOfficeBtn").addEventListener("click", () => { viewMode = "office"; render(); });
-document.getElementById("viewDashBtn").addEventListener("click", () => {
-  viewMode = "dashboard";
-  render();
-  void loadAnalytics(!analytics);
+const marketCtrl = window.OfficeMarket.createController({
+  orcaApi, getLang, engPillHtml, showToast,
+  setViewMode: (m) => { viewMode = m; render(); },
+  openLocalHire: () => { openCard = { kind: "hire" }; renderModal(); },
+  setOpenCard: (c) => { openCard = c; renderModal(); },
+  renderApp: () => render(),
 });
+
+document.getElementById("viewOfficeBtn").addEventListener("click", () => { viewMode = "office"; render(); });
+document.getElementById("viewDashBtn").addEventListener("click", () => { viewMode = "dashboard"; render(); void loadAnalytics(!analytics); });
 document.getElementById("viewListBtn").addEventListener("click", () => { viewMode = "list"; render(); });
+document.getElementById("viewMarketBtn")?.addEventListener("click", () => {
+  viewMode = viewMode === "market" ? "office" : "market";
+  render();
+  if (viewMode === "market") void marketCtrl.load(false);
+});
 document.getElementById("refreshBtn").addEventListener("click", () => {
   void loadAll(true);
   if (viewMode === "dashboard") void loadAnalytics(true);
+  if (viewMode === "market") void marketCtrl.load(true);
 });
 document.getElementById("hireBotBtn").addEventListener("click", () => {
   openCard = { kind: "hire" };
@@ -787,10 +776,11 @@ if (orcaApi?.on) {
   });
 }
 
-window.__botOfficeInjectMock = (mockSnap, mockAvatars = {}, mockAnalytics = null) => {
+window.__botOfficeInjectMock = (mockSnap, mockAvatars = {}, mockAnalytics = null, mockMarket = null) => {
   snapshot = mockSnap;
   avatars = mockAvatars;
   if (mockAnalytics) analytics = mockAnalytics;
+  if (mockMarket) marketCtrl.injectMock(mockMarket);
   towerMgr.setAvatars(mockAvatars);
   render();
 };
@@ -798,3 +788,4 @@ window.__botOfficeOpenCard = (cardSpec) => { openCard = cardSpec; renderModal();
 window.__botOfficeSetView = (mode) => { viewMode = mode; render(); };
 
 void loadAll(false);
+void marketCtrl.load(false);

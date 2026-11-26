@@ -67,7 +67,7 @@
   }
 
   function renderHireModal(ctx) {
-    const { snapshot, tr, hireBot, showToast, onClose } = ctx;
+    const { snapshot, tr, hireBot, showToast, onOpenMarket, onClose } = ctx;
     const root = document.getElementById("modalRoot");
     if (root?.querySelector('[data-modal-kind="hire"]')) return;
     const bots = snapshot?.bots || [];
@@ -106,6 +106,14 @@
           </div>
 
           <div class="om-form">
+            ${onOpenMarket ? `
+              <button type="button" class="om-market-bridge" id="hireOpenMarketBtn">
+                <div>
+                  <div class="om-mb-title">🏪 ${lang === "zh" ? "不想从零配？逛逛 Bot 人才市场" : "Skip setup — browse Bot Talent Market"}</div>
+                  <div class="om-mb-sub">${lang === "zh" ? "一键招聘社区现成 Bot，原生安全审核直接入职" : "1-click hire ready-made community Bots via Orca Share Review"}</div>
+                </div>
+                <span class="om-mb-go">${lang === "zh" ? "去逛逛 →" : "Browse →"}</span>
+              </button>` : ""}
             ${botSelectSection}
 
             <div class="om-field">
@@ -166,6 +174,7 @@
     document.getElementById("cardBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "cardBackdrop") onClose(); });
     document.getElementById("icCloseBtn")?.addEventListener("click", onClose);
     document.getElementById("icDismissBtn")?.addEventListener("click", onClose);
+    document.getElementById("hireOpenMarketBtn")?.addEventListener("click", () => { onClose(); onOpenMarket?.(); });
 
     root.querySelectorAll("[data-tpl]").forEach((btn) => {
       btn.addEventListener("click", () => {

@@ -2,6 +2,12 @@ import { spawn } from "node:child_process";
 import { collectOfficeAnalytics } from "./orca-analytics.mjs";
 import { collectBotAvatars } from "./orca-avatars.mjs";
 import {
+  fetchMarketCatalog,
+  getOrCreateClientId,
+  openOrcaBotShareDeepLink,
+  postMarketAction,
+} from "./orca-market.mjs";
+import {
   buildExecEnv,
   collectOfficeSnapshot,
   computeSnapshotHash,
@@ -52,6 +58,7 @@ export default function activate(orca) {
     const ownerAvatarMode = String((await orca.settings?.get?.("ownerAvatarMode").catch(() => "empty")) || "empty");
     const ownerAvatarPath = String((await orca.settings?.get?.("ownerAvatarPath").catch(() => "")) || "");
     const hrBotName = String((await orca.settings?.get?.("hrBotName").catch(() => "")) || "");
+    const marketApiUrl = String((await orca.settings?.get?.("marketApiUrl").catch(() => "")) || "");
     const dashModules = {
       tokenDetails: (await orca.settings?.get?.("dashShowTokenDetails").catch(() => true)) !== false,
       branchChats: (await orca.settings?.get?.("dashShowBranchChats").catch(() => true)) !== false,
@@ -68,6 +75,7 @@ export default function activate(orca) {
       ownerAvatarMode,
       ownerAvatarPath,
       hrBotName,
+      marketApiUrl,
       dashModules,
     };
   }
@@ -111,6 +119,7 @@ export default function activate(orca) {
           language: opts.language,
           ownerAvatarMode: opts.ownerAvatarMode,
           hrBotName: opts.hrBotName,
+          marketApiUrl: opts.marketApiUrl,
           dashModules: opts.dashModules,
         };
         const hash = computeSnapshotHash(snap);
@@ -305,6 +314,62 @@ export default function activate(orca) {
       return await orca.host.call("commands.run", { action: "view.tasks" });
     }
     return { ran: false };
+  });
+
+  orca.panels.handle("office.getMarket", async (input = {}) => {
+    const opts = await readOptions();
+    const clientId = await getOrCreateClientId(orca.storage);
+    const extraBotPaths = Array.isArray(latestSnapshot?.bots)
+      ? latestSnapshot.bots.map((b) => b.path).filter(Boolean)
+      : [];
+    return await fetchMarketCatalog({
+      apiUrl: opts.marketApiUrl,
+      clientId,
+      orcaBin,
+      force: Boolean(input.force),
+      extraBotPaths,
+    });
+  });
+
+  orca.panels.handle("office.marketPublish", async (input = {}) => {
+    const opts = await readOptions();
+    const clientId = await getOrCreateClientId(orca.storage);
+    return await postMarketAction({
+      apiUrl: opts.marketApiUrl,
+      clientId,
+      pathSuffix: "/api/bots",
+      body: input,
+    });
+  });
+
+  orca.panels.handle("office.marketLike", async (input = {}) => {
+    const opts = await readOptions();
+    const clientId = await getOrCreateClientId(orca.storage);
+    const id = encodeURIComponent(String(input.id || ""));
+    return await postMarketAction({ apiUrl: opts.marketApiUrl, clientId, pathSuffix: `/api/bots/${id}/like` });
+  });
+
+  orca.panels.handle("office.marketHire", async (input = {}) => {
+    const opts = await readOptions();
+    const opened = openOrcaBotShareDeepLink(input.shareId || input.shareUrl);
+    if (opts.marketApiUrl && input.id) {
+      const clientId = await getOrCreateClientId(orca.storage);
+      const id = encodeURIComponent(String(input.id));
+      void postMarketAction({ apiUrl: opts.marketApiUrl, clientId, pathSuffix: `/api/bots/${id}/hire` }).catch(() => {});
+    }
+    return opened;
+  });
+
+  orca.panels.handle("office.marketReport", async (input = {}) => {
+    const opts = await readOptions();
+    const clientId = await getOrCreateClientId(orca.storage);
+    const id = encodeURIComponent(String(input.id || ""));
+    return await postMarketAction({
+      apiUrl: opts.marketApiUrl,
+      clientId,
+      pathSuffix: `/api/bots/${id}/report`,
+      body: { reason: input.reason || "broken_or_spam" },
+    });
   });
 
   orca.panels.handle("office.sendDecision", async (input = {}) => {

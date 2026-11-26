@@ -4,7 +4,7 @@
   "execution": "trusted-worker",
   "id": "bot-office",
   "name": "Bot Office",
-  "version": "0.15.2",
+  "version": "0.16.0",
   "description": "Ultra-lightweight illustrated 2.5D office tower, interactive in-card decision replies & SVG team workload analytics dashboard in Orca's right sidebar.",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -132,6 +132,12 @@
       {
         "key": "hrBotName",
         "title": "Preferred HR / Bot-Creator Bot Name (blank = auto-detect)",
+        "type": "string",
+        "default": ""
+      },
+      {
+        "key": "marketApiUrl",
+        "title": "Talent Market API URL (Cloudflare Worker or custom registry; auto-falls back to CDN mirror)",
         "type": "string",
         "default": ""
       },

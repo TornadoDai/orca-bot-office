@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bot Office</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./market.css" />
 </head>
 <body>
   <div class="topbar">
@@ -27,6 +28,7 @@
           <button class="seg-btn" id="viewDashBtn"></button>
           <button class="seg-btn" id="viewListBtn"></button>
         </div>
+        <button class="market-cta-btn" id="viewMarketBtn" type="button">🏪 <span id="viewMarketLbl">人才市场</span><span class="market-cta-cnt" id="viewMarketCnt" style="display:none">0</span></button>
         <input class="search-box" id="searchInput" type="search" />
         <select class="eng-select" id="engFilter">
           <option value="all">All</option>
@@ -45,10 +47,12 @@
   </div>
 
   <div id="officeView">
+    <div id="marketLobbyBanner"></div>
     <div class="tower" id="towerRoot"></div>
   </div>
   <div id="dashView" style="display:none"></div>
   <div id="listView" style="display:none"></div>
+  <div id="marketView" style="display:none"></div>
   <div class="legend" id="legendBar"></div>
   <div class="guest-bar" id="guestBar" style="display:none"></div>
   <div id="modalRoot"></div>
@@ -63,6 +67,8 @@
   <script src="./dashboard.js"></script>
   <script src="./inspector-card.js"></script>
   <script src="./office-modals.js"></script>
+  <script src="./market-modals.js"></script>
+  <script src="./market.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
